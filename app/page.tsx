@@ -23,8 +23,8 @@ const posts: Post[] = [
     id: 2,
     userName: "miharu_0529",
     createdAt: new Date().toISOString(),
-    cookingPhoto: "/images/finished_2.jpg",
-    finishedPhoto: "/vercel.svg",
+    cookingPhoto: "/images/cooking_2.jpg",
+    finishedPhoto: "/images/finished_2.jpg",
   },
 ];
 
@@ -38,7 +38,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#f7b18f] pb-28">
-      <header className="relative bg-[#6b2f13] text-white px-5 pt-6 pb-5 rounded-b-[32px] shadow-md">
+      <header className="sticky top-0 z-50 bg-[#6b2f13] text-white px-5 pt-6 pb-5 rounded-b-[32px] shadow-md">
         <p className="text-sm opacity-90">今日の献立 ....</p>
 
         <button
@@ -66,10 +66,8 @@ export default function Home() {
               {post.userName}
             </div>
 
-            <div className="bg-[#f7b18f] px-4 py-4 grid grid-cols-3 gap-3">
-              <PhotoBox label="準備" src={post.prepPhoto} onClick={setSelectedImage} />
-              <PhotoBox label="調理" src={post.cookingPhoto} onClick={setSelectedImage} />
-              <PhotoBox label="完成" src={post.finishedPhoto} onClick={setSelectedImage} />
+            <div className="bg-[#f7b18f] px-4 py-5">
+              <StackedPhotos post={post} onClick={setSelectedImage} />
             </div>
 
             <div className="h-9 bg-[#8a4728]" />
@@ -82,7 +80,7 @@ export default function Home() {
       {selectedImage && (
         <div
           onClick={() => setSelectedImage(null)}
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6"
+          className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center p-6"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -91,12 +89,51 @@ export default function Home() {
             <img
               src={selectedImage}
               alt="拡大画像"
-              className="w-full max-h-[70vh] object-contain rounded-xl"
+              className="w-full max-h-[80vh] object-contain rounded-xl"
             />
           </div>
         </div>
       )}
     </main>
+  );
+}
+
+function StackedPhotos({
+  post,
+  onClick,
+}: {
+  post: Post;
+  onClick: (src: string) => void;
+}) {
+  const photos = [
+    {
+      label: "準備",
+      src: post.prepPhoto,
+      className: "left-2 top-8 rotate-[-8deg] z-10",
+    },
+    {
+      label: "調理",
+      src: post.cookingPhoto,
+      className: "left-1/2 -translate-x-1/2 top-0 rotate-[2deg] z-20",
+    },
+    {
+      label: "完成",
+      src: post.finishedPhoto,
+      className: "right-2 top-8 rotate-[8deg] z-30",
+    },
+  ];
+
+  return (
+    <div className="relative h-64 z-0">
+      {photos.map((photo) => (
+        <div
+          key={photo.label}
+          className={`absolute w-[42%] aspect-[3/4] ${photo.className}`}
+        >
+          <PhotoBox label={photo.label} src={photo.src} onClick={onClick} />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -111,46 +148,50 @@ function PhotoBox({
 }) {
   if (!src) {
     return (
-      <div className="aspect-[3/4] rounded-xl border-2 border-white/70 bg-white/20 flex items-center justify-center text-white text-sm font-bold">
+      <div className="w-full h-full rounded-xl border-2 border-dashed border-white/70 bg-white/20 flex items-center justify-center text-white text-sm font-bold">
         {label}
       </div>
     );
   }
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onClick(src)}
-      className="aspect-[3/4] rounded-xl overflow-hidden bg-white shadow"
+      onPointerUp={() => onClick(src)}
+      className="w-full h-full rounded-xl overflow-hidden bg-white shadow cursor-pointer touch-manipulation select-none"
     >
       <img
         src={src}
         alt={label}
-        className="w-full h-full object-contain p-4"
+        draggable={false}
+        className="w-full h-full object-cover pointer-events-none select-none"
       />
-    </button>
+    </div>
   );
 }
 
 function BottomNav() {
   const items = [
-    ["⌂", "ホーム"],
-    ["👥", "友だち"],
-    ["📷", "カメラ"],
-    ["□", "カレンダー"],
-    ["≡", "記事"],
+    ["/images/home-icon.png", "ホーム"],
+    ["/images/friends-icon.png", "友だち"],
+    ["/images/camera-icon.png", "カメラ"],
+    ["/images/calendar-icon.png", "カレンダー"],
+    ["/images/article-icon.png", "記事"],
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#ffe88a] px-3 pt-3 pb-5 flex justify-around rounded-t-[32px] shadow-[0_-4px_12px_rgba(0,0,0,0.12)]">
-      {items.map(([icon, label]) => (
+    <nav className="fixed bottom-0 left-0 right-0 z-[999] bg-[#ffe88a] px-3 pt-3 pb-5 flex justify-around rounded-t-[32px] shadow-[0_-4px_12px_rgba(0,0,0,0.12)]">
+      {items.map(([iconSrc, label]) => (
         <button
           key={label}
           onClick={() => {
             if (label !== "ホーム") alert("準備中");
           }}
-          className="flex flex-col items-center text-[#f39a00] font-black"
+          className="flex flex-col items-center font-black text-[#f39a00]"
         >
-          <span className="text-3xl leading-none">{icon}</span>
+          <img src={iconSrc} alt={label} className="w-8 h-8 object-contain" />
           <span className="text-[11px] mt-1">{label}</span>
         </button>
       ))}
