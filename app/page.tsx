@@ -124,11 +124,12 @@ function StackedPhotos({
   ];
 
   return (
-    <div className="relative h-64 z-0">
+    <div className="relative h-64 z-10">
       {photos.map((photo) => (
         <div
           key={photo.label}
-          className={`absolute w-[42%] aspect-[3/4] ${photo.className}`}
+          onClick={() => photo.src && onClick(photo.src)}
+          className={`absolute w-[42%] aspect-[3/4] cursor-pointer ${photo.className}`}
         >
           <PhotoBox label={photo.label} src={photo.src} onClick={onClick} />
         </div>
