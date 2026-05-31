@@ -2,18 +2,13 @@
 
 import { useEffect, useState } from "react";
 import CameraPost from "./camera";
+import BottomNav from "./components/BottomNav";
+import EmptyPage from "./components/EmptyPage";
+import PostCard from "./components/PostCard";
+import RecipePage from "./pages/RecipePage";
+import type { Post } from "./types/post";
 
-type Post = {
-  id: number;
-  userName: string;
-  userIcon: string;
-  createdAt: string;
-  prepPhoto?: string;
-  cookingPhoto?: string;
-  finishedPhoto?: string;
-};
-
-const APP_VERSION = "2026-05-31 15:25";
+const APP_VERSION = "2026-05-31 15:30";
 
 const posts: Post[] = [
   {
@@ -41,17 +36,22 @@ export default function Home() {
 
   useEffect(() => {
     if (currentTab !== "ホーム") return;
-  
+
     const today = new Date().toISOString().slice(0, 10);
     const saved = localStorage.getItem(`daily-cooking-photos-${today}`);
-  
+
     if (!saved) {
       setMyPost(null);
       return;
     }
-  
+
     const photos = JSON.parse(saved);
-  
+
+    if (!photos.prep && !photos.cooking && !photos.finished) {
+      setMyPost(null);
+      return;
+    }
+
     setMyPost({
       id: 999,
       userName: "あなた",
@@ -79,28 +79,10 @@ export default function Home() {
     );
   }
 
-  if (currentTab === "友だち") {
+  if (currentTab === "友だち" || currentTab === "記事") {
     return (
       <main className="min-h-screen bg-[#f7b18f] pb-28">
-        <EmptyPage title="友だち" />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      </main>
-    );
-  }
-  
-  if (currentTab === "カレンダー") {
-    return (
-      <main className="min-h-screen bg-[#f7b18f] pb-28">
-        <CalendarPage />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      </main>
-    );
-  }
-  
-  if (currentTab === "記事") {
-    return (
-      <main className="min-h-screen bg-[#f7b18f] pb-28">
-        <EmptyPage title="記事" />
+        <EmptyPage title={currentTab} />
         <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
       </main>
     );
@@ -120,38 +102,25 @@ export default function Home() {
       <div className="bg-red-600 text-white text-center text-xs py-1">
         最終更新: {APP_VERSION}
       </div>
-      <header className="sticky top-0 z-50 bg-[#6b2f13] text-white px-5 pt-6 pb-5 rounded-b-[32px] shadow-md">
-      <p className="text-sm opacity-90">今日の献立</p>
 
-      <button
-        onClick={() => setCurrentTab("レシピ")}
-        className="block w-full text-left mt-1 text-3xl font-black tracking-wider"
-      >
-        アスパラベーコン
-      </button>
+      <header className="sticky top-0 z-50 bg-[#6b2f13] text-white px-5 pt-6 pb-5 rounded-b-[32px] shadow-md">
+        <p className="text-sm opacity-90">今日の献立</p>
+
+        <button
+          onClick={() => setCurrentTab("レシピ")}
+          className="block w-full text-left mt-1 text-3xl font-black tracking-wider"
+        >
+          アスパラベーコン
+        </button>
       </header>
 
       <section className="px-4 pt-6 space-y-6">
         {visiblePosts.map((post) => (
-          <article
+          <PostCard
             key={post.id}
-            className="bg-[#8a4728] rounded-[32px] overflow-hidden shadow-lg"
-          >
-            <div className="px-5 py-3 flex items-center gap-3 text-white">
-              <img
-                src={post.userIcon}
-                alt={post.userName}
-                className="w-10 h-10 rounded-full object-cover border-2 border-white"
-              />
-              <span className="text-lg font-bold">{post.userName}</span>
-            </div>
-
-            <div className="bg-[#f7b18f] px-4 py-5">
-              <StackedPhotos post={post} onClick={setSelectedImage} />
-            </div>
-
-            <div className="h-9 bg-[#8a4728]" />
-          </article>
+            post={post}
+            onImageClick={setSelectedImage}
+          />
         ))}
       </section>
 
@@ -175,287 +144,5 @@ export default function Home() {
         </div>
       )}
     </main>
-  );
-}
-
-function StackedPhotos({
-  post,
-  onClick,
-}: {
-  post: Post;
-  onClick: (src: string) => void;
-}) {
-  const photos = [
-    {
-      label: "準備",
-      src: post.prepPhoto,
-      className: "left-2 top-8 rotate-[-8deg] z-10",
-    },
-    {
-      label: "調理",
-      src: post.cookingPhoto,
-      className: "left-1/2 -translate-x-1/2 top-0 rotate-[2deg] z-20",
-    },
-    {
-      label: "完成",
-      src: post.finishedPhoto,
-      className: "right-2 top-8 rotate-[8deg] z-30",
-    },
-  ];
-
-  return (
-    <div className="relative h-64 z-10">
-      {photos.map((photo) => (
-        <div
-          key={photo.label}
-          onClick={() => photo.src && onClick(photo.src)}
-          className={`absolute w-[42%] aspect-[3/4] cursor-pointer ${photo.className}`}
-        >
-          <PhotoBox label={photo.label} src={photo.src} onClick={onClick} />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PhotoBox({
-  src,
-  label,
-  onClick,
-}: {
-  src?: string;
-  label: string;
-  onClick: (src: string) => void;
-}) {
-  if (!src) {
-    return (
-      <div className="w-full h-full rounded-xl border-2 border-dashed border-white/70 bg-white/20 flex items-center justify-center text-white text-sm font-bold">
-        {label}
-      </div>
-    );
-  }
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => onClick(src)}
-      onPointerUp={() => onClick(src)}
-      className="w-full h-full bg-white p-2 pb-8 shadow-xl cursor-pointer touch-manipulation select-none"
-    >
-      <img
-        src={src}
-        alt={label}
-        draggable={false}
-        className="w-full h-full object-cover pointer-events-none select-none"
-      />
-    </div>
-  );
-}
-
-function EmptyPage({ title }: { title: string }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-sm bg-white/40 border-2 border-dashed border-white/70 rounded-[32px] p-8 text-center">
-        <h1 className="text-3xl font-black text-[#6b2f13]">{title}</h1>
-        <p className="mt-3 text-sm font-bold text-[#6b2f13]/70">
-          まだコンテンツはありません
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function RecipePage() {
-  return (
-    <div className="px-5 pt-6">
-      <div className="bg-[#6b2f13] text-white rounded-[32px] p-6 shadow-md">
-        <p className="text-sm opacity-90">今日の献立</p>
-        <h1 className="text-3xl font-black mt-1">アスパラベーコン</h1>
-      </div>
-
-      <section className="mt-6 bg-white/50 rounded-[32px] p-5">
-        <h2 className="text-xl font-black text-[#6b2f13]">材料</h2>
-
-        <ul className="mt-4 space-y-2 text-[#6b2f13] font-bold">
-          <li>・アスパラガス：4本</li>
-          <li>・ベーコン：4枚</li>
-          <li>・塩こしょう：少々</li>
-          <li>・油：小さじ1</li>
-        </ul>
-      </section>
-
-      <section className="mt-5 bg-white/50 rounded-[32px] p-5">
-        <h2 className="text-xl font-black text-[#6b2f13]">作り方</h2>
-
-        <ol className="mt-4 space-y-3 text-[#6b2f13] font-bold">
-          <li>1. アスパラの根元を切り、食べやすい長さに切る。</li>
-          <li>2. ベーコンでアスパラを巻く。</li>
-          <li>3. フライパンに油をひき、中火で焼く。</li>
-          <li>4. 焼き色がついたら塩こしょうで味を整える。</li>
-        </ol>
-      </section>
-
-      <section className="mt-5 bg-white/50 rounded-[32px] p-5">
-        <h2 className="text-xl font-black text-[#6b2f13]">今日のミッション</h2>
-
-        <p className="mt-3 text-[#6b2f13] font-bold">
-          準備・調理・完成の3枚を撮影して、今日の料理記録を完成させよう。
-        </p>
-      </section>
-    </div>
-  );
-}
-
-function CalendarPage() {
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const startDay = firstDay.getDay();
-  const daysInMonth = lastDay.getDate();
-
-  const days = [
-    ...Array(startDay).fill(null),
-    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
-  ];
-
-  const getDateKey = (day: number) => {
-    const mm = String(month + 1).padStart(2, "0");
-    const dd = String(day).padStart(2, "0");
-    return `${year}-${mm}-${dd}`;
-  };
-
-  const hasPost = (day: number) => {
-    const key = `daily-cooking-photos-${getDateKey(day)}`;
-    const saved = localStorage.getItem(key);
-    if (!saved) return false;
-
-    const photos = JSON.parse(saved);
-    return photos.prep || photos.cooking || photos.finished;
-  };
-
-  return (
-    <div className="px-5 pt-6">
-      <div className="bg-[#6b2f13] text-white rounded-[32px] p-6 shadow-md">
-        <p className="text-sm opacity-90">料理カレンダー</p>
-        <h1 className="text-3xl font-black mt-1">
-          {year}年 {month + 1}月
-        </h1>
-      </div>
-
-      <div className="grid grid-cols-7 gap-2 mt-6 text-center">
-        {["日", "月", "火", "水", "木", "金", "土"].map((d) => (
-          <div key={d} className="text-sm font-black text-[#6b2f13]">
-            {d}
-          </div>
-        ))}
-
-        {days.map((day, index) => {
-          if (!day) return <div key={index} />;
-
-          const posted = hasPost(day);
-          const dateKey = getDateKey(day);
-
-          return (
-            <button
-              key={dateKey}
-              onClick={() => setSelectedDate(dateKey)}
-              className={`aspect-square rounded-2xl font-black text-sm flex flex-col items-center justify-center ${
-                posted
-                  ? "bg-[#6b2f13] text-white"
-                  : "bg-white/40 text-[#6b2f13]"
-              }`}
-            >
-              <span>{day}</span>
-              {posted && <span className="text-[10px] mt-1">投稿</span>}
-            </button>
-          );
-        })}
-      </div>
-
-      {selectedDate && (
-        <CalendarDetail dateKey={selectedDate} />
-      )}
-    </div>
-  );
-}
-
-function CalendarDetail({ dateKey }: { dateKey: string }) {
-  const saved = localStorage.getItem(`daily-cooking-photos-${dateKey}`);
-  const photos = saved ? JSON.parse(saved) : {};
-
-  return (
-    <div className="mt-6 bg-white/50 rounded-[32px] p-5">
-      <h2 className="text-xl font-black text-[#6b2f13]">
-        {dateKey} の記録
-      </h2>
-
-      {!photos.prep && !photos.cooking && !photos.finished ? (
-        <p className="mt-3 text-sm font-bold text-[#6b2f13]/70">
-          この日の投稿はありません
-        </p>
-      ) : (
-        <div className="grid grid-cols-3 gap-3 mt-4">
-          <CalendarPhoto label="準備" src={photos.prep} />
-          <CalendarPhoto label="調理" src={photos.cooking} />
-          <CalendarPhoto label="完成" src={photos.finished} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CalendarPhoto({ label, src }: { label: string; src?: string }) {
-  if (!src) {
-    return (
-      <div className="aspect-[3/4] rounded-xl border-2 border-dashed border-white/70 bg-white/20 flex items-center justify-center text-[#6b2f13] text-sm font-black">
-        {label}
-      </div>
-    );
-  }
-
-  return (
-    <div className="aspect-[3/4] bg-white p-2 pb-7 shadow-xl">
-      <img src={src} alt={label} className="w-full h-full object-cover" />
-      <p className="text-[11px] font-black text-[#6b2f13] mt-1 text-center">
-        {label}
-      </p>
-    </div>
-  );
-}
-
-function BottomNav({
-  currentTab,
-  setCurrentTab,
-}: {
-  currentTab: string;
-  setCurrentTab: (tab: string) => void;
-}) {
-  const items = [
-    ["/images/home-icon.png", "ホーム"],
-    ["/images/friends-icon.png", "友だち"],
-    ["/images/camera-icon.png", "カメラ"],
-    ["/images/calendar-icon.png", "カレンダー"],
-    ["/images/article-icon.png", "記事"],
-  ];
-
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[999] bg-[#ffe88a] px-3 pt-3 pb-5 flex justify-around rounded-t-[32px] shadow-[0_-4px_12px_rgba(0,0,0,0.12)]">
-      {items.map(([iconSrc, label]) => (
-        <button
-          key={label}
-          onClick={() => setCurrentTab(label)}
-          className="flex flex-col items-center font-black text-[#f39a00]"
-        >
-          <img src={iconSrc} alt={label} className="w-8 h-8 object-contain" />
-          <span className="text-[11px] mt-1">{label}</span>
-        </button>
-      ))}
-    </nav>
   );
 }
