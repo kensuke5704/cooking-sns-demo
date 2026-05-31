@@ -12,6 +12,8 @@ type Post = {
   finishedPhoto?: string;
 };
 
+const APP_VERSION = "2026-05-31 14:49";
+
 const posts: Post[] = [
   {
     id: 1,
@@ -51,6 +53,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#f7b18f] pb-28">
+      <div className="bg-red-600 text-white text-center text-xs py-1">
+        最終更新: {APP_VERSION}
+      </div>
       <header className="sticky top-0 z-50 bg-[#6b2f13] text-white px-5 pt-6 pb-5 rounded-b-[32px] shadow-md">
         <p className="text-sm opacity-90">今日の献立 ....</p>
 

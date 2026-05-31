@@ -1,18 +1,55 @@
-import { useRef, useState } from "react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+type ShotType = "prep" | "cooking" | "finished";
+
+type DailyPhotos = {
+  prep?: string;
+  cooking?: string;
+  finished?: string;
+};
+
+const shotLabels: Record<ShotType, string> = {
+  prep: "準備",
+  cooking: "調理",
+  finished: "完成",
+};
+
+function getTodayKey() {
+  const today = new Date().toISOString().slice(0, 10);
+  return `daily-cooking-photos-${today}`;
+}
 
 export default function CameraPost() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [photo, setPhoto] = useState<string | null>(null);
+
+  const [photos, setPhotos] = useState<DailyPhotos>({});
+  const [selectedType, setSelectedType] = useState<ShotType | null>(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
 
-  const startCamera = async () => {
+  useEffect(() => {
+    const saved = localStorage.getItem(getTodayKey());
+    if (saved) {
+      setPhotos(JSON.parse(saved));
+    }
+  }, []);
+
+  const savePhotos = (nextPhotos: DailyPhotos) => {
+    setPhotos(nextPhotos);
+    localStorage.setItem(getTodayKey(), JSON.stringify(nextPhotos));
+  };
+
+  const startCamera = async (type: ShotType) => {
+    if (photos[type]) {
+      alert(`${shotLabels[type]}は本日すでに撮影済みです。`);
+      return;
+    }
+
+    setSelectedType(type);
+
     try {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        alert("このブラウザはカメラに対応していません。");
-        return;
-      }
-  
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: "environment" },
@@ -21,9 +58,9 @@ export default function CameraPost() {
         },
         audio: false,
       });
-  
+
       setIsCameraOn(true);
-  
+
       setTimeout(async () => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -36,25 +73,6 @@ export default function CameraPost() {
     }
   };
 
-  const takePhoto = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-
-    if (!video || !canvas) return;
-
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    const imageData = canvas.toDataURL("image/jpeg", 0.9);
-    setPhoto(imageData);
-    stopCamera();
-  };
-
   const stopCamera = () => {
     const video = videoRef.current;
 
@@ -65,96 +83,145 @@ export default function CameraPost() {
     }
 
     setIsCameraOn(false);
+    setSelectedType(null);
   };
 
-  const retakePhoto = () => {
-    setPhoto(null);
-    startCamera();
-  };
+  const takePhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
 
-  const postPhoto = () => {
-    if (!photo) return;
+    if (!video || !canvas || !selectedType) return;
 
-    // ここで投稿処理に接続
-    console.log("投稿する画像:", photo);
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-    alert("投稿しました！");
-    setPhoto(null);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageData = canvas.toDataURL("image/jpeg", 0.9);
+
+    const nextPhotos = {
+      ...photos,
+      [selectedType]: imageData,
+    };
+
+    savePhotos(nextPhotos);
+    stopCamera();
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#fff8dc] flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-lg p-4">
-        <h2 className="text-xl font-bold text-center mb-4">
-          今日の料理を撮影
+    <div className="w-full min-h-screen bg-[#f7b18f] pb-28 px-4 pt-6">
+      <div className="w-full max-w-md mx-auto">
+        <h2 className="text-2xl font-black text-[#6b2f13] text-center mb-2">
+          今日の料理を投稿
         </h2>
 
-        {!isCameraOn && !photo && (
-          <button
-            onClick={startCamera}
-            className="w-full bg-[#ffcf33] text-black font-bold py-3 rounded-2xl"
-          >
-            カメラを起動する
-          </button>
+        <p className="text-center text-sm font-bold text-[#6b2f13]/80 mb-6">
+          撮影するカードを選んでください
+        </p>
+
+        {!isCameraOn && (
+          <div className="bg-[#8a4728] rounded-[32px] overflow-hidden shadow-lg">
+            <div className="bg-[#f7b18f] px-4 py-5">
+              <div className="relative h-64">
+                <CameraCard
+                  label="準備"
+                  src={photos.prep}
+                  className="left-2 top-8 rotate-[-8deg] z-10"
+                  onClick={() => startCamera("prep")}
+                />
+
+                <CameraCard
+                  label="調理"
+                  src={photos.cooking}
+                  className="left-1/2 -translate-x-1/2 top-0 rotate-[2deg] z-20"
+                  onClick={() => startCamera("cooking")}
+                />
+
+                <CameraCard
+                  label="完成"
+                  src={photos.finished}
+                  className="right-2 top-8 rotate-[8deg] z-30"
+                  onClick={() => startCamera("finished")}
+                />
+              </div>
+            </div>
+
+            <div className="h-9 bg-[#8a4728]" />
+          </div>
         )}
 
         {isCameraOn && (
-          <>
+          <div className="bg-white rounded-3xl shadow-lg p-4">
+            <p className="text-center font-black text-[#6b2f13] mb-3">
+              {selectedType ? `${shotLabels[selectedType]}を撮影中` : "撮影中"}
+            </p>
+
             <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full aspect-[3/4] rounded-2xl bg-black object-cover"
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full aspect-[3/4] rounded-2xl bg-black object-cover"
             />
 
             <button
               onClick={takePhoto}
-              className="w-full mt-4 bg-black text-white font-bold py-3 rounded-2xl"
+              className="w-full mt-4 bg-[#ffcf33] text-black font-black py-3 rounded-2xl"
             >
               撮影する
             </button>
 
             <button
               onClick={stopCamera}
-              className="w-full mt-2 bg-gray-200 text-black py-3 rounded-2xl"
+              className="w-full mt-2 bg-gray-200 text-black font-bold py-3 rounded-2xl"
             >
               キャンセル
             </button>
-          </>
-        )}
-
-        {photo && (
-          <>
-            <img
-              src={photo}
-              alt="撮影した料理"
-              className="w-full rounded-2xl"
-            />
-
-            <textarea
-              placeholder="ひとことを書く"
-              className="w-full mt-4 border rounded-2xl p-3"
-            />
-
-            <button
-              onClick={postPhoto}
-              className="w-full mt-4 bg-[#ffcf33] text-black font-bold py-3 rounded-2xl"
-            >
-              投稿する
-            </button>
-
-            <button
-              onClick={retakePhoto}
-              className="w-full mt-2 bg-gray-200 text-black py-3 rounded-2xl"
-            >
-              撮り直す
-            </button>
-          </>
+          </div>
         )}
 
         <canvas ref={canvasRef} className="hidden" />
       </div>
     </div>
+  );
+}
+
+function CameraCard({
+  label,
+  src,
+  className,
+  onClick,
+}: {
+  label: string;
+  src?: string;
+  className: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`absolute w-[42%] aspect-[3/4] ${className}`}
+    >
+      {src ? (
+        <div className="w-full h-full bg-white p-2 pb-8 shadow-xl">
+          <img
+            src={src}
+            alt={label}
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
+          <p className="text-xs font-black text-[#6b2f13] mt-1 text-center">
+            {label} 済み
+          </p>
+        </div>
+      ) : (
+        <div className="w-full h-full rounded-xl border-2 border-dashed border-white/70 bg-white/20 flex items-center justify-center text-white text-sm font-black">
+          {label}
+        </div>
+      )}
+    </button>
   );
 }
