@@ -13,7 +13,7 @@ type Post = {
   finishedPhoto?: string;
 };
 
-const APP_VERSION = "2026-05-31 15:13";
+const APP_VERSION = "2026-05-31 15:19";
 
 const posts: Post[] = [
   {
@@ -121,21 +121,14 @@ export default function Home() {
         最終更新: {APP_VERSION}
       </div>
       <header className="sticky top-0 z-50 bg-[#6b2f13] text-white px-5 pt-6 pb-5 rounded-b-[32px] shadow-md">
-        <p className="text-sm opacity-90">今日の献立 ....</p>
+      <p className="text-sm opacity-90">今日の献立</p>
 
-        <button
-          onClick={() => alert("準備中")}
-          className="block w-full text-left mt-1 text-3xl font-black tracking-wider"
-        >
-          アスパラベーコン
-        </button>
-
-        <button
-          onClick={() => setCurrentTab("レシピ")}
-          className="absolute right-5 bottom-5 text-sm font-bold"
-        >
-          レシピを見る
-        </button>
+      <button
+        onClick={() => setCurrentTab("レシピ")}
+        className="block w-full text-left mt-1 text-3xl font-black tracking-wider"
+      >
+        アスパラベーコン
+      </button>
       </header>
 
       <section className="px-4 pt-6 space-y-6">
