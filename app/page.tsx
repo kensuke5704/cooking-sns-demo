@@ -18,7 +18,6 @@ const APP_VERSION = "2026-05-31 fixed";
 
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [myPost, setMyPost] = useState<Post | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [currentTab, setCurrentTab] = useState("ホーム");
   const [authVersion, setAuthVersion] = useState(0);
@@ -47,6 +46,7 @@ export default function Home() {
       data?.map((post) => ({
         id: post.id,
         userName: post.user_name,
+        userId: post.user_id,
         userIcon: post.user_icon || "/images/user1-icon.jpg",
         createdAt: post.created_at,
         prepPhoto: post.prep_photo,
@@ -59,36 +59,24 @@ export default function Home() {
     setPosts(mappedPosts);
   }
 
-  useEffect(() => {
-    if (currentTab !== "ホーム") return;
-
-    const today = new Date().toISOString().slice(0, 10);
-    const saved = localStorage.getItem(`daily-cooking-photos-${today}`);
-
-    if (!saved) {
-      setMyPost(null);
+  async function deletePost(postId: string | number) {
+    const ok = confirm("この投稿を削除しますか？");
+  
+    if (!ok) return;
+  
+    const { error } = await supabase
+      .from("posts")
+      .delete()
+      .eq("id", postId);
+  
+    if (error) {
+      console.error(error);
+      alert("削除に失敗しました");
       return;
     }
-
-    const photos = JSON.parse(saved);
-
-    if (!photos.prep && !photos.cooking && !photos.finished) {
-      setMyPost(null);
-      return;
-    }
-
-    setMyPost({
-      id: "999",
-      userName: currentUser?.name || "あなた",
-      userIcon: (currentUser as any)?.userIcon || "/images/user1-icon.jpg",
-      createdAt: new Date().toISOString(),
-      prepPhoto: photos.prep,
-      cookingPhoto: photos.cooking,
-      finishedPhoto: photos.finished,
-      dishName: photos.dishName,
-      memo: photos.memo,
-    });
-  }, [currentTab]);
+  
+    setPosts((prev) => prev.filter((post) => post.id !== postId));
+  }
 
   if (!currentUser) {
     return (
@@ -101,7 +89,14 @@ export default function Home() {
   }
 
   if (currentTab === "カメラ") {
-    return <CameraPost onBack={() => setCurrentTab("ホーム")} />;
+    return (
+      <CameraPost
+        onBack={() => {
+          setCurrentTab("ホーム");
+          loadPosts();
+        }}
+      />
+    );
   }
 
   if (currentTab === "レシピ") {
@@ -194,6 +189,7 @@ export default function Home() {
               key={post.id}
               post={post}
               onImageClick={(src) => setSelectedImage(src)}
+              onDelete={deletePost}
             />
           ))}
         </div>

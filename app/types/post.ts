@@ -8,4 +8,5 @@ export type Post = {
     finishedPhoto?: string;
     dishName?: string;
     memo?: string;
+    userId?: string;
   };

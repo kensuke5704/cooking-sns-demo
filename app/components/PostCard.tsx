@@ -9,15 +9,19 @@ import { getCurrentUser } from "../utils/auth";
 export default function PostCard({
   post,
   onImageClick,
+  onDelete,
 }: {
   post: Post;
   onImageClick: (src: string) => void;
+  onDelete?: (postId: string | number) => void;
 }) {
   const [comments, setComments] = useState<string[]>([]);
   const [commentText, setCommentText] = useState("");
   const [showComments, setShowComments] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0); 
+  const currentUser = getCurrentUser();
+  const isMyPost = currentUser?.userId === post.userId;
 
   useEffect(() => {
     loadComments();
@@ -136,9 +140,21 @@ export default function PostCard({
           </div>
         </div>
 
-        <span className="rounded-full bg-[#fff4d7] px-3 py-1 text-xs font-black text-[#f39a00]">
-          今日
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-[#fff4d7] px-3 py-1 text-xs font-black text-[#f39a00]">
+            今日
+          </span>
+
+          {isMyPost && onDelete && (
+            <button
+              type="button"
+              onClick={() => onDelete(post.id)}
+              className="rounded-full bg-red-500 px-3 py-1 text-xs font-black text-white"
+            >
+              削除
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="px-4 py-5">

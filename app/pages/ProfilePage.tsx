@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   getCurrentUser,
   updateCurrentUser,
+  logoutUser,
   type Friend,
 } from "../utils/auth";
 import { supabase } from "../utils/supabase";
@@ -18,6 +19,7 @@ export default function ProfilePage({
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendId, setFriendId] = useState("");
   const [message, setMessage] = useState("");
+  const currentUser = getCurrentUser();
 
   async function loadFriends() {
     const currentUser = getCurrentUser();
@@ -181,6 +183,25 @@ export default function ProfilePage({
               className="mt-3 w-full rounded-full bg-[#6b2f13] py-3 font-black text-white"
             >
               ユーザー名を保存
+            </button>
+            <div className="mt-4 rounded-2xl bg-[#fff4d7] px-4 py-3">
+              <p className="text-xs font-black opacity-60">
+                あなたのID
+              </p>
+
+              <p className="mt-1 text-lg font-black">
+                @{currentUser?.userId}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                logoutUser();
+                onProfileChange();
+              }}
+              className="mt-4 w-full rounded-full bg-red-500 py-3 font-black text-white"
+            >
+              ログアウト
             </button>
           </div>
         </section>
