@@ -5,6 +5,7 @@ import { useState } from "react";
 type Post = {
   id: number;
   userName: string;
+  userIcon: string;
   createdAt: string;
   prepPhoto?: string;
   cookingPhoto?: string;
@@ -15,6 +16,7 @@ const posts: Post[] = [
   {
     id: 1,
     userName: "yuuna_8899",
+    userIcon: "/images/user1-icon.jpg",
     createdAt: new Date().toISOString(),
     cookingPhoto: "/images/cooking.jpg",
     finishedPhoto: "/images/finished.jpg",
@@ -22,6 +24,7 @@ const posts: Post[] = [
   {
     id: 2,
     userName: "miharu_0529",
+    userIcon: "/images/user2-icon.jpg",
     createdAt: new Date().toISOString(),
     cookingPhoto: "/images/cooking_2.jpg",
     finishedPhoto: "/images/finished_2.jpg",
@@ -29,12 +32,22 @@ const posts: Post[] = [
 ];
 
 export default function Home() {
+  const [currentTab, setCurrentTab] = useState("ホーム");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const visiblePosts = posts.filter((post) => {
     const created = new Date(post.createdAt).getTime();
     return Date.now() - created <= 24 * 60 * 60 * 1000;
   });
+
+  if (currentTab === "カメラ") {
+    return (
+      <>
+        <CameraPost />
+        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      </>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#f7b18f] pb-28">
@@ -62,8 +75,13 @@ export default function Home() {
             key={post.id}
             className="bg-[#8a4728] rounded-[32px] overflow-hidden shadow-lg"
           >
-            <div className="px-5 py-3 text-white text-lg font-bold">
-              {post.userName}
+            <div className="px-5 py-3 flex items-center gap-3 text-white">
+              <img
+                src={post.userIcon}
+                alt={post.userName}
+                className="w-10 h-10 rounded-full object-cover border-2 border-white"
+              />
+              <span className="text-lg font-bold">{post.userName}</span>
             </div>
 
             <div className="bg-[#f7b18f] px-4 py-5">
@@ -75,7 +93,7 @@ export default function Home() {
         ))}
       </section>
 
-      <BottomNav />
+      <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
 
       {selectedImage && (
         <div
@@ -161,7 +179,7 @@ function PhotoBox({
       tabIndex={0}
       onClick={() => onClick(src)}
       onPointerUp={() => onClick(src)}
-      className="w-full h-full rounded-xl overflow-hidden bg-white shadow cursor-pointer touch-manipulation select-none"
+      className="w-full h-full bg-white p-2 pb-8 shadow-xl cursor-pointer touch-manipulation select-none"
     >
       <img
         src={src}
@@ -173,7 +191,13 @@ function PhotoBox({
   );
 }
 
-function BottomNav() {
+function BottomNav({
+  currentTab,
+  setCurrentTab,
+}: {
+  currentTab: string;
+  setCurrentTab: (tab: string) => void;
+}) {
   const items = [
     ["/images/home-icon.png", "ホーム"],
     ["/images/friends-icon.png", "友だち"],
@@ -187,9 +211,7 @@ function BottomNav() {
       {items.map(([iconSrc, label]) => (
         <button
           key={label}
-          onClick={() => {
-            if (label !== "ホーム") alert("準備中");
-          }}
+          onClick={() => setCurrentTab(label)}
           className="flex flex-col items-center font-black text-[#f39a00]"
         >
           <img src={iconSrc} alt={label} className="w-8 h-8 object-contain" />
@@ -199,3 +221,6 @@ function BottomNav() {
     </nav>
   );
 }
+
+
+import CameraPost from "./camera";
