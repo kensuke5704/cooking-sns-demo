@@ -12,31 +12,14 @@ import FriendsPage from "./pages/FriendsPage";
 import type { Post } from "./types/post";
 import { getCurrentUser } from "./utils/auth";
 import ProfilePage from "./pages/ProfilePage";
+import { supabase } from "./utils/supabase";
 
 const APP_VERSION = "2026-05-31 fixed";
-
-const posts: Post[] = [
-  {
-    id: 1,
-    userName: "yuuna_8899",
-    userIcon: "/images/user1-icon.jpg",
-    createdAt: new Date().toISOString(),
-    cookingPhoto: "/images/cooking.jpg",
-    finishedPhoto: "/images/finished.jpg",
-  },
-  {
-    id: 2,
-    userName: "miharu_0529",
-    userIcon: "/images/user2-icon.jpg",
-    createdAt: new Date().toISOString(),
-    cookingPhoto: "/images/cooking_2.jpg",
-    finishedPhoto: "/images/finished_2.jpg",
-  },
-];
 
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [myPost, setMyPost] = useState<Post | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [currentTab, setCurrentTab] = useState("ホーム");
   const [authVersion, setAuthVersion] = useState(0);
   const [currentUser, setCurrentUser] = useState<ReturnType<typeof getCurrentUser>>(null);
@@ -44,6 +27,37 @@ export default function Home() {
   useEffect(() => {
     setCurrentUser(getCurrentUser());
   }, [authVersion]);
+
+  useEffect(() => {
+    loadPosts();
+  }, []);
+  
+  async function loadPosts() {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false });
+  
+    if (error) {
+      console.error(error);
+      return;
+    }
+  
+    const mappedPosts: Post[] =
+      data?.map((post) => ({
+        id: post.id,
+        userName: post.user_name,
+        userIcon: post.user_icon || "/images/user1-icon.jpg",
+        createdAt: post.created_at,
+        prepPhoto: post.prep_photo,
+        cookingPhoto: post.cooking_photo,
+        finishedPhoto: post.finished_photo,
+        dishName: post.dish_name,
+        memo: post.memo,
+      })) || [];
+  
+    setPosts(mappedPosts);
+  }
 
   useEffect(() => {
     if (currentTab !== "ホーム") return;
@@ -64,7 +78,7 @@ export default function Home() {
     }
 
     setMyPost({
-      id: 999,
+      id: "999",
       userName: currentUser?.name || "あなた",
       userIcon: (currentUser as any)?.userIcon || "/images/user1-icon.jpg",
       createdAt: new Date().toISOString(),
@@ -130,7 +144,7 @@ export default function Home() {
     );
   }
 
-  const allPosts = myPost ? [myPost, ...posts] : posts;
+  const allPosts = posts;
 
   const visiblePosts = allPosts.filter((post) => {
     const created = new Date(post.createdAt).getTime();

@@ -97,6 +97,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     }
   
     alert("投稿しました");
+    window.location.reload();
   };
 
   const startCamera = async (type: ShotType) => {

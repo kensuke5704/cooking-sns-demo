@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import type { Post } from "../types/post";
 import StackedPhotos from "./StackedPhotos";
+import { supabase } from "../utils/supabase";
+import { getCurrentUser } from "../utils/auth";
 
 export default function PostCard({
   post,
@@ -11,42 +13,111 @@ export default function PostCard({
   post: Post;
   onImageClick: (src: string) => void;
 }) {
-  const baseLikeCount = post.id === 999 ? 0 : 12 + post.id * 7;
-
-  const likeKey = `post-like-${post.id}`;
-  const commentsKey = `post-comments-${post.id}`;
-
-  const [liked, setLiked] = useState(false);
   const [comments, setComments] = useState<string[]>([]);
   const [commentText, setCommentText] = useState("");
   const [showComments, setShowComments] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0); 
 
   useEffect(() => {
-    setLiked(localStorage.getItem(likeKey) === "true");
+    loadComments();
+    loadLikes();
+  }, [post.id]);
 
-    const savedComments = localStorage.getItem(commentsKey);
-    if (savedComments) {
-      setComments(JSON.parse(savedComments));
+  async function loadComments() {
+    const { data, error } = await supabase
+      .from("comments")
+      .select("*")
+      .eq("post_id", post.id)
+      .order("created_at", { ascending: true });
+  
+    if (error) {
+      console.error(error);
+      return;
     }
-  }, [likeKey, commentsKey]);
+  
+    setComments(data?.map((c) => c.text) || []);
+  }
 
-  const likeCount = liked ? baseLikeCount + 1 : baseLikeCount;
+  async function loadLikes() {
+    const currentUser = getCurrentUser();
+  
+    const { data, error } = await supabase
+      .from("likes")
+      .select("*")
+      .eq("post_id", post.id);
+  
+    if (error) {
+      console.error(error);
+      return;
+    }
+  
+    setLikeCount(data?.length || 0);
+  
+    if (currentUser) {
+      setLiked(data?.some((like) => like.user_id === currentUser.userId) || false);
+    }
+  }
 
-  const toggleLike = () => {
-    const nextLiked = !liked;
-    setLiked(nextLiked);
-    localStorage.setItem(likeKey, String(nextLiked));
+  const toggleLike = async () => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+  
+    if (liked) {
+      const { error } = await supabase
+        .from("likes")
+        .delete()
+        .eq("post_id", post.id)
+        .eq("user_id", currentUser.userId);
+  
+      if (error) {
+        console.error(error);
+        return;
+      }
+  
+      setLiked(false);
+      setLikeCount((v) => Math.max(0, v - 1));
+      return;
+    }
+  
+    const { error } = await supabase.from("likes").insert({
+      post_id: post.id,
+      user_id: currentUser.userId,
+    });
+  
+    if (error) {
+      console.error(error);
+      return;
+    }
+  
+    setLiked(true);
+    setLikeCount((v) => v + 1);
   };
 
-  const addComment = () => {
+  const addComment = async () => {
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) return;
+  
     if (!commentText.trim()) return;
-
-    const nextComments = [...comments, commentText.trim()];
-    setComments(nextComments);
-    localStorage.setItem(commentsKey, JSON.stringify(nextComments));
+  
+    const { error } = await supabase.from("comments").insert({
+      post_id: post.id,
+      user_id: currentUser.userId,
+      user_name: currentUser.name,
+      text: commentText.trim(),
+    });
+  
+    if (error) {
+      console.error(error);
+      alert("コメント保存失敗");
+      return;
+    }
+  
     setCommentText("");
+    await loadComments();
   };
-
+  
   return (
     <article className="overflow-hidden rounded-[36px] bg-white shadow-xl">
       <div className="flex items-center justify-between px-5 pt-5">

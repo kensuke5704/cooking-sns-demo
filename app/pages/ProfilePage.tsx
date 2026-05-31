@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from "react";
 import {
-  addFriend,
   getCurrentUser,
-  getFriends,
-  searchUserByUserId,
   updateCurrentUser,
   type Friend,
 } from "../utils/auth";
+import { supabase } from "../utils/supabase";
 
 export default function ProfilePage({
   onProfileChange,
@@ -21,6 +19,30 @@ export default function ProfilePage({
   const [friendId, setFriendId] = useState("");
   const [message, setMessage] = useState("");
 
+  async function loadFriends() {
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) return;
+  
+    const { data, error } = await supabase
+      .from("friends")
+      .select("*")
+      .eq("owner_user_id", currentUser.userId);
+  
+    if (error) {
+      console.error(error);
+      return;
+    }
+  
+    setFriends(
+      data.map((friend) => ({
+        id: friend.id,
+        name: friend.friend_name,
+        userId: friend.friend_user_id,
+      }))
+    );
+  }
+
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
@@ -28,7 +50,7 @@ export default function ProfilePage({
       setUserIcon((user as any).userIcon || "/images/user1-icon.jpg");
     }
 
-    setFriends(getFriends());
+    loadFriends();
   }, []);
 
   const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,41 +69,76 @@ export default function ProfilePage({
     reader.readAsDataURL(file);
   };
 
-  const handleSaveName = () => {
+  const handleSaveName = async () => {
     if (!name.trim()) return;
-
+  
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) return;
+  
     updateCurrentUser({ name });
+  
+    const { error } = await supabase
+      .from("profiles")
+      .update({ name })
+      .eq("user_id", currentUser.userId);
+  
+    if (error) {
+      console.error(error);
+      setMessage("保存に失敗しました");
+      return;
+    }
+  
     onProfileChange();
     setMessage("ユーザー名を保存しました");
   };
 
-  const handleAddFriend = () => {
+  const handleAddFriend = async () => {
     setMessage("");
-
+  
     const currentUser = getCurrentUser();
+  
     if (!currentUser) return;
-
+  
     if (!friendId.trim()) {
       setMessage("友だちIDを入力してください");
       return;
     }
-
+  
     if (friendId === currentUser.userId) {
       setMessage("自分自身は追加できません");
       return;
     }
-
-    const user = searchUserByUserId(friendId);
-
-    if (!user) {
+  
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", friendId)
+      .single();
+  
+    if (profileError || !profile) {
       setMessage("ユーザーが見つかりませんでした");
       return;
     }
-
-    const nextFriends = addFriend(user.name, user.userId);
-    setFriends(nextFriends);
+  
+    const { error } = await supabase
+      .from("friends")
+      .insert({
+        owner_user_id: currentUser.userId,
+        friend_user_id: profile.user_id,
+        friend_name: profile.name,
+      });
+  
+    if (error) {
+      console.error(error);
+      setMessage("追加に失敗しました");
+      return;
+    }
+  
     setFriendId("");
     setMessage("友だちを追加しました");
+  
+    await loadFriends();
   };
 
   return (
