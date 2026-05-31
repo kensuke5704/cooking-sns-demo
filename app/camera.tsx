@@ -8,22 +8,31 @@ export default function CameraPost() {
 
   const startCamera = async () => {
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        alert("このブラウザはカメラに対応していません。");
+        return;
+      }
+  
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: "environment",
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
         },
         audio: false,
       });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-
+  
       setIsCameraOn(true);
+  
+      setTimeout(async () => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+      }, 100);
     } catch (error) {
-      alert("カメラを起動できませんでした。ブラウザのカメラ許可を確認してください。");
       console.error(error);
+      alert("カメラを起動できませんでした。HTTPS環境またはカメラ許可を確認してください。");
     }
   };
 
@@ -92,10 +101,11 @@ export default function CameraPost() {
         {isCameraOn && (
           <>
             <video
-              ref={videoRef}
-              playsInline
-              muted
-              className="w-full rounded-2xl bg-black"
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full aspect-[3/4] rounded-2xl bg-black object-cover"
             />
 
             <button
