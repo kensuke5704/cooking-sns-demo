@@ -29,6 +29,37 @@ function getTodayKey(userId?: string) {
   return `daily-cooking-photos-${userId || "guest"}-${today}`;
 }
 
+function getDraftIdKey(userId?: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  return `daily-cooking-draft-id-${userId || "guest"}-${today}`;
+}
+
+function getOrCreateDraftId(userId?: string) {
+  const key = getDraftIdKey(userId);
+  const saved = localStorage.getItem(key);
+
+  if (saved) return saved;
+
+  const nextId = crypto.randomUUID();
+  localStorage.setItem(key, nextId);
+  return nextId;
+}
+
+function clearDraftId(userId?: string) {
+  localStorage.removeItem(getDraftIdKey(userId));
+}
+
+async function ensureImageUrl(
+  image: string,
+  filePath: string
+): Promise<string> {
+  if (image.startsWith("http")) {
+    return image;
+  }
+
+  return uploadBase64Image(image, filePath);
+}
+
 async function uploadBase64Image(
   base64: string,
   filePath: string
@@ -95,6 +126,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     const currentUser = getCurrentUser();
   
     localStorage.removeItem(getTodayKey(currentUser?.userId));
+    clearDraftId(currentUser?.userId);
   
     setPhotos({});
     setDishName("");
@@ -147,17 +179,20 @@ export default function CameraPost({ onBack }: CameraPostProps) {
 
       const today = new Date().toISOString().slice(0, 10);
 
+      const draftId = getOrCreateDraftId(currentUser.userId);
+
       const { data: existingPost } = await supabase
         .from("posts")
         .select("*")
         .eq("user_id", currentUser.userId)
-        .eq("post_date", today)
+        .eq("draft_id", draftId)
         .maybeSingle();
       
         const nextPostData = {
           user_id: currentUser.userId,
           user_name: currentUser.name,
           post_date: today,
+          draft_id: draftId,
           prep_photo: prepPhotoUrl ?? existingPost?.prep_photo ?? null,
           cooking_photo: cookingPhotoUrl ?? existingPost?.cooking_photo ?? null,
           finished_photo: finishedPhotoUrl ?? existingPost?.finished_photo ?? null,
@@ -168,7 +203,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       const { data, error } = await supabase
         .from("posts")
         .upsert(nextPostData, {
-          onConflict: "user_id,post_date",
+          onConflict: "user_id,draft_id",
         })
         .select();
 
