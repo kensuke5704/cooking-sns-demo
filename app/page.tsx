@@ -8,6 +8,9 @@ import PostCard from "./components/PostCard";
 import RecipePage from "./pages/RecipePage";
 import CalendarPage from "./pages/CalendarPage";
 import type { Post } from "./types/post";
+import AuthPage from "./pages/AuthPage";
+import FriendsPage from "./pages/FriendsPage";
+import { getCurrentUser } from "./utils/auth";
 
 const APP_VERSION = "2026-05-31 15:30";
 
@@ -34,6 +37,16 @@ export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [myPost, setMyPost] = useState<Post | null>(null);
   const [currentTab, setCurrentTab] = useState("ホーム");
+  const [authVersion, setAuthVersion] = useState(0);
+  const currentUser = getCurrentUser();
+
+  if (!currentUser) {
+    return (
+      <main className="min-h-screen bg-[#f7b18f] pb-28">
+        <AuthPage onAuthChange={() => setAuthVersion((v) => v + 1)} />
+      </main>
+    );
+  }
 
   useEffect(() => {
     if (currentTab !== "ホーム") return;
@@ -102,6 +115,15 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-[#f7b18f] pb-28">
         <CalendarPage />
+        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      </main>
+    );
+  }
+
+  if (currentTab === "友だち") {
+    return (
+      <main className="min-h-screen bg-[#f7b18f] pb-28">
+        <FriendsPage />
         <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
       </main>
     );
