@@ -255,6 +255,34 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     stopCamera();
   };
 
+  const selectPhotoFromLibrary = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: ShotType
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    if (photos[type]) {
+      alert(`${shotLabels[type]}は本日すでに登録済みです。`);
+      return;
+    }
+  
+    const reader = new FileReader();
+  
+    reader.onload = () => {
+      const imageData = reader.result as string;
+  
+      const nextPhotos = {
+        ...photos,
+        [type]: imageData,
+      };
+  
+      savePhotos(nextPhotos);
+    };
+  
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="min-h-screen bg-[#f8b72a] px-4 pt-5 pb-28 text-[#6b2f13]">
       <div className="mx-auto w-full max-w-md">
@@ -281,20 +309,23 @@ export default function CameraPost({ onBack }: CameraPostProps) {
         {!isCameraOn && (
           <div className="rounded-[32px] bg-[#6b2f13] p-4 shadow-xl">
             <div className="grid grid-cols-3 gap-3">
-              <CameraCard
-                label="準備"
-                src={photos.prep}
-                onClick={() => startCamera("prep")}
-              />
+            <CameraCard
+              label="準備"
+              src={photos.prep}
+              onClick={() => startCamera("prep")}
+              onFileChange={(e) => selectPhotoFromLibrary(e, "prep")}
+            />
               <CameraCard
                 label="調理"
                 src={photos.cooking}
                 onClick={() => startCamera("cooking")}
+                onFileChange={(e) => selectPhotoFromLibrary(e, "cooking")}
               />
               <CameraCard
                 label="完成"
                 src={photos.finished}
                 onClick={() => startCamera("finished")}
+                onFileChange={(e) => selectPhotoFromLibrary(e, "finished")}
               />
             </div>
             <div className="mt-5 rounded-[32px] bg-white p-5 shadow-xl">
@@ -384,30 +415,46 @@ function CameraCard({
   label,
   src,
   onClick,
+  onFileChange,
 }: {
   label: string;
   src?: string;
   onClick: () => void;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
-    <button type="button" onClick={onClick} className="w-full">
-      {src ? (
-        <div className="bg-white p-2 pb-6 shadow-xl">
-          <img
-            src={src}
-            alt={label}
-            className="aspect-[3/4] w-full object-cover"
-            draggable={false}
+    <div className="w-full">
+      <button type="button" onClick={onClick} className="w-full">
+        {src ? (
+          <div className="bg-white p-2 pb-6 shadow-xl">
+            <img
+              src={src}
+              alt={label}
+              className="aspect-[3/4] w-full object-cover"
+              draggable={false}
+            />
+            <p className="mt-1 text-center text-[11px] font-black text-[#6b2f13]">
+              {label} 済み
+            </p>
+          </div>
+        ) : (
+          <div className="flex aspect-[3/4] w-full items-center justify-center rounded-2xl border-2 border-dashed border-white/70 bg-white/20 text-sm font-black text-white">
+            ＋ {label}
+          </div>
+        )}
+      </button>
+  
+      {!src && (
+        <label className="mt-2 block rounded-full bg-white px-2 py-2 text-center text-[10px] font-black text-[#6b2f13]">
+          ライブラリ
+          <input
+            type="file"
+            accept="image/*"
+            onChange={onFileChange}
+            className="hidden"
           />
-          <p className="mt-1 text-center text-[11px] font-black text-[#6b2f13]">
-            {label} 済み
-          </p>
-        </div>
-      ) : (
-        <div className="flex aspect-[3/4] w-full items-center justify-center rounded-2xl border-2 border-dashed border-white/70 bg-white/20 text-sm font-black text-white">
-          ＋ {label}
-        </div>
+        </label>
       )}
-    </button>
+    </div>
   );
 }
