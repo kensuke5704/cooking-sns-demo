@@ -332,8 +332,11 @@ export default function CameraPost({ onBack }: CameraPostProps) {
 
     if (!video || !canvas || !selectedType) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const maxWidth = 900;
+    const scale = Math.min(1, maxWidth / video.videoWidth);
+
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
