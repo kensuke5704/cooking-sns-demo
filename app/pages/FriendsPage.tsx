@@ -1,25 +1,51 @@
 "use client";
 
 import { useState } from "react";
-import { addFriend, getCurrentUser, getFriends } from "../utils/auth";
+import {
+  addFriend,
+  getCurrentUser,
+  getFriends,
+  searchUserByUserId,
+  type AppUser,
+} from "../utils/auth";
 
 export default function FriendsPage() {
-  const [friendName, setFriendName] = useState("");
-  const [friendUserId, setFriendUserId] = useState("");
+  const [searchId, setSearchId] = useState("");
+  const [searchResult, setSearchResult] = useState<AppUser | null>(null);
   const [friends, setFriends] = useState(getFriends());
 
   const currentUser = getCurrentUser();
 
-  const handleAddFriend = () => {
-    if (!friendName || !friendUserId) {
-      alert("友だちの名前とユーザーIDを入力してください");
+  const handleSearch = () => {
+    if (!searchId) {
+      alert("ユーザーIDを入力してください");
       return;
     }
 
-    const nextFriends = addFriend(friendName, friendUserId);
+    const result = searchUserByUserId(searchId);
+
+    if (!result) {
+      alert("ユーザーが見つかりませんでした");
+      setSearchResult(null);
+      return;
+    }
+
+    if (currentUser?.userId === result.userId) {
+      alert("自分自身は追加できません");
+      setSearchResult(null);
+      return;
+    }
+
+    setSearchResult(result);
+  };
+
+  const handleAddFriend = () => {
+    if (!searchResult) return;
+
+    const nextFriends = addFriend(searchResult.name, searchResult.userId);
     setFriends(nextFriends);
-    setFriendName("");
-    setFriendUserId("");
+    setSearchResult(null);
+    setSearchId("");
   };
 
   if (!currentUser) {
@@ -40,35 +66,46 @@ export default function FriendsPage() {
   return (
     <div className="px-5 pt-6">
       <div className="bg-[#6b2f13] text-white rounded-[32px] p-6 shadow-md">
-        <p className="text-sm opacity-90">つながる</p>
+        <p className="text-sm opacity-90">IDでつながる</p>
         <h1 className="text-3xl font-black mt-1">友だち</h1>
       </div>
 
       <section className="mt-6 bg-white/50 rounded-[32px] p-5">
-        <h2 className="text-xl font-black text-[#6b2f13]">友だちを追加</h2>
+        <h2 className="text-xl font-black text-[#6b2f13]">
+          ユーザーID検索
+        </h2>
 
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 flex gap-2">
           <input
-            value={friendName}
-            onChange={(e) => setFriendName(e.target.value)}
-            placeholder="友だちの名前"
-            className="w-full rounded-2xl px-4 py-3 font-bold text-[#6b2f13]"
-          />
-
-          <input
-            value={friendUserId}
-            onChange={(e) => setFriendUserId(e.target.value)}
-            placeholder="友だちのユーザーID"
-            className="w-full rounded-2xl px-4 py-3 font-bold text-[#6b2f13]"
+            value={searchId}
+            onChange={(e) => setSearchId(e.target.value)}
+            placeholder="例：kensuke5704"
+            className="flex-1 rounded-2xl px-4 py-3 font-bold text-[#6b2f13]"
           />
 
           <button
-            onClick={handleAddFriend}
-            className="w-full bg-[#ffcf33] text-black font-black py-4 rounded-2xl"
+            onClick={handleSearch}
+            className="bg-[#ffcf33] text-black font-black px-4 rounded-2xl"
           >
-            友だち追加
+            検索
           </button>
         </div>
+
+        {searchResult && (
+          <div className="mt-5 bg-white/70 rounded-2xl p-4">
+            <p className="font-black text-[#6b2f13]">{searchResult.name}</p>
+            <p className="text-sm font-bold text-[#6b2f13]/60">
+              @{searchResult.userId}
+            </p>
+
+            <button
+              onClick={handleAddFriend}
+              className="w-full mt-4 bg-[#6b2f13] text-white font-black py-3 rounded-2xl"
+            >
+              友だち追加
+            </button>
+          </div>
+        )}
       </section>
 
       <section className="mt-6 bg-white/50 rounded-[32px] p-5">

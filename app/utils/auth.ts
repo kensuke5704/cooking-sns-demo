@@ -1,3 +1,5 @@
+const USERS_KEY = "app-users";
+
 export type AppUser = {
     id: string;
     name: string;
@@ -27,7 +29,9 @@ export type AppUser = {
       userId,
     };
   
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+    localStorage.setItem("current-user", JSON.stringify(user));
+    saveUserToUsers(user);
+  
     return user;
   }
   
@@ -59,4 +63,46 @@ export type AppUser = {
   
     localStorage.setItem(FRIENDS_KEY, JSON.stringify(nextFriends));
     return nextFriends;
+  }
+
+  export function getAllUsers(): AppUser[] {
+    if (typeof window === "undefined") return [];
+  
+    const saved = localStorage.getItem(USERS_KEY);
+    return saved ? JSON.parse(saved) : [];
+  }
+  
+  export function saveUserToUsers(user: AppUser) {
+    const users = getAllUsers();
+  
+    const exists = users.some((u) => u.userId === user.userId);
+    if (exists) return;
+  
+    localStorage.setItem(USERS_KEY, JSON.stringify([...users, user]));
+  }
+  
+  export function searchUserByUserId(userId: string): AppUser | null {
+    const users = getAllUsers();
+    return users.find((user) => user.userId === userId) ?? null;
+  }
+
+  export function updateCurrentUser(data: Partial<AppUser>) {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return null;
+  
+    const updatedUser = {
+      ...currentUser,
+      ...data,
+    };
+  
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+  
+    const users = getAllUsers();
+    const updatedUsers = users.map((user) =>
+      user.id === updatedUser.id ? updatedUser : user
+    );
+  
+    localStorage.setItem(USERS_KEY, JSON.stringify(updatedUsers));
+  
+    return updatedUser;
   }

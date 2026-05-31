@@ -6,4 +6,6 @@ export type Post = {
     prepPhoto?: string;
     cookingPhoto?: string;
     finishedPhoto?: string;
+    dishName?: string;
+    memo?: string;
   };

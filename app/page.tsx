@@ -7,12 +7,13 @@ import EmptyPage from "./components/EmptyPage";
 import PostCard from "./components/PostCard";
 import RecipePage from "./pages/RecipePage";
 import CalendarPage from "./pages/CalendarPage";
-import type { Post } from "./types/post";
 import AuthPage from "./pages/AuthPage";
 import FriendsPage from "./pages/FriendsPage";
+import type { Post } from "./types/post";
 import { getCurrentUser } from "./utils/auth";
+import ProfilePage from "./pages/ProfilePage";
 
-const APP_VERSION = "2026-05-31 15:30";
+const APP_VERSION = "2026-05-31 fixed";
 
 const posts: Post[] = [
   {
@@ -38,15 +39,11 @@ export default function Home() {
   const [myPost, setMyPost] = useState<Post | null>(null);
   const [currentTab, setCurrentTab] = useState("ホーム");
   const [authVersion, setAuthVersion] = useState(0);
-  const currentUser = getCurrentUser();
+  const [currentUser, setCurrentUser] = useState<ReturnType<typeof getCurrentUser>>(null);
 
-  if (!currentUser) {
-    return (
-      <main className="min-h-screen bg-[#f7b18f] pb-28">
-        <AuthPage onAuthChange={() => setAuthVersion((v) => v + 1)} />
-      </main>
-    );
-  }
+  useEffect(() => {
+    setCurrentUser(getCurrentUser());
+  }, [authVersion]);
 
   useEffect(() => {
     if (currentTab !== "ホーム") return;
@@ -68,14 +65,70 @@ export default function Home() {
 
     setMyPost({
       id: 999,
-      userName: "あなた",
-      userIcon: "/images/user1-icon.jpg",
+      userName: currentUser?.name || "あなた",
+      userIcon: (currentUser as any)?.userIcon || "/images/user1-icon.jpg",
       createdAt: new Date().toISOString(),
       prepPhoto: photos.prep,
       cookingPhoto: photos.cooking,
       finishedPhoto: photos.finished,
+      dishName: photos.dishName,
+      memo: photos.memo,
     });
   }, [currentTab]);
+
+  if (!currentUser) {
+    return (
+      <AuthPage
+        onAuthChange={() => {
+          setAuthVersion((v) => v + 1);
+        }}
+      />
+    );
+  }
+
+  if (currentTab === "カメラ") {
+    return <CameraPost onBack={() => setCurrentTab("ホーム")} />;
+  }
+
+  if (currentTab === "レシピ") {
+    return (
+      <>
+        <RecipePage />
+        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      </>
+    );
+  }
+
+  if (currentTab === "カレンダー") {
+    return (
+      <>
+        <CalendarPage />
+        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      </>
+    );
+  }
+
+  if (currentTab === "記事") {
+    return (
+      <>
+        <EmptyPage title="記事" />
+        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      </>
+    );
+  }
+
+  if (currentTab === "プロフィール") {
+    return (
+      <>
+        <ProfilePage
+          onProfileChange={() => {
+            setAuthVersion((v) => v + 1);
+          }}
+        />
+        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      </>
+    );
+  }
 
   const allPosts = myPost ? [myPost, ...posts] : posts;
 
@@ -84,79 +137,30 @@ export default function Home() {
     return Date.now() - created <= 24 * 60 * 60 * 1000;
   });
 
-  if (currentTab === "カメラ") {
-    return (
-      <>
-        <CameraPost />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      </>
-    );
-  }
-
-  if (currentTab === "友だち" || currentTab === "記事") {
-    return (
-      <main className="min-h-screen bg-[#f7b18f] pb-28">
-        <EmptyPage title={currentTab} />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      </main>
-    );
-  }
-
-  if (currentTab === "レシピ") {
-    return (
-      <main className="min-h-screen bg-[#f7b18f] pb-28">
-        <RecipePage />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      </main>
-    );
-  }
-
-  if (currentTab === "カレンダー") {
-    return (
-      <main className="min-h-screen bg-[#f7b18f] pb-28">
-        <CalendarPage />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      </main>
-    );
-  }
-
-  if (currentTab === "友だち") {
-    return (
-      <main className="min-h-screen bg-[#f7b18f] pb-28">
-        <FriendsPage />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      </main>
-    );
-  }
-
   return (
-    <main className="min-h-screen bg-[#f7b18f] pb-28">
-      <div className="bg-red-600 text-white text-center text-xs py-1">
-        最終更新: {APP_VERSION}
-      </div>
-
-      <header className="sticky top-0 z-50 bg-[#6b2f13] text-white px-5 pt-6 pb-5 rounded-b-[32px] shadow-md">
-        <p className="text-sm opacity-90">今日の献立</p>
+    <main className="min-h-screen bg-[#f8b72a] pb-28 text-[#6b2f13]">
+      <div className="px-5 pt-5">
+        <p className="text-xs font-black opacity-70">最終更新: {APP_VERSION}</p>
 
         <button
           onClick={() => setCurrentTab("レシピ")}
           className="block w-full text-left mt-1 text-3xl font-black tracking-wider"
         >
+          今日の献立
+          <br />
           アスパラベーコン
         </button>
-      </header>
 
-      <section className="px-4 pt-6 space-y-6">
-        {visiblePosts.map((post) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            onImageClick={setSelectedImage}
-          />
-        ))}
-      </section>
-
-      <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+        <div className="mt-6 space-y-6">
+          {visiblePosts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onImageClick={(src) => setSelectedImage(src)}
+            />
+          ))}
+        </div>
+      </div>
 
       {selectedImage && (
         <div
@@ -169,12 +173,20 @@ export default function Home() {
           >
             <img
               src={selectedImage}
-              alt="拡大画像"
-              className="w-full max-h-[80vh] object-contain rounded-xl"
+              alt=""
+              className="w-full rounded-xl object-cover"
             />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="mt-4 w-full bg-[#f39a00] py-3 font-black text-white"
+            >
+              閉じる
+            </button>
           </div>
         </div>
       )}
+
+      <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
     </main>
   );
 }

@@ -8,6 +8,12 @@ type DailyPhotos = {
   prep?: string;
   cooking?: string;
   finished?: string;
+  dishName?: string;
+  memo?: string;
+};
+
+type CameraPostProps = {
+  onBack: () => void;
 };
 
 const shotLabels: Record<ShotType, string> = {
@@ -21,24 +27,40 @@ function getTodayKey() {
   return `daily-cooking-photos-${today}`;
 }
 
-export default function CameraPost() {
+export default function CameraPost({ onBack }: CameraPostProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [photos, setPhotos] = useState<DailyPhotos>({});
   const [selectedType, setSelectedType] = useState<ShotType | null>(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
+  const [dishName, setDishName] = useState("");
+  const [memo, setMemo] = useState("");
 
   useEffect(() => {
     const saved = localStorage.getItem(getTodayKey());
     if (saved) {
-      setPhotos(JSON.parse(saved));
+      const parsed = JSON.parse(saved);
+      setPhotos(parsed);
+      setDishName(parsed.dishName || "");
+      setMemo(parsed.memo || "");
     }
   }, []);
 
   const savePhotos = (nextPhotos: DailyPhotos) => {
     setPhotos(nextPhotos);
     localStorage.setItem(getTodayKey(), JSON.stringify(nextPhotos));
+  };
+
+  const savePostText = () => {
+    const nextPhotos = {
+      ...photos,
+      dishName,
+      memo,
+    };
+  
+    savePhotos(nextPhotos);
+    alert("料理名とコメントを保存しました");
   };
 
   const startCamera = async (type: ShotType) => {
@@ -112,74 +134,108 @@ export default function CameraPost() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#f7b18f] pb-28 px-4 pt-6">
-      <div className="w-full max-w-md mx-auto">
-        <h2 className="text-2xl font-black text-[#6b2f13] text-center mb-2">
-          今日の料理を投稿
-        </h2>
-
-        <p className="text-center text-sm font-bold text-[#6b2f13]/80 mb-6">
-          撮影するカードを選んでください
-        </p>
-
+    <div className="min-h-screen bg-[#f8b72a] px-4 pt-5 pb-28 text-[#6b2f13]">
+      <div className="mx-auto w-full max-w-md">
+        <button
+          type="button"
+          onClick={onBack}
+          className="mb-5 rounded-full bg-white/90 px-4 py-2 text-sm font-black shadow"
+        >
+          ← ホームへ戻る
+        </button>
+  
+        <div className="mb-6 rounded-[32px] bg-white p-5 shadow-xl">
+          <p className="text-xs font-black text-[#f39a00]">TODAY'S COOKING</p>
+          <h2 className="mt-1 text-3xl font-black leading-tight">
+            今日の料理を
+            <br />
+            投稿する
+          </h2>
+          <p className="mt-3 text-sm font-bold opacity-70">
+            準備・調理・完成の3枚を撮影できます。
+          </p>
+        </div>
+  
         {!isCameraOn && (
-          <div className="bg-[#8a4728] rounded-[32px] overflow-hidden shadow-lg">
-            <div className="bg-[#f7b18f] px-4 py-5">
-              <div className="grid grid-cols-3 gap-3">
-                <CameraCard
-                  label="準備"
-                  src={photos.prep}
-                  onClick={() => startCamera("prep")}
-                />
-
-                <CameraCard
-                   label="調理"
-                   src={photos.cooking}
-                   onClick={() => startCamera("cooking")}
-                 />
-
-                <CameraCard
-                   label="完成"
-                   src={photos.finished}
-                   onClick={() => startCamera("finished")}
-                />
-              </div>
+          <div className="rounded-[32px] bg-[#6b2f13] p-4 shadow-xl">
+            <div className="grid grid-cols-3 gap-3">
+              <CameraCard
+                label="準備"
+                src={photos.prep}
+                onClick={() => startCamera("prep")}
+              />
+              <CameraCard
+                label="調理"
+                src={photos.cooking}
+                onClick={() => startCamera("cooking")}
+              />
+              <CameraCard
+                label="完成"
+                src={photos.finished}
+                onClick={() => startCamera("finished")}
+              />
             </div>
+            <div className="mt-5 rounded-[32px] bg-white p-5 shadow-xl">
+              <h3 className="text-xl font-black">料理メモ</h3>
 
-            <div className="h-9 bg-[#8a4728]" />
+              <label className="mt-4 block text-sm font-black">料理名</label>
+              <input
+               value={dishName}
+               onChange={(e) => setDishName(e.target.value)}
+                placeholder="例：アスパラベーコン"
+                className="mt-2 w-full rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+             />
+
+             <label className="mt-4 block text-sm font-black">コメント</label>
+             <textarea
+               value={memo}
+               onChange={(e) => setMemo(e.target.value)}
+               placeholder="例：少し焦げたけどおいしくできた"
+               rows={3}
+               className="mt-2 w-full resize-none rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+             />
+
+             <button
+               type="button"
+               onClick={savePostText}
+               className="mt-4 w-full rounded-full bg-[#f39a00] py-3 font-black text-white"
+               >
+                メモを保存
+                </button>
+            </div>
           </div>
         )}
-
+  
         {isCameraOn && (
-          <div className="bg-white rounded-3xl shadow-lg p-4">
-            <p className="text-center font-black text-[#6b2f13] mb-3">
+          <div className="rounded-[32px] bg-white p-4 shadow-xl">
+            <p className="mb-3 text-center text-lg font-black">
               {selectedType ? `${shotLabels[selectedType]}を撮影中` : "撮影中"}
             </p>
-
+  
             <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              className="w-full aspect-[3/4] rounded-2xl bg-black object-cover"
+              className="aspect-[3/4] w-full rounded-[24px] bg-black object-cover"
             />
-
+  
             <button
               onClick={takePhoto}
-              className="w-full mt-4 bg-[#ffcf33] text-black font-black py-3 rounded-2xl"
+              className="mt-4 w-full rounded-full bg-[#f39a00] py-4 text-lg font-black text-white shadow"
             >
               撮影する
             </button>
-
+  
             <button
               onClick={stopCamera}
-              className="w-full mt-2 bg-gray-200 text-black font-bold py-3 rounded-2xl"
+              className="mt-3 w-full rounded-full bg-gray-100 py-3 font-black text-[#6b2f13]"
             >
               キャンセル
             </button>
           </div>
         )}
-
+  
         <canvas ref={canvasRef} className="hidden" />
       </div>
     </div>
@@ -187,33 +243,33 @@ export default function CameraPost() {
 }
 
 function CameraCard({
-    label,
-    src,
-    onClick,
-  }: {
-    label: string;
-    src?: string;
-    onClick: () => void;
-  }) {
-    return (
-      <button onClick={onClick} className="w-full aspect-[3/4]">
-        {src ? (
-          <div className="w-full h-full bg-white p-2 pb-7 shadow-xl">
-            <img
-              src={src}
-              alt={label}
-              className="w-full h-full object-cover"
-              draggable={false}
-            />
-            <p className="text-[11px] font-black text-[#6b2f13] mt-1 text-center">
-              {label} 済み
-            </p>
-          </div>
-        ) : (
-          <div className="w-full h-full rounded-xl border-2 border-dashed border-white/70 bg-white/20 flex items-center justify-center text-white text-sm font-black">
-            {label}
-          </div>
-        )}
-      </button>
-    );
-  }
+  label,
+  src,
+  onClick,
+}: {
+  label: string;
+  src?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button type="button" onClick={onClick} className="w-full">
+      {src ? (
+        <div className="bg-white p-2 pb-6 shadow-xl">
+          <img
+            src={src}
+            alt={label}
+            className="aspect-[3/4] w-full object-cover"
+            draggable={false}
+          />
+          <p className="mt-1 text-center text-[11px] font-black text-[#6b2f13]">
+            {label} 済み
+          </p>
+        </div>
+      ) : (
+        <div className="flex aspect-[3/4] w-full items-center justify-center rounded-2xl border-2 border-dashed border-white/70 bg-white/20 text-sm font-black text-white">
+          ＋ {label}
+        </div>
+      )}
+    </button>
+  );
+}
