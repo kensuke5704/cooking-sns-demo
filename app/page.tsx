@@ -6,6 +6,7 @@ import BottomNav from "./components/BottomNav";
 import EmptyPage from "./components/EmptyPage";
 import PostCard from "./components/PostCard";
 import RecipePage from "./pages/RecipePage";
+import CalendarPage from "./pages/CalendarPage";
 import type { Post } from "./types/post";
 
 const APP_VERSION = "2026-05-31 15:30";
@@ -92,6 +93,15 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-[#f7b18f] pb-28">
         <RecipePage />
+        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      </main>
+    );
+  }
+
+  if (currentTab === "カレンダー") {
+    return (
+      <main className="min-h-screen bg-[#f7b18f] pb-28">
+        <CalendarPage />
         <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
       </main>
     );
