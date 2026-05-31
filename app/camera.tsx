@@ -125,26 +125,23 @@ export default function CameraPost() {
         {!isCameraOn && (
           <div className="bg-[#8a4728] rounded-[32px] overflow-hidden shadow-lg">
             <div className="bg-[#f7b18f] px-4 py-5">
-              <div className="relative h-64">
+              <div className="grid grid-cols-3 gap-3">
                 <CameraCard
                   label="準備"
                   src={photos.prep}
-                  className="left-2 top-8 rotate-[-8deg] z-10"
                   onClick={() => startCamera("prep")}
                 />
 
                 <CameraCard
-                  label="調理"
-                  src={photos.cooking}
-                  className="left-1/2 -translate-x-1/2 top-0 rotate-[2deg] z-20"
-                  onClick={() => startCamera("cooking")}
-                />
+                   label="調理"
+                   src={photos.cooking}
+                   onClick={() => startCamera("cooking")}
+                 />
 
                 <CameraCard
-                  label="完成"
-                  src={photos.finished}
-                  className="right-2 top-8 rotate-[8deg] z-30"
-                  onClick={() => startCamera("finished")}
+                   label="完成"
+                   src={photos.finished}
+                   onClick={() => startCamera("finished")}
                 />
               </div>
             </div>

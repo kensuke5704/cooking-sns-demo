@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Post = {
   id: number;
@@ -34,10 +34,33 @@ const posts: Post[] = [
 ];
 
 export default function Home() {
-  const [currentTab, setCurrentTab] = useState("ホーム");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [myPost, setMyPost] = useState<Post | null>(null);
 
-  const visiblePosts = posts.filter((post) => {
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const saved = localStorage.getItem(`daily-cooking-photos-${today}`);
+
+    if (!saved) return;
+
+    const photos = JSON.parse(saved);
+
+    if (!photos.prep && !photos.cooking && !photos.finished) return;
+
+    setMyPost({
+      id: 999,
+      userName: "あなた",
+      userIcon: "/images/user1-icon.jpg",
+      createdAt: new Date().toISOString(),
+      prepPhoto: photos.prep,
+      cookingPhoto: photos.cooking,
+      finishedPhoto: photos.finished,
+    });
+  }, []);
+
+  const allPosts = myPost ? [myPost, ...posts] : posts;
+
+  const visiblePosts = allPosts.filter((post) => {
     const created = new Date(post.createdAt).getTime();
     return Date.now() - created <= 24 * 60 * 60 * 1000;
   });
