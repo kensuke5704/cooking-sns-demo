@@ -157,25 +157,25 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     const timestamp = Date.now();
 
     const prepPhotoUrl = photos.prep
-      ? await uploadBase64Image(
+      ? await ensureImageUrl(
           photos.prep,
           `${currentUser.userId}/${timestamp}-prep.jpg`
         )
       : null;
 
-    const cookingPhotoUrl = photos.cooking
-      ? await uploadBase64Image(
-          photos.cooking,
-          `${currentUser.userId}/${timestamp}-cooking.jpg`
-        )
-      : null;
+      const cookingPhotoUrl = photos.cooking
+        ? await ensureImageUrl(
+            photos.cooking,
+            `${currentUser.userId}/${timestamp}-cooking.jpg`
+          )
+        : null;
 
-    const finishedPhotoUrl = photos.finished
-      ? await uploadBase64Image(
-          photos.finished,
-          `${currentUser.userId}/${timestamp}-finished.jpg`
-        )
-      : null;
+      const finishedPhotoUrl = photos.finished
+        ? await ensureImageUrl(
+            photos.finished,
+            `${currentUser.userId}/${timestamp}-finished.jpg`
+          )
+        : null;
 
       const today = new Date().toISOString().slice(0, 10);
 
@@ -215,8 +215,29 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       alert(error.message || "投稿に失敗しました");
       return;
     }
-  
-    alert("投稿しました");
+    
+    const shouldCompleteDraft = Boolean(
+      finishedPhotoUrl || existingPost?.finished_photo
+    );
+    
+    if (shouldCompleteDraft) {
+      localStorage.removeItem(
+        getTodayKey(currentUser.userId)
+      );
+    
+      clearDraftId(currentUser.userId);
+    
+      setPhotos({});
+      setDishName("");
+      setMemo("");
+    }
+    
+    alert(
+      shouldCompleteDraft
+        ? "完成まで投稿しました。次の料理を開始できます。"
+        : "投稿しました。続きの写真を追加できます。"
+    );
+    
     onBack();
   };
 
