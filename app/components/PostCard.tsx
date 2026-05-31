@@ -15,7 +15,12 @@ export default function PostCard({
   onImageClick: (src: string) => void;
   onDelete?: (postId: string | number) => void;
 }) {
-  const [comments, setComments] = useState<string[]>([]);
+  const [comments, setComments] = useState<
+    {
+      userName: string;
+      text: string;
+    }[]
+  >([]);
   const [commentText, setCommentText] = useState("");
   const [showComments, setShowComments] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -40,7 +45,12 @@ export default function PostCard({
       return;
     }
   
-    setComments(data?.map((c) => c.text) || []);
+    setComments(
+      data?.map((c) => ({
+        userName: c.user_name,
+        text: c.text,
+      })) || []
+    );
   }
 
   async function loadLikes() {
@@ -234,14 +244,17 @@ export default function PostCard({
           {showComments && (
             <>
               <div className="mt-3 space-y-2">
-                {comments.map((comment, index) => (
-                  <div
-                    key={index}
-                    className="rounded-2xl bg-[#fff8e6] px-4 py-2 text-sm font-bold text-[#6b2f13]"
-                  >
-                    <span className="font-black">あなた</span> {comment}
-                  </div>
-                ))}
+              {comments.map((comment, index) => (
+                <div
+                  key={index}
+                  className="rounded-2xl bg-[#fff8e6] px-4 py-2 text-sm font-bold text-[#6b2f13]"
+                >
+                  <span className="font-black">
+                    {comment.userName}
+                  </span>{" "}
+                  {comment.text}
+                </div>
+              ))}
               </div>
 
               <div className="mt-3 flex gap-2">

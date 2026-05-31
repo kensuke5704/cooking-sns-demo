@@ -15,7 +15,7 @@ export default function ProfilePage({
   onProfileChange: () => void;
 }) {
   const [name, setName] = useState("");
-  const [userIcon, setUserIcon] = useState("/images/user1-icon.jpg");
+  const [iconUrl, setIconUrl] = useState("/images/user1-icon.jpg");
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendId, setFriendId] = useState("");
   const [message, setMessage] = useState("");
@@ -26,49 +26,87 @@ export default function ProfilePage({
   
     if (!currentUser) return;
   
-    const { data, error } = await supabase
+    const { data: friendRows, error: friendError } = await supabase
       .from("friends")
-      .select("*")
+      .select("id, friend_user_id")
       .eq("owner_user_id", currentUser.userId);
   
-    if (error) {
-      console.error(error);
+    if (friendError) {
+      console.error("friends取得エラー:", friendError);
       return;
     }
   
-    setFriends(
-      data.map((friend) => ({
-        id: friend.id,
-        name: friend.friend_name,
-        userId: friend.friend_user_id,
-      }))
-    );
+    const friendUserIds =
+      friendRows?.map((friend) => friend.friend_user_id) || [];
+  
+    if (friendUserIds.length === 0) {
+      setFriends([]);
+      return;
+    }
+  
+    const { data: profiles, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, name, user_id")
+      .in("user_id", friendUserIds);
+  
+    if (profileError) {
+      console.error("profiles取得エラー:", profileError);
+      return;
+    }
+  
+    const mappedFriends =
+      profiles?.map((profile) => ({
+        id: profile.id,
+        name: profile.name,
+        userId: profile.user_id,
+      })) || [];
+  
+    setFriends(mappedFriends);
   }
 
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
       setName(user.name);
-      setUserIcon((user as any).userIcon || "/images/user1-icon.jpg");
+      setIconUrl(user.iconUrl || "/images/user1-icon.jpg");
     }
 
     loadFriends();
   }, []);
 
-  const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const imageData = reader.result as string;
-      setUserIcon(imageData);
-      updateCurrentUser({ userIcon: imageData } as any);
-      onProfileChange();
-    };
-
-    reader.readAsDataURL(file);
+  
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+  
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${currentUser.userId}/avatar-${Date.now()}.${fileExt}`;
+  
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file, {
+        upsert: true,
+      });
+  
+    if (uploadError) {
+      console.error(uploadError);
+      setMessage("画像アップロードに失敗しました");
+      return;
+    }
+  
+    const { data } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(filePath);
+  
+    const publicUrl = data.publicUrl;
+  
+    setIconUrl(publicUrl);
+    await updateCurrentUser({ iconUrl: publicUrl });
+  
+    onProfileChange();
+    setMessage("プロフィール画像を更新しました");
   };
 
   const handleSaveName = async () => {
@@ -123,23 +161,57 @@ export default function ProfilePage({
       return;
     }
   
-    const { error } = await supabase
-      .from("friends")
-      .insert({
+    const { error } = await supabase.from("friends").insert([
+      {
         owner_user_id: currentUser.userId,
         friend_user_id: profile.user_id,
-        friend_name: profile.name,
-      });
+      },
+      {
+        owner_user_id: profile.user_id,
+        friend_user_id: currentUser.userId,
+      },
+    ]);
   
-    if (error) {
-      console.error(error);
-      setMessage("追加に失敗しました");
-      return;
-    }
+      if (error) {
+        console.error(error);
+      
+        if (error.code === "23505") {
+          setMessage("このユーザーはすでに友だちです");
+          return;
+        }
+      
+        setMessage("追加に失敗しました");
+        return;
+      }
   
     setFriendId("");
     setMessage("友だちを追加しました");
   
+    await loadFriends();
+  };
+
+  const handleDeleteFriend = async (friendUserId: string) => {
+    const ok = confirm("この友だちを削除しますか？");
+  
+    if (!ok) return;
+  
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+  
+    const { error } = await supabase
+      .from("friends")
+      .delete()
+      .or(
+        `and(owner_user_id.eq.${currentUser.userId},friend_user_id.eq.${friendUserId}),and(owner_user_id.eq.${friendUserId},friend_user_id.eq.${currentUser.userId})`
+      );
+  
+    if (error) {
+      console.error(error);
+      setMessage("友だち削除に失敗しました");
+      return;
+    }
+  
+    setMessage("友だちを削除しました");
     await loadFriends();
   };
 
@@ -151,7 +223,7 @@ export default function ProfilePage({
         <section className="rounded-[32px] bg-white p-5 shadow-xl">
           <div className="flex items-center gap-4">
             <img
-              src={userIcon}
+              src={iconUrl}
               alt="プロフィール画像"
               className="h-24 w-24 rounded-full border-4 border-[#f8b72a] object-cover"
             />
@@ -253,7 +325,13 @@ export default function ProfilePage({
                     </p>
                   </div>
 
-                  <span className="text-xl">👤</span>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteFriend(friend.userId)}
+                    className="rounded-full bg-red-500 px-3 py-1 text-xs font-black text-white"
+                  >
+                    削除
+                  </button>
                 </div>
               ))}
             </div>

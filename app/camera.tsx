@@ -24,9 +24,35 @@ const shotLabels: Record<ShotType, string> = {
   finished: "完成",
 };
 
-function getTodayKey() {
+function getTodayKey(userId?: string) {
   const today = new Date().toISOString().slice(0, 10);
-  return `daily-cooking-photos-${today}`;
+  return `daily-cooking-photos-${userId || "guest"}-${today}`;
+}
+
+async function uploadBase64Image(
+  base64: string,
+  filePath: string
+): Promise<string> {
+  const res = await fetch(base64);
+  const blob = await res.blob();
+
+  const { error } = await supabase.storage
+    .from("post-images")
+    .upload(filePath, blob, {
+      contentType: "image/jpeg",
+      upsert: true,
+    });
+
+  if (error) {
+    console.error(error);
+    throw new Error("画像アップロードに失敗しました");
+  }
+
+  const { data } = supabase.storage
+    .from("post-images")
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
 }
 
 export default function CameraPost({ onBack }: CameraPostProps) {
@@ -40,7 +66,9 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   const [memo, setMemo] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem(getTodayKey());
+    const currentUser = getCurrentUser();
+    const saved = localStorage.getItem(getTodayKey(currentUser?.userId));
+  
     if (saved) {
       const parsed = JSON.parse(saved);
       setPhotos(parsed);
@@ -50,8 +78,29 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   }, []);
 
   const savePhotos = (nextPhotos: DailyPhotos) => {
+    const currentUser = getCurrentUser();
+  
     setPhotos(nextPhotos);
-    localStorage.setItem(getTodayKey(), JSON.stringify(nextPhotos));
+    localStorage.setItem(
+      getTodayKey(currentUser?.userId),
+      JSON.stringify(nextPhotos)
+    );
+  };
+
+  const resetTodayPhotos = () => {
+    const ok = confirm("今日撮った写真とメモをリセットしますか？");
+  
+    if (!ok) return;
+  
+    const currentUser = getCurrentUser();
+  
+    localStorage.removeItem(getTodayKey(currentUser?.userId));
+  
+    setPhotos({});
+    setDishName("");
+    setMemo("");
+    setSelectedType(null);
+    setIsCameraOn(false);
   };
 
   const savePostText = () => {
@@ -72,32 +121,68 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       alert("ログインしてください");
       return;
     }
+
+    const timestamp = Date.now();
+
+    const prepPhotoUrl = photos.prep
+      ? await uploadBase64Image(
+          photos.prep,
+          `${currentUser.userId}/${timestamp}-prep.jpg`
+        )
+      : null;
+
+    const cookingPhotoUrl = photos.cooking
+      ? await uploadBase64Image(
+          photos.cooking,
+          `${currentUser.userId}/${timestamp}-cooking.jpg`
+        )
+      : null;
+
+    const finishedPhotoUrl = photos.finished
+      ? await uploadBase64Image(
+          photos.finished,
+          `${currentUser.userId}/${timestamp}-finished.jpg`
+        )
+      : null;
+
+      const today = new Date().toISOString().slice(0, 10);
+
+      const { data: existingPost } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("user_id", currentUser.userId)
+        .eq("post_date", today)
+        .maybeSingle();
+      
+        const nextPostData = {
+          user_id: currentUser.userId,
+          user_name: currentUser.name,
+          post_date: today,
+          prep_photo: prepPhotoUrl ?? existingPost?.prep_photo ?? null,
+          cooking_photo: cookingPhotoUrl ?? existingPost?.cooking_photo ?? null,
+          finished_photo: finishedPhotoUrl ?? existingPost?.finished_photo ?? null,
+          dish_name: dishName || existingPost?.dish_name || null,
+          memo: memo || existingPost?.memo || null,
+        };
   
-    const { data, error } = await supabase
-      .from("posts")
-      .insert({
-        user_id: currentUser.userId,
-        user_name: currentUser.name,
-        user_icon: (currentUser as any).userIcon ?? null,
-        prep_photo: photos.prep ?? null,
-        cooking_photo: photos.cooking ?? null,
-        finished_photo: photos.finished ?? null,
-        dish_name: dishName,
-        memo,
-      })
-      .select();
+      const { data, error } = await supabase
+        .from("posts")
+        .upsert(nextPostData, {
+          onConflict: "user_id,post_date",
+        })
+        .select();
 
     console.log("insert data:", data);
     console.log("insert error:", error);
   
     if (error) {
-      console.error(error);
-      alert("投稿に失敗しました");
+      console.error("投稿エラー:", error);
+      alert(error.message || "投稿に失敗しました");
       return;
     }
   
     alert("投稿しました");
-    window.location.reload();
+    onBack();
   };
 
   const startCamera = async (type: ShotType) => {
@@ -238,6 +323,14 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                className="mt-4 w-full rounded-full bg-[#f39a00] py-3 font-black text-white"
                >
                 メモを保存
+              </button>
+
+              <button
+                type="button"
+                onClick={resetTodayPhotos}
+                className="mt-3 w-full rounded-full bg-white py-3 font-black text-[#6b2f13] border-2 border-[#6b2f13]"
+              >
+                今日の写真をリセット
               </button>
               
               <button

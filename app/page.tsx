@@ -56,26 +56,47 @@ export default function Home() {
       .select("*")
       .in("user_id", visibleUserIds)
       .order("created_at", { ascending: false });
-  
+
     if (error) {
       console.error("投稿取得エラー:", error);
       return;
     }
-  
+
+    const postUserIds = [...new Set(data?.map((post) => post.user_id) || [])];
+
+    const { data: profiles, error: profileError } = await supabase
+      .from("profiles")
+      .select("user_id, name, icon_url")
+      .in("user_id", postUserIds);
+
+    if (profileError) {
+      console.error("プロフィール取得エラー:", profileError);
+      return;
+    }
+
+    const profileMap = new Map(
+      profiles?.map((profile) => [profile.user_id, profile]) || []
+    );
+
     const mappedPosts: Post[] =
-      data?.map((post) => ({
-        id: post.id,
-        userId: post.user_id,
-        userName: post.user_name,
-        userIcon: post.user_icon || "/images/user1-icon.jpg",
-        createdAt: post.created_at,
-        prepPhoto: post.prep_photo,
-        cookingPhoto: post.cooking_photo,
-        finishedPhoto: post.finished_photo,
-        dishName: post.dish_name,
-        memo: post.memo,
-      })) || [];
-  
+      data?.map((post) => {
+        const profile = profileMap.get(post.user_id);
+
+        return {
+          id: post.id,
+          userId: post.user_id,
+          userName: profile?.name || post.user_name,
+          userIcon: profile?.icon_url || "/images/user1-icon.jpg",
+          createdAt: post.created_at,
+          postDate: post.post_date,
+          prepPhoto: post.prep_photo,
+          cookingPhoto: post.cooking_photo,
+          finishedPhoto: post.finished_photo,
+          dishName: post.dish_name,
+          memo: post.memo,
+        };
+      }) || [];
+
     setPosts(mappedPosts);
   }
 
@@ -83,6 +104,9 @@ export default function Home() {
     const ok = confirm("この投稿を削除しますか？");
   
     if (!ok) return;
+  
+    const currentUser = getCurrentUser();
+    const targetPost = posts.find((post) => post.id === postId);
   
     const { error } = await supabase
       .from("posts")
@@ -93,6 +117,13 @@ export default function Home() {
       console.error(error);
       alert("削除に失敗しました");
       return;
+    }
+  
+    if (currentUser && targetPost?.userId === currentUser.userId) {
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.removeItem(
+        `daily-cooking-photos-${currentUser.userId}-${today}`
+      );
     }
   
     setPosts((prev) => prev.filter((post) => post.id !== postId));

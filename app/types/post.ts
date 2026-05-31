@@ -9,4 +9,5 @@ export type Post = {
     dishName?: string;
     memo?: string;
     userId?: string;
+    postDate?: string;
   };
