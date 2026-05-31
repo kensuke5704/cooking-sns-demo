@@ -19,6 +19,7 @@ export default function PostCard({
   const [liked, setLiked] = useState(false);
   const [comments, setComments] = useState<string[]>([]);
   const [commentText, setCommentText] = useState("");
+  const [showComments, setShowComments] = useState(false);
 
   useEffect(() => {
     setLiked(localStorage.getItem(likeKey) === "true");
@@ -130,32 +131,50 @@ export default function PostCard({
           </p>
         )}
 
-        <div className="mt-4 space-y-2">
-          {comments.map((comment, index) => (
-            <div
-              key={index}
-              className="rounded-2xl bg-[#fff8e6] px-4 py-2 text-sm font-bold text-[#6b2f13]"
-            >
-              <span className="font-black">あなた</span> {comment}
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-4 flex gap-2">
-          <input
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="コメントを追加"
-            className="min-w-0 flex-1 rounded-full border-2 border-[#f1d59a] px-4 py-2 text-sm font-bold outline-none"
-          />
-
+        <div className="mt-4">
           <button
             type="button"
-            onClick={addComment}
-            className="rounded-full bg-[#f39a00] px-4 text-sm font-black text-white"
+            onClick={() => setShowComments((v) => !v)}
+            className="text-xs font-black text-[#6b2f13]/50"
           >
-            投稿
+            {showComments
+              ? "コメントを閉じる"
+              : comments.length > 0
+              ? `${comments.length}件のコメントを見る`
+              : "コメントする"}
           </button>
+
+          {showComments && (
+            <>
+              <div className="mt-3 space-y-2">
+                {comments.map((comment, index) => (
+                  <div
+                    key={index}
+                    className="rounded-2xl bg-[#fff8e6] px-4 py-2 text-sm font-bold text-[#6b2f13]"
+                  >
+                    <span className="font-black">あなた</span> {comment}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-3 flex gap-2">
+                <input
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="コメントを追加"
+                  className="min-w-0 flex-1 rounded-full border-2 border-[#f1d59a] px-4 py-2 text-sm font-bold outline-none"
+                />
+
+                <button
+                  type="button"
+                  onClick={addComment}
+                  className="rounded-full bg-[#f39a00] px-4 text-sm font-black text-white"
+                >
+                  投稿
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </article>

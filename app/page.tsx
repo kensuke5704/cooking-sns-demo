@@ -142,14 +142,37 @@ export default function Home() {
       <div className="px-5 pt-5">
         <p className="text-xs font-black opacity-70">最終更新: {APP_VERSION}</p>
 
-        <button
-          onClick={() => setCurrentTab("レシピ")}
-          className="block w-full text-left mt-1 text-3xl font-black tracking-wider"
+        <div
+          className="mt-4 w-full overflow-hidden rounded-[36px] bg-white shadow-xl"
         >
-          今日の献立
-          <br />
-          アスパラベーコン
-        </button>
+          <div className="bg-[#f39a00] px-5 py-2 text-left">
+            <p className="text-xs font-black text-white">
+              TODAY'S RECIPE
+            </p>
+          </div>
+
+          <div className="p-5 text-center">
+            <p className="text-sm font-black text-[#f39a00]">
+              今日の献立
+            </p>
+
+            <h2 className="mt-2 text-3xl font-black text-[#6b2f13]">
+              アスパラベーコン
+            </h2>
+
+            <p className="mt-3 text-sm font-bold text-[#6b2f13]/60">
+              ベーコンの旨味とアスパラの食感を楽しめる定番レシピ
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setCurrentTab("レシピ")}
+              className="mt-4 rounded-full bg-[#f39a00] px-6 py-3 text-sm font-black text-white shadow"
+            >
+              レシピを見る →
+            </button>
+          </div>
+        </div>
 
         <div className="mt-6 space-y-6">
           {visiblePosts.map((post) => (
@@ -178,7 +201,7 @@ export default function Home() {
             />
             <button
               onClick={() => setSelectedImage(null)}
-              className="mt-4 w-full bg-[#f39a00] py-3 font-black text-white"
+              className="mt-4 w-full rounded-full bg-[#f39a00] py-3 font-black text-white"
             >
               閉じる
             </button>

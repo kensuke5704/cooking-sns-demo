@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { supabase } from "./utils/supabase";
+import { getCurrentUser } from "./utils/auth";
 
 type ShotType = "prep" | "cooking" | "finished";
 
@@ -61,6 +63,40 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   
     savePhotos(nextPhotos);
     alert("料理名とコメントを保存しました");
+  };
+
+  const publishPost = async () => {
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) {
+      alert("ログインしてください");
+      return;
+    }
+  
+    const { data, error } = await supabase
+      .from("posts")
+      .insert({
+        user_id: currentUser.userId,
+        user_name: currentUser.name,
+        user_icon: (currentUser as any).userIcon ?? null,
+        prep_photo: photos.prep ?? null,
+        cooking_photo: photos.cooking ?? null,
+        finished_photo: photos.finished ?? null,
+        dish_name: dishName,
+        memo,
+      })
+      .select();
+
+    console.log("insert data:", data);
+    console.log("insert error:", error);
+  
+    if (error) {
+      console.error(error);
+      alert("投稿に失敗しました");
+      return;
+    }
+  
+    alert("投稿しました");
   };
 
   const startCamera = async (type: ShotType) => {
@@ -201,7 +237,15 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                className="mt-4 w-full rounded-full bg-[#f39a00] py-3 font-black text-white"
                >
                 メモを保存
-                </button>
+              </button>
+              
+              <button
+                type="button"
+                onClick={publishPost}
+                className="mt-3 w-full rounded-full bg-[#6b2f13] py-3 font-black text-white"
+              >
+                投稿する
+              </button>
             </div>
           </div>
         )}

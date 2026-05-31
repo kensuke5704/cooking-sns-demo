@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 const USERS_KEY = "app-users";
 
 export type AppUser = {
@@ -22,16 +24,22 @@ export type AppUser = {
     return saved ? JSON.parse(saved) : null;
   }
   
-  export function registerUser(name: string, userId: string): AppUser {
+  export async function registerUser(name: string, userId: string): Promise<AppUser> {
     const user: AppUser = {
       id: crypto.randomUUID(),
       name,
       userId,
     };
-  
+    
     localStorage.setItem("current-user", JSON.stringify(user));
     saveUserToUsers(user);
-  
+    
+    await supabase.from("profiles").upsert({
+      id: user.id,
+      name: user.name,
+      user_id: user.userId,
+    });
+    
     return user;
   }
   

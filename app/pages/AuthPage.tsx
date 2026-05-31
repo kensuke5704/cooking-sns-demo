@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  getCurrentUser,
-  registerUser,
-  logoutUser,
-} from "../utils/auth";
+import { getCurrentUser, logoutUser, registerUser } from "../utils/auth";
 
-export default function AuthPage({ onAuthChange }: { onAuthChange: () => void }) {
+export default function AuthPage({
+  onAuthChange,
+}: {
+  onAuthChange: () => void;
+}) {
   const [mounted, setMounted] = useState(false);
-  const [currentUser, setCurrentUser] = useState<ReturnType<typeof getCurrentUser>>(null);
+  const [currentUser, setCurrentUser] =
+    useState<ReturnType<typeof getCurrentUser>>(null);
+
+  const [name, setName] = useState("");
+  const [userId, setUserId] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -17,17 +22,15 @@ export default function AuthPage({ onAuthChange }: { onAuthChange: () => void })
   }, []);
 
   if (!mounted) {
-    return (
-      <main className="min-h-screen bg-[#f8b72a] text-[#6b2f13]" />
-    );
+    return <main className="min-h-screen bg-[#f8b72a]" />;
   }
 
   if (currentUser) {
     return (
-      <div className="px-5 pt-6">
-        <div className="bg-[#6b2f13] text-white rounded-[32px] p-6 shadow-xl">
-          <p className="text-sm opacity-90">ログイン中</p>
-          <h1 className="text-3xl font-black mt-1">{currentUser.name}</h1>
+      <div className="min-h-screen bg-[#f8b72a] px-5 pt-6 text-[#6b2f13]">
+        <div className="rounded-[32px] bg-white p-6 shadow-xl">
+          <p className="text-sm font-black text-[#f39a00]">ログイン中</p>
+          <h1 className="mt-1 text-3xl font-black">{currentUser.name}</h1>
           <p className="mt-2 text-sm font-bold">@{currentUser.userId}</p>
 
           <button
@@ -36,7 +39,7 @@ export default function AuthPage({ onAuthChange }: { onAuthChange: () => void })
               setCurrentUser(null);
               onAuthChange();
             }}
-            className="mt-6 w-full rounded-full bg-white text-[#6b2f13] py-3 font-black"
+            className="mt-6 w-full rounded-full bg-[#6b2f13] py-3 font-black text-white"
           >
             ログアウト
           </button>
@@ -45,23 +48,58 @@ export default function AuthPage({ onAuthChange }: { onAuthChange: () => void })
     );
   }
 
+  const handleStart = async () => {
+    setError("");
+
+    if (!name.trim()) {
+      setError("ユーザー名を入力してください");
+      return;
+    }
+
+    if (!userId.trim()) {
+      setError("IDを入力してください");
+      return;
+    }
+
+    const user = await registerUser(name.trim(), userId.trim());
+    setCurrentUser(user);
+    onAuthChange();
+  };
+
   return (
     <main className="min-h-screen bg-[#f8b72a] px-5 pt-20 text-[#6b2f13]">
       <div className="rounded-[36px] bg-white p-7 shadow-xl">
         <p className="text-sm font-black text-[#f39a00]">Cooking SNS Demo</p>
+
         <h1 className="mt-2 text-4xl font-black leading-tight">
           今日の料理を
           <br />
           友だちと共有
         </h1>
 
+        <div className="mt-8 space-y-4">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="ユーザー名"
+            className="w-full rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+          />
+
+          <input
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            placeholder="ID 例：kensuke5704"
+            className="w-full rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+          />
+        </div>
+
+        {error && (
+          <p className="mt-4 text-sm font-black text-red-500">{error}</p>
+        )}
+
         <button
-          onClick={() => {
-            registerUser("user", "user1");
-            setCurrentUser(getCurrentUser());
-            onAuthChange();
-          }}
-          className="mt-8 w-full rounded-full bg-[#f39a00] py-4 text-lg font-black text-white"
+          onClick={handleStart}
+          className="mt-6 w-full rounded-full bg-[#f39a00] py-4 text-lg font-black text-white"
         >
           はじめる
         </button>
