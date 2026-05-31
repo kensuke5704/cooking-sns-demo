@@ -12,7 +12,7 @@ type Post = {
   finishedPhoto?: string;
 };
 
-const APP_VERSION = "2026-05-31 14:49";
+const APP_VERSION = "2026-05-31 14:59";
 
 const posts: Post[] = [
   {
