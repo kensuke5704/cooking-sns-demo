@@ -99,13 +99,41 @@ export default function Home() {
     setPosts(mappedPosts);
   }
 
+  function getStoragePathFromUrl(url?: string | null) {
+    if (!url) return null;
+  
+    const marker = "/storage/v1/object/public/post-images/";
+    const index = url.indexOf(marker);
+  
+    if (index === -1) return null;
+  
+    return url.slice(index + marker.length);
+  }
+
   async function deletePost(postId: string | number) {
     const ok = confirm("この投稿を削除しますか？");
-  
     if (!ok) return;
   
     const currentUser = getCurrentUser();
     const targetPost = posts.find((post) => post.id === postId);
+  
+    const imagePaths = [
+      getStoragePathFromUrl(targetPost?.prepPhoto),
+      getStoragePathFromUrl(targetPost?.cookingPhoto),
+      getStoragePathFromUrl(targetPost?.finishedPhoto),
+    ].filter((path): path is string => Boolean(path));
+  
+    if (imagePaths.length > 0) {
+      const { error: storageError } = await supabase.storage
+        .from("post-images")
+        .remove(imagePaths);
+  
+      if (storageError) {
+        console.error("画像削除エラー:", storageError);
+        alert("画像削除に失敗しました");
+        return;
+      }
+    }
   
     const { error } = await supabase
       .from("posts")
@@ -113,13 +141,18 @@ export default function Home() {
       .eq("id", postId);
   
     if (error) {
-      console.error(error);
-      alert("削除に失敗しました");
+      console.error("投稿削除エラー:", error);
+      alert(error.message || "削除に失敗しました");
       return;
     }
   
-    if (currentUser && targetPost?.userId === currentUser.userId) {
-      const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10);
+  
+    if (
+      currentUser &&
+      targetPost?.userId === currentUser.userId &&
+      targetPost?.postDate === today
+    ) {
       localStorage.removeItem(
         `daily-cooking-photos-${currentUser.userId}-${today}`
       );

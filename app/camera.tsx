@@ -279,7 +279,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const imageData = canvas.toDataURL("image/jpeg", 0.9);
+    const imageData = canvas.toDataURL("image/jpeg", 0.6);
 
     const nextPhotos = {
       ...photos,
