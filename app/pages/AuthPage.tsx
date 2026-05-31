@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getCurrentUser, logoutUser, registerUser } from "../utils/auth";
+import {
+  getCurrentUser,
+  logoutUser,
+  registerUser,
+  loginUser,
+} from "../utils/auth";
 
 export default function AuthPage({
   onAuthChange,
@@ -12,6 +17,7 @@ export default function AuthPage({
   const [currentUser, setCurrentUser] =
     useState<ReturnType<typeof getCurrentUser>>(null);
 
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
   const [userId, setUserId] = useState("");
   const [error, setError] = useState("");
@@ -48,22 +54,41 @@ export default function AuthPage({
     );
   }
 
-  const handleStart = async () => {
+  const handleSubmit = async () => {
     setError("");
-
-    if (!name.trim()) {
-      setError("ユーザー名を入力してください");
-      return;
-    }
 
     if (!userId.trim()) {
       setError("IDを入力してください");
       return;
     }
 
-    const user = await registerUser(name.trim(), userId.trim());
-    setCurrentUser(user);
-    onAuthChange();
+    try {
+      if (mode === "login") {
+        const user = await loginUser(userId.trim());
+
+        if (!user) {
+          setError("ユーザーが見つかりません");
+          return;
+        }
+
+        setCurrentUser(user);
+        onAuthChange();
+        return;
+      }
+
+      if (!name.trim()) {
+        setError("ユーザー名を入力してください");
+        return;
+      }
+
+      const user = await registerUser(name.trim(), userId.trim());
+      setCurrentUser(user);
+      onAuthChange();
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "エラーが発生しました"
+      );
+    }
   };
 
   return (
@@ -77,18 +102,52 @@ export default function AuthPage({
           友だちと共有
         </h1>
 
+        <div className="mt-6 grid grid-cols-2 rounded-full bg-[#fff4d7] p-1">
+          <button
+            type="button"
+            onClick={() => {
+              setMode("login");
+              setError("");
+            }}
+            className={`rounded-full py-2 text-sm font-black ${
+              mode === "login"
+                ? "bg-[#f39a00] text-white"
+                : "text-[#6b2f13]"
+            }`}
+          >
+            ログイン
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setMode("register");
+              setError("");
+            }}
+            className={`rounded-full py-2 text-sm font-black ${
+              mode === "register"
+                ? "bg-[#f39a00] text-white"
+                : "text-[#6b2f13]"
+            }`}
+          >
+            新規登録
+          </button>
+        </div>
+
         <div className="mt-8 space-y-4">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="ユーザー名"
-            className="w-full rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
-          />
+          {mode === "register" && (
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="ユーザー名"
+              className="w-full rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+            />
+          )}
 
           <input
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
-            placeholder="ID 例：kensuke5704"
+            placeholder="ID"
             className="w-full rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
           />
         </div>
@@ -98,10 +157,10 @@ export default function AuthPage({
         )}
 
         <button
-          onClick={handleStart}
+          onClick={handleSubmit}
           className="mt-6 w-full rounded-full bg-[#f39a00] py-4 text-lg font-black text-white"
         >
-          はじめる
+          {mode === "login" ? "ログイン" : "新規登録"}
         </button>
       </div>
     </main>

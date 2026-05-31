@@ -32,21 +32,41 @@ export default function Home() {
   }, []);
   
   async function loadPosts() {
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) return;
+  
+    const { data: friendsData, error: friendsError } = await supabase
+      .from("friends")
+      .select("friend_user_id")
+      .eq("owner_user_id", currentUser.userId);
+  
+    if (friendsError) {
+      console.error("友だち取得エラー:", friendsError);
+      return;
+    }
+  
+    const friendUserIds =
+      friendsData?.map((friend) => friend.friend_user_id) || [];
+  
+    const visibleUserIds = [currentUser.userId, ...friendUserIds];
+  
     const { data, error } = await supabase
       .from("posts")
       .select("*")
+      .in("user_id", visibleUserIds)
       .order("created_at", { ascending: false });
   
     if (error) {
-      console.error(error);
+      console.error("投稿取得エラー:", error);
       return;
     }
   
     const mappedPosts: Post[] =
       data?.map((post) => ({
         id: post.id,
-        userName: post.user_name,
         userId: post.user_id,
+        userName: post.user_name,
         userIcon: post.user_icon || "/images/user1-icon.jpg",
         createdAt: post.created_at,
         prepPhoto: post.prep_photo,

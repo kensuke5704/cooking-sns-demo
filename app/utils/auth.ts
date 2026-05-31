@@ -1,116 +1,141 @@
 import { supabase } from "./supabase";
 
-const USERS_KEY = "app-users";
-
 export type AppUser = {
-    id: string;
-    name: string;
-    userId: string;
+  id: string;
+  name: string;
+  userId: string;
+  iconUrl?: string;
+};
+
+export type Friend = {
+  id: string;
+  name: string;
+  userId: string;
+};
+
+const CURRENT_USER_KEY = "current-user";
+
+export function getCurrentUser(): AppUser | null {
+  if (typeof window === "undefined") return null;
+
+  const saved = localStorage.getItem(CURRENT_USER_KEY);
+  return saved ? JSON.parse(saved) : null;
+}
+
+export async function registerUser(
+  name: string,
+  userId: string
+): Promise<AppUser> {
+  const user: AppUser = {
+    id: crypto.randomUUID(),
+    name,
+    userId,
   };
-  
-  export type Friend = {
-    id: string;
-    name: string;
-    userId: string;
-  };
-  
-  const CURRENT_USER_KEY = "current-user";
-  const FRIENDS_KEY = "friends";
-  
-  export function getCurrentUser(): AppUser | null {
-    if (typeof window === "undefined") return null;
-  
-    const saved = localStorage.getItem(CURRENT_USER_KEY);
-    return saved ? JSON.parse(saved) : null;
-  }
-  
-  export async function registerUser(name: string, userId: string): Promise<AppUser> {
-    const user: AppUser = {
-      id: crypto.randomUUID(),
-      name,
-      userId,
-    };
-    
-    localStorage.setItem("current-user", JSON.stringify(user));
-    saveUserToUsers(user);
-    
-    await supabase.from("profiles").upsert({
-      id: user.id,
-      name: user.name,
-      user_id: user.userId,
-    });
-    
-    return user;
-  }
-  
-  export function logoutUser() {
-    localStorage.removeItem(CURRENT_USER_KEY);
-  }
-  
-  export function getFriends(): Friend[] {
-    if (typeof window === "undefined") return [];
-  
-    const saved = localStorage.getItem(FRIENDS_KEY);
-    return saved ? JSON.parse(saved) : [];
-  }
-  
-  export function addFriend(name: string, userId: string) {
-    const friends = getFriends();
-  
-    const exists = friends.some((friend) => friend.userId === userId);
-    if (exists) return friends;
-  
-    const nextFriends = [
-      ...friends,
-      {
-        id: crypto.randomUUID(),
-        name,
-        userId,
-      },
-    ];
-  
-    localStorage.setItem(FRIENDS_KEY, JSON.stringify(nextFriends));
-    return nextFriends;
+
+  const { data: existingUser } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existingUser) {
+    throw new Error("このIDは既に使用されています");
   }
 
-  export function getAllUsers(): AppUser[] {
-    if (typeof window === "undefined") return [];
-  
-    const saved = localStorage.getItem(USERS_KEY);
-    return saved ? JSON.parse(saved) : [];
-  }
-  
-  export function saveUserToUsers(user: AppUser) {
-    const users = getAllUsers();
-  
-    const exists = users.some((u) => u.userId === user.userId);
-    if (exists) return;
-  
-    localStorage.setItem(USERS_KEY, JSON.stringify([...users, user]));
-  }
-  
-  export function searchUserByUserId(userId: string): AppUser | null {
-    const users = getAllUsers();
-    return users.find((user) => user.userId === userId) ?? null;
-  }
+  const { error } = await supabase.from("profiles").insert({
+    id: user.id,
+    name: user.name,
+    user_id: user.userId,
+    icon_url: null,
+  });
 
-  export function updateCurrentUser(data: Partial<AppUser>) {
-    const currentUser = getCurrentUser();
-    if (!currentUser) return null;
+  if (error) {
+    console.error("register error:", error);
   
-    const updatedUser = {
-      ...currentUser,
-      ...data,
-    };
-  
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
-  
-    const users = getAllUsers();
-    const updatedUsers = users.map((user) =>
-      user.id === updatedUser.id ? updatedUser : user
+    throw new Error(
+      error.message || "ユーザー登録に失敗しました"
     );
-  
-    localStorage.setItem(USERS_KEY, JSON.stringify(updatedUsers));
-  
-    return updatedUser;
   }
+
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+
+  return user;
+}
+
+export function logoutUser() {
+  localStorage.removeItem(CURRENT_USER_KEY);
+}
+
+export async function loginUser(userId: string) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const user: AppUser = {
+    id: data.id,
+    name: data.name,
+    userId: data.user_id,
+    iconUrl: data.icon_url ?? undefined,
+  };
+
+  localStorage.setItem(
+    CURRENT_USER_KEY,
+    JSON.stringify(user)
+  );
+
+  return user;
+}
+
+export async function searchUserByUserId(
+  userId: string
+): Promise<AppUser | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    userId: data.user_id,
+    iconUrl: data.icon_url ?? undefined,
+  };
+}
+
+export async function updateCurrentUser(data: Partial<AppUser>) {
+  const currentUser = getCurrentUser();
+  if (!currentUser) return null;
+
+  const updatedUser = {
+    ...currentUser,
+    ...data,
+  };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      name: updatedUser.name,
+      icon_url: updatedUser.iconUrl ?? null,
+    })
+    .eq("user_id", updatedUser.userId);
+
+  if (error) {
+    console.error(error);
+    throw new Error("プロフィール更新に失敗しました");
+  }
+
+  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+
+  return updatedUser;
+}
