@@ -187,38 +187,33 @@ export default function CameraPost() {
 }
 
 function CameraCard({
-  label,
-  src,
-  className,
-  onClick,
-}: {
-  label: string;
-  src?: string;
-  className: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`absolute w-[42%] aspect-[3/4] ${className}`}
-    >
-      {src ? (
-        <div className="w-full h-full bg-white p-2 pb-8 shadow-xl">
-          <img
-            src={src}
-            alt={label}
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
-          <p className="text-xs font-black text-[#6b2f13] mt-1 text-center">
-            {label} 済み
-          </p>
-        </div>
-      ) : (
-        <div className="w-full h-full rounded-xl border-2 border-dashed border-white/70 bg-white/20 flex items-center justify-center text-white text-sm font-black">
-          {label}
-        </div>
-      )}
-    </button>
-  );
-}
+    label,
+    src,
+    onClick,
+  }: {
+    label: string;
+    src?: string;
+    onClick: () => void;
+  }) {
+    return (
+      <button onClick={onClick} className="w-full aspect-[3/4]">
+        {src ? (
+          <div className="w-full h-full bg-white p-2 pb-7 shadow-xl">
+            <img
+              src={src}
+              alt={label}
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+            <p className="text-[11px] font-black text-[#6b2f13] mt-1 text-center">
+              {label} 済み
+            </p>
+          </div>
+        ) : (
+          <div className="w-full h-full rounded-xl border-2 border-dashed border-white/70 bg-white/20 flex items-center justify-center text-white text-sm font-black">
+            {label}
+          </div>
+        )}
+      </button>
+    );
+  }

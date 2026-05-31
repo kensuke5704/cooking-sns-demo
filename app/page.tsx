@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import CameraPost from "./camera";
 
 type Post = {
   id: number;
@@ -36,17 +37,21 @@ const posts: Post[] = [
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [myPost, setMyPost] = useState<Post | null>(null);
+  const [currentTab, setCurrentTab] = useState("ホーム");
 
   useEffect(() => {
+    if (currentTab !== "ホーム") return;
+  
     const today = new Date().toISOString().slice(0, 10);
     const saved = localStorage.getItem(`daily-cooking-photos-${today}`);
-
-    if (!saved) return;
-
+  
+    if (!saved) {
+      setMyPost(null);
+      return;
+    }
+  
     const photos = JSON.parse(saved);
-
-    if (!photos.prep && !photos.cooking && !photos.finished) return;
-
+  
     setMyPost({
       id: 999,
       userName: "あなた",
@@ -56,7 +61,7 @@ export default function Home() {
       cookingPhoto: photos.cooking,
       finishedPhoto: photos.finished,
     });
-  }, []);
+  }, [currentTab]);
 
   const allPosts = myPost ? [myPost, ...posts] : posts;
 
@@ -249,6 +254,3 @@ function BottomNav({
     </nav>
   );
 }
-
-
-import CameraPost from "./camera";
