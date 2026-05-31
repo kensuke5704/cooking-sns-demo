@@ -131,7 +131,7 @@ export default function Home() {
         </button>
 
         <button
-          onClick={() => setCurrentTab("記事")}
+          onClick={() => setCurrentTab("レシピ")}
           className="absolute right-5 bottom-5 text-sm font-bold"
         >
           レシピを見る
