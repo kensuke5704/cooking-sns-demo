@@ -8,7 +8,6 @@ import PostCard from "./components/PostCard";
 import RecipePage from "./pages/RecipePage";
 import CalendarPage from "./pages/CalendarPage";
 import AuthPage from "./pages/AuthPage";
-import FriendsPage from "./pages/FriendsPage";
 import type { Post } from "./types/post";
 import { getCurrentUser } from "./utils/auth";
 import ProfilePage from "./pages/ProfilePage";
