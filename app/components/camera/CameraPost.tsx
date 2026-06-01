@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { getCurrentUser } from "../../lib/auth";
 import { supabase } from "../../lib/supabase";
 import { resizeImageFile } from "../../lib/image";
-import { ensureImageUrl } from "../../lib/storage";
+import { publishPostData } from "../../lib/posts";
+import CameraCard from "./CameraCard";
+
 
 type ShotType = "prep" | "cooking" | "finished";
 
@@ -120,92 +122,49 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       alert("ログインしてください");
       return;
     }
-
-    const timestamp = Date.now();
-
-    const prepPhotoUrl = photos.prep
-      ? await ensureImageUrl(
-          photos.prep,
-          `${currentUser.userId}/${timestamp}-prep.jpg`
-        )
-      : null;
-
-      const cookingPhotoUrl = photos.cooking
-        ? await ensureImageUrl(
-            photos.cooking,
-            `${currentUser.userId}/${timestamp}-cooking.jpg`
-          )
-        : null;
-
-      const finishedPhotoUrl = photos.finished
-        ? await ensureImageUrl(
-            photos.finished,
-            `${currentUser.userId}/${timestamp}-finished.jpg`
-          )
-        : null;
-
-      const today = new Date().toISOString().slice(0, 10);
-
+  
+    try {
       const draftId = getOrCreateDraftId(currentUser.userId);
-
-      const { data: existingPost } = await supabase
-        .from("posts")
-        .select("*")
-        .eq("user_id", currentUser.userId)
-        .eq("draft_id", draftId)
-        .maybeSingle();
-      
-        const nextPostData = {
-          user_id: currentUser.userId,
-          user_name: currentUser.name,
-          post_date: today,
-          draft_id: draftId,
-          prep_photo: prepPhotoUrl ?? existingPost?.prep_photo ?? null,
-          cooking_photo: cookingPhotoUrl ?? existingPost?.cooking_photo ?? null,
-          finished_photo: finishedPhotoUrl ?? existingPost?.finished_photo ?? null,
-          dish_name: dishName || existingPost?.dish_name || null,
-          memo: memo || existingPost?.memo || null,
-        };
   
-      const { data, error } = await supabase
-        .from("posts")
-        .upsert(nextPostData, {
-          onConflict: "user_id,draft_id",
-        })
-        .select();
-
-    console.log("insert data:", data);
-    console.log("insert error:", error);
+      const {
+        existingPost,
+        finishedPhotoUrl,
+      } = await publishPostData({
+        userId: currentUser.userId,
+        userName: currentUser.name,
+        dishName,
+        memo,
+        photos,
+        draftId,
+      });
   
-    if (error) {
-      console.error("投稿エラー:", error);
-      alert(error.message || "投稿に失敗しました");
-      return;
-    }
-    
-    const shouldCompleteDraft = Boolean(
-      finishedPhotoUrl || existingPost?.finished_photo
-    );
-    
-    if (shouldCompleteDraft) {
-      localStorage.removeItem(
-        getTodayKey(currentUser.userId)
+      const shouldCompleteDraft = Boolean(
+        finishedPhotoUrl || existingPost?.finished_photo
       );
-    
-      clearDraftId(currentUser.userId);
-    
-      setPhotos({});
-      setDishName("");
-      setMemo("");
+  
+      if (shouldCompleteDraft) {
+        localStorage.removeItem(
+          getTodayKey(currentUser.userId)
+        );
+  
+        clearDraftId(currentUser.userId);
+  
+        setPhotos({});
+        setDishName("");
+        setMemo("");
+      }
+  
+      alert(
+        shouldCompleteDraft
+          ? "完成まで投稿しました。次の料理を開始できます。"
+          : "投稿しました。続きの写真を追加できます。"
+      );
+  
+      onBack();
+    } catch (error) {
+      console.error("投稿エラー:", error);
+      alert("投稿に失敗しました");
     }
-    
-    alert(
-      shouldCompleteDraft
-        ? "完成まで投稿しました。次の料理を開始できます。"
-        : "投稿しました。続きの写真を追加できます。"
-    );
-    
-    onBack();
   };
 
   const startCamera = async (type: ShotType) => {
@@ -432,54 +391,6 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   
         <canvas ref={canvasRef} className="hidden" />
       </div>
-    </div>
-  );
-}
-
-function CameraCard({
-  label,
-  src,
-  onClick,
-  onFileChange,
-}: {
-  label: string;
-  src?: string;
-  onClick: () => void;
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}) {
-  return (
-    <div className="w-full">
-      <button type="button" onClick={onClick} className="w-full">
-        {src ? (
-          <div className="bg-white p-2 pb-6 shadow-xl">
-            <img
-              src={src}
-              alt={label}
-              className="aspect-[3/4] w-full object-cover"
-              draggable={false}
-            />
-            <p className="mt-1 text-center text-[11px] font-black text-[#6b2f13]">
-              {label} 済み
-            </p>
-          </div>
-        ) : (
-          <div className="flex aspect-[3/4] w-full items-center justify-center rounded-2xl border-2 border-dashed border-white/70 bg-white/20 text-sm font-black text-white">
-            ＋ {label}
-          </div>
-        )}
-      </button>
-  
-      {!src && (
-        <label className="mt-2 block rounded-full bg-white px-2 py-2 text-center text-[10px] font-black text-[#6b2f13]">
-          ライブラリ
-          <input
-            type="file"
-            accept="image/*"
-            onChange={onFileChange}
-            className="hidden"
-          />
-        </label>
-      )}
     </div>
   );
 }

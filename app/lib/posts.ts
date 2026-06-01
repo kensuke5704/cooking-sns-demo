@@ -125,3 +125,86 @@ export async function deletePostData(postId: string | number, targetPost?: Post)
     throw error;
   }
 }
+
+export async function publishPostData({
+  userId,
+  userName,
+  dishName,
+  memo,
+  photos,
+  draftId,
+}: {
+  userId: string;
+  userName: string;
+  dishName: string;
+  memo: string;
+  photos: {
+    prep?: string;
+    cooking?: string;
+    finished?: string;
+  };
+  draftId: string;
+}) {
+  const timestamp = Date.now();
+
+  const { ensureImageUrl } = await import("./storage");
+
+  const prepPhotoUrl = photos.prep
+    ? await ensureImageUrl(
+        photos.prep,
+        `${userId}/${timestamp}-prep.jpg`
+      )
+    : null;
+
+  const cookingPhotoUrl = photos.cooking
+    ? await ensureImageUrl(
+        photos.cooking,
+        `${userId}/${timestamp}-cooking.jpg`
+      )
+    : null;
+
+  const finishedPhotoUrl = photos.finished
+    ? await ensureImageUrl(
+        photos.finished,
+        `${userId}/${timestamp}-finished.jpg`
+      )
+    : null;
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { data: existingPost } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("draft_id", draftId)
+    .maybeSingle();
+
+  const nextPostData = {
+    user_id: userId,
+    user_name: userName,
+    post_date: today,
+    draft_id: draftId,
+    prep_photo: prepPhotoUrl ?? existingPost?.prep_photo ?? null,
+    cooking_photo: cookingPhotoUrl ?? existingPost?.cooking_photo ?? null,
+    finished_photo: finishedPhotoUrl ?? existingPost?.finished_photo ?? null,
+    dish_name: dishName || existingPost?.dish_name || null,
+    memo: memo || existingPost?.memo || null,
+  };
+
+  const { data, error } = await supabase
+    .from("posts")
+    .upsert(nextPostData, {
+      onConflict: "user_id,draft_id",
+    })
+    .select();
+
+  if (error) {
+    throw error;
+  }
+
+  return {
+    data,
+    existingPost,
+    finishedPhotoUrl,
+  };
+}
