@@ -93,9 +93,19 @@ export async function ensureImageUrl(
   image: string,
   filePath: string
 ): Promise<string> {
+  alert(
+    `image先頭:\n${image.slice(0, 80)}\n\nfilePath:\n${filePath}`
+  );
+
   if (image.startsWith("http")) {
     return image;
   }
 
-  return uploadBase64Image(image, filePath);
+  if (image.startsWith("data:image")) {
+    return uploadBase64Image(image, filePath);
+  }
+
+  throw new Error(
+    `未対応の画像形式です: ${image.slice(0, 80)}`
+  );
 }
