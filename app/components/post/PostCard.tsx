@@ -32,16 +32,29 @@ export default function PostCard({
   const isMyPost = currentUser?.userId === post.userId;
 
   const createdDate = new Date(post.createdAt);
+  const now = new Date();
 
-  const createdTimeText = createdDate.toLocaleTimeString("ja-JP", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const diffMs = now.getTime() - createdDate.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  const createdDateText = createdDate.toLocaleDateString("ja-JP", {
-    month: "numeric",
-    day: "numeric",
-  });
+  let createdTimeText = "";
+
+  if (diffMinutes < 1) {
+    createdTimeText = "たった今";
+  } else if (diffMinutes < 60) {
+    createdTimeText = `${diffMinutes}分前`;
+  } else if (diffHours < 24) {
+    createdTimeText = `${diffHours}時間前`;
+  } else if (diffDays === 1) {
+    createdTimeText = "昨日";
+  } else {
+    createdTimeText = createdDate.toLocaleDateString("ja-JP", {
+      month: "numeric",
+      day: "numeric",
+    });
+  }
 
   useEffect(() => {
     loadComments();
@@ -268,7 +281,7 @@ if (!existingNotification) {
 
         <div className="flex items-center gap-2">
         <span className="rounded-full bg-[#fff4d7] px-3 py-1 text-xs font-black text-[#f39a00]">
-          {createdDateText}
+            {createdDate.getMonth() + 1}/{createdDate.getDate()}
         </span>
 
           {isMyPost && onDelete && (
