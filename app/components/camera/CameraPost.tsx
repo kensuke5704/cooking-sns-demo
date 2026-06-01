@@ -64,6 +64,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [dishName, setDishName] = useState("");
   const [memo, setMemo] = useState("");
+  const [isPublishing, setIsPublishing] = useState(false);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -116,6 +117,8 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   };
 
   const publishPost = async () => {
+    if (isPublishing) return;
+  
     const currentUser = getCurrentUser();
   
     if (!currentUser) {
@@ -123,13 +126,12 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       return;
     }
   
+    setIsPublishing(true);
+  
     try {
       const draftId = getOrCreateDraftId(currentUser.userId);
   
-      const {
-        existingPost,
-        finishedPhotoUrl,
-      } = await publishPostData({
+      const { existingPost, finishedPhotoUrl } = await publishPostData({
         userId: currentUser.userId,
         userName: currentUser.name,
         dishName,
@@ -143,9 +145,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       );
   
       if (shouldCompleteDraft) {
-        localStorage.removeItem(
-          getTodayKey(currentUser.userId)
-        );
+        localStorage.removeItem(getTodayKey(currentUser.userId));
   
         clearDraftId(currentUser.userId);
   
@@ -164,6 +164,8 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     } catch (error) {
       console.error("投稿エラー:", error);
       alert("投稿に失敗しました");
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -332,18 +334,26 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                className="mt-2 w-full resize-none rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
              />
 
-             <button
-               type="button"
-               onClick={savePostText}
-               className="mt-4 w-full rounded-full bg-[#f39a00] py-3 font-black text-white"
-               >
+              <button
+                type="button"
+                onClick={savePostText}
+                disabled={isPublishing}
+                className={`mt-4 w-full rounded-full py-3 font-black text-white ${
+                  isPublishing
+                    ? "cursor-not-allowed bg-[#f39a00]/50"
+                    : "bg-[#f39a00]"
+                }`}
+              >
                 メモを保存
               </button>
 
               <button
                 type="button"
                 onClick={resetTodayPhotos}
-                className="mt-3 w-full rounded-full bg-white py-3 font-black text-[#6b2f13] border-2 border-[#6b2f13]"
+                disabled={isPublishing}
+                className={`mt-3 w-full rounded-full border-2 border-[#6b2f13] py-3 font-black text-[#6b2f13] ${
+                  isPublishing ? "cursor-not-allowed bg-white/50" : "bg-white"
+                }`}
               >
                 今日の写真をリセット
               </button>
@@ -351,9 +361,14 @@ export default function CameraPost({ onBack }: CameraPostProps) {
               <button
                 type="button"
                 onClick={publishPost}
-                className="mt-3 w-full rounded-full bg-[#6b2f13] py-3 font-black text-white"
+                disabled={isPublishing}
+                className={`mt-3 w-full rounded-full py-3 font-black text-white ${
+                  isPublishing
+                    ? "cursor-not-allowed bg-[#6b2f13]/50"
+                    : "bg-[#6b2f13]"
+                }`}
               >
-                投稿する
+                {isPublishing ? "アップロード中..." : "投稿する"}
               </button>
             </div>
           </div>
