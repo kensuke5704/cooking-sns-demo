@@ -217,10 +217,17 @@ export default function ProfilePage({
         return;
       }
   
-    setFriendId("");
-    setMessage("友だちを追加しました");
-  
-    await loadFriends();
+      setFriendId("");
+      setMessage("友だちを追加しました");
+      
+      await supabase.from("notifications").insert({
+        to_user_id: profile.user_id,
+        from_user_id: currentUser.userId,
+        type: "friend",
+        message: `${currentUser.name}さんがあなたを友だち追加しました`,
+      });
+      
+      await loadFriends();
   };
 
   const handleDeleteFriend = async (friendUserId: string) => {
