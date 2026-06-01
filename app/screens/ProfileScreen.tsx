@@ -103,7 +103,7 @@ export default function ProfilePage({
   
     const fileExt = file.name.split(".").pop();
     const filePath = `${currentUser.userId}/avatar-${Date.now()}.${fileExt}`;
-    const oldAvatarPath = getAvatarStoragePathFromUrl(currentUser.iconUrl);
+    const oldAvatarPath = getAvatarStoragePathFromUrl(iconUrl);
   
     const { error: uploadError } = await supabase.storage
       .from("avatars")
@@ -128,10 +128,15 @@ export default function ProfilePage({
 
       const publicUrl = data.publicUrl;
 
+      console.log("oldAvatarPath:", oldAvatarPath);
+
       if (oldAvatarPath) {
-        const { error: deleteError } = await supabase.storage
+        const { data: deleteData, error: deleteError } = await supabase.storage
           .from("avatars")
           .remove([oldAvatarPath]);
+
+        console.log("deleteData:", deleteData);
+        console.log("deleteError:", deleteError);
 
         if (deleteError) {
           console.error("古いプロフィール画像の削除に失敗:", deleteError);
