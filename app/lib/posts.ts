@@ -145,30 +145,30 @@ export async function publishPostData({
   };
   draftId: string;
 }) {
-  const timestamp = Date.now();
+  const safeDraftId = draftId.replace(/[^a-zA-Z0-9_-]/g, "");
 
   const { ensureImageUrl } = await import("./storage");
-
+  
   const prepPhotoUrl = photos.prep
     ? await ensureImageUrl(
         photos.prep,
-        `${userId}/${timestamp}-prep.jpg`
+        `${userId}/${safeDraftId}-prep.jpg`
       )
     : null;
-
+  
   const cookingPhotoUrl = photos.cooking
     ? await ensureImageUrl(
         photos.cooking,
-        `${userId}/${timestamp}-cooking.jpg`
+        `${userId}/${safeDraftId}-cooking.jpg`
       )
     : null;
+  
   const finishedPhotoUrl = photos.finished
     ? await ensureImageUrl(
         photos.finished,
-        `${userId}/${timestamp}-finished.jpg`
+        `${userId}/${safeDraftId}-finished.jpg`
       )
     : null;
-
     const today = new Date().toLocaleDateString("sv-SE", {
       timeZone: "Asia/Tokyo",
     });
