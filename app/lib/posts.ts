@@ -197,15 +197,48 @@ export async function publishPostData({
     .upsert(nextPostData, {
       onConflict: "user_id,draft_id",
     })
-    .select();
+    .select()
+    .single();
 
-  if (error) {
-    throw error;
-  }
-
-  return {
-    data,
-    existingPost,
-    finishedPhotoUrl,
-  };
+    if (error) {
+      throw error;
+    }
+    
+    if (!existingPost && data) {
+      const { data: friendsData, error: friendsError } = await supabase
+        .from("friends")
+        .select("friend_user_id")
+        .eq("owner_user_id", userId);
+    
+      if (friendsError) {
+        console.error("投稿通知用の友だち取得エラー:", friendsError);
+      } else {
+        const notifications =
+          friendsData?.map((friend) => ({
+            post_id: data.id,
+            from_user_id: userId,
+            from_user_name: userName,
+            to_user_id: friend.friend_user_id,
+            type: "post",
+            message: `${userName}さんが新しい料理を投稿しました`,
+            read: false,
+          })) || [];
+    
+        if (notifications.length > 0) {
+          const { error: notificationError } = await supabase
+            .from("notifications")
+            .insert(notifications);
+    
+          if (notificationError) {
+            console.error("投稿通知作成エラー:", notificationError);
+          }
+        }
+      }
+    }
+    
+    return {
+      data,
+      existingPost,
+      finishedPhotoUrl,
+    };
 }
