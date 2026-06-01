@@ -256,10 +256,22 @@ export default function ProfilePage({
   
     setNotificationPermission(permission);
   
-    if (permission === "granted") {
-      alert("通知を有効化しました");
-    } else {
+    if (permission !== "granted") {
       alert("通知が許可されませんでした");
+      return;
+    }
+  
+    try {
+      const registration = await navigator.serviceWorker.register(
+        "/sw.js"
+      );
+  
+      console.log("SW登録完了", registration);
+  
+      alert("通知を有効化しました");
+    } catch (error) {
+      console.error(error);
+      alert("Service Worker登録に失敗しました");
     }
   };
 
