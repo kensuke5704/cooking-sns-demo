@@ -138,6 +138,20 @@ export default function Home() {
     );
   }
 
+  if (currentTab === "通知") {
+    return (
+      <>
+        <NotificationScreen
+          onReadChange={() => {}}
+        />
+        <BottomNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+        />
+      </>
+    );
+  }
+
   if (currentTab === "プロフィール") {
     return (
       <>

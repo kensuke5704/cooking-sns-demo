@@ -9,6 +9,7 @@ export default function BottomNav({ currentTab, setCurrentTab }: BottomNavProps)
     ["/images/calendar-icon.png", "カレンダー"],
     ["/images/camera-icon.png", "カメラ"],
     ["/images/article-icon.png", "記事"],
+    ["/images/friends-icon.png", "通知"],
     ["/images/friends-icon.png", "プロフィール"],
   ];
 
