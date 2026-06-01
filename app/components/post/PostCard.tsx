@@ -145,7 +145,7 @@ if (!existingNotification) {
     if (post.userId) {
       await sendPushNotification({
         toUserId: post.userId,
-        title: "ごはんなにかな",
+        title: "おいしそう",
         body: `${currentUser.name}さんがあなたの投稿に「おいしそう」しました`,
       });
     }
@@ -196,7 +196,7 @@ if (!existingNotification) {
       if (post.userId) {
         await sendPushNotification({
           toUserId: post.userId,
-          title: "ごはんなにかな",
+          title: "コメント",
           body: `${currentUser.name}さんがあなたの投稿にコメントしました`,
         });
       }

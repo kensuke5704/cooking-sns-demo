@@ -16,7 +16,6 @@ import { supabase } from "./lib/supabase";
 import { deletePostData, loadPostsData } from "./lib/posts";
 import { getTodayRecipe } from "./lib/todayRecipe";
 
-const APP_VERSION = "2026-05-31 fixed";
 const todayRecipe = getTodayRecipe();
 
 export default function Home() {
@@ -245,9 +244,6 @@ export default function Home() {
     <main className="min-h-screen bg-[#f8b72a] pb-28 text-[#6b2f13]">
       <div className="px-5 pt-5">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-black opacity-70">
-            最終更新: {APP_VERSION}
-          </p>
 
           <button
             type="button"
