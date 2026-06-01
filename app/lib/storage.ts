@@ -64,7 +64,7 @@ export async function uploadBase64Image(
       .replace(/[^a-zA-Z0-9/_\-.]/g, "_")
       .replace(/\/+/g, "/");
 
-    console.log("safePath:", safePath);
+    alert(`safePath: ${safePath}`);
 
     const { error } = await supabase.storage
       .from("post-images")
