@@ -18,7 +18,11 @@ const APP_VERSION = "2026-05-31 fixed";
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [currentTab, setCurrentTab] = useState("ホーム");
+  const [currentTab, setCurrentTab] = useState(() => {
+    if (typeof window === "undefined") return "ホーム";
+  
+    return localStorage.getItem("current-tab") || "ホーム";
+  });
   const [authVersion, setAuthVersion] = useState(0);
   const [currentUser, setCurrentUser] =
     useState<ReturnType<typeof getCurrentUser>>(null);
@@ -30,6 +34,10 @@ export default function Home() {
   useEffect(() => {
     loadPosts();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("current-tab", currentTab);
+  }, [currentTab]);
 
   async function loadPosts() {
     const currentUser = getCurrentUser();
@@ -78,7 +86,7 @@ export default function Home() {
   
     localStorage.removeItem(`daily-cooking-photos-${currentUser.userId}-${today}`);
   }
-  
+
   if (!currentUser) {
     return (
       <AuthPage
