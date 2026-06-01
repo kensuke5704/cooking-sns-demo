@@ -17,6 +17,8 @@ export default function PostCard({
 }) {
   const [comments, setComments] = useState<
     {
+      id: string | number;
+      userId: string;
       userName: string;
       text: string;
     }[]
@@ -47,6 +49,8 @@ export default function PostCard({
   
     setComments(
       data?.map((c) => ({
+        id: c.id,
+        userId: c.user_id,
         userName: c.user_name,
         text: c.text,
       })) || []
@@ -130,6 +134,30 @@ export default function PostCard({
   
     setCommentText("");
     await loadComments();
+  };
+
+  const deleteComment = async (commentId: string | number) => {
+    const ok = confirm("このコメントを削除しますか？");
+  
+    if (!ok) return;
+  
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) return;
+  
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId)
+      .eq("user_id", currentUser.userId);
+  
+    if (error) {
+      console.error(error);
+      alert("コメント削除に失敗しました");
+      return;
+    }
+  
+    setComments((prev) => prev.filter((comment) => comment.id !== commentId));
   };
   
   return (
@@ -251,17 +279,31 @@ export default function PostCard({
           {showComments && (
             <>
               <div className="mt-3 space-y-2">
-              {comments.map((comment, index) => (
-                <div
-                  key={index}
-                  className="rounded-2xl bg-[#fff8e6] px-4 py-2 text-sm font-bold text-[#6b2f13]"
-                >
-                  <span className="font-black">
-                    {comment.userName}
-                  </span>{" "}
-                  {comment.text}
-                </div>
-              ))}
+              {comments.map((comment) => {
+                const canDeleteComment = currentUser?.userId === comment.userId;
+
+                return (
+                  <div
+                    key={comment.id}
+                    className="flex items-start justify-between gap-3 rounded-2xl bg-[#fff8e6] px-4 py-2 text-sm font-bold text-[#6b2f13]"
+                  >
+                    <p className="min-w-0 flex-1">
+                      <span className="font-black">{comment.userName}</span>{" "}
+                      {comment.text}
+                    </p>
+
+                    {canDeleteComment && (
+                      <button
+                        type="button"
+                        onClick={() => deleteComment(comment.id)}
+                        className="shrink-0 rounded-full bg-red-500 px-2 py-1 text-[10px] font-black text-white"
+                      >
+                        削除
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
               </div>
 
               <div className="mt-3 flex gap-2">
