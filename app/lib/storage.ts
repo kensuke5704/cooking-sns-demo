@@ -1,25 +1,37 @@
 import { supabase } from "./supabase";
 
-function base64ToImage(base64: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
+function base64ToBlob(base64: string): Blob {
+  const parts = base64.split(",");
+  const contentType = parts[0].match(/:(.*?);/)?.[1] || "image/jpeg";
+  const raw = atob(parts[1]);
+  const array = new Uint8Array(raw.length);
 
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("画像の読み込みに失敗しました"));
+  for (let i = 0; i < raw.length; i++) {
+    array[i] = raw.charCodeAt(i);
+  }
 
-    img.src = base64;
-  });
+  return new Blob([array], { type: contentType });
 }
 
 async function normalizeImage(base64: string): Promise<Blob> {
-  const img = await base64ToImage(base64);
+  const originalBlob = base64ToBlob(base64);
+
+  let bitmap: ImageBitmap;
+
+  try {
+    bitmap = await createImageBitmap(originalBlob);
+  } catch {
+    throw new Error(
+      `画像の読み込みに失敗しました: ${originalBlob.type || "unknown"}`
+    );
+  }
 
   const maxWidth = 1200;
-  const scale = Math.min(1, maxWidth / img.width);
+  const scale = Math.min(1, maxWidth / bitmap.width);
 
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(img.width * scale);
-  canvas.height = Math.round(img.height * scale);
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
 
   const ctx = canvas.getContext("2d");
 
@@ -27,7 +39,7 @@ async function normalizeImage(base64: string): Promise<Blob> {
     throw new Error("画像変換に失敗しました");
   }
 
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
@@ -49,44 +61,29 @@ export async function uploadBase64Image(
   base64: string,
   filePath: string
 ): Promise<string> {
-  try {
-    console.log("base64先頭:", base64.slice(0, 50));
-    console.log("元filePath:", filePath);
+  const blob = await normalizeImage(base64);
 
-    const blob = await normalizeImage(base64);
+  const safePath = filePath
+    .replace(/[^a-zA-Z0-9/_\-.]/g, "_")
+    .replace(/\/+/g, "/");
 
-    console.log("変換後blob:", {
-      type: blob.type,
-      size: blob.size,
+  const { error } = await supabase.storage
+    .from("post-images")
+    .upload(safePath, blob, {
+      contentType: "image/jpeg",
+      upsert: true,
     });
 
-    const safePath = filePath
-      .replace(/[^a-zA-Z0-9/_\-.]/g, "_")
-      .replace(/\/+/g, "/");
-
-    alert(`safePath: ${safePath}`);
-
-    const { error } = await supabase.storage
-      .from("post-images")
-      .upload(safePath, blob, {
-        contentType: "image/jpeg",
-        upsert: true,
-      });
-
-    if (error) {
-      console.error("Storage upload error:", error);
-      throw new Error(`Storage upload error: ${JSON.stringify(error)}`);
-    }
-
-    const { data } = supabase.storage
-      .from("post-images")
-      .getPublicUrl(safePath);
-
-    return data.publicUrl;
-  } catch (error: any) {
-    console.error("uploadBase64Image error:", error);
-    throw new Error(error?.message || String(error));
+  if (error) {
+    console.error("画像アップロードエラー:", error);
+    throw new Error(`画像アップロードに失敗しました: ${error.message}`);
   }
+
+  const { data } = supabase.storage
+    .from("post-images")
+    .getPublicUrl(safePath);
+
+  return data.publicUrl;
 }
 
 export async function ensureImageUrl(
