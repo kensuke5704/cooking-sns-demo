@@ -185,17 +185,24 @@ export default function PostCard({
               viewBox="0 0 24 24"
               fill={liked ? "currentColor" : "none"}
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               className={`h-6 w-6 ${
                 liked ? "text-[#f39a00]" : "text-[#6b2f13]"
               }`}
             >
-              <path d="M12 21s-7-4.35-9.5-8C.5 10 .9 6.5 4 4.5c2.4-1.5 5-.6 6.5 1.4C12 3.9 14.6 3 17 4.5c3.1 2 3.5 5.5 1.5 8.5C19 16.65 12 21 12 21z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"
+              />
             </svg>
           </button>
 
           <button
             type="button"
+            onClick={() => setShowComments(true)}
             className="flex h-10 w-10 items-center justify-center"
           >
             <svg
