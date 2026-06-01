@@ -246,11 +246,12 @@ export default function ProfilePage({
     const currentUser = getCurrentUser();
     if (!currentUser) return;
   
-    const { error: deleteError1 } = await supabase
+    const { data: deletedRows1, error: deleteError1 } = await supabase
       .from("friends")
       .delete()
       .eq("owner_user_id", currentUser.userId)
-      .eq("friend_user_id", friendUserId);
+      .eq("friend_user_id", friendUserId)
+      .select();
   
     if (deleteError1) {
       console.error("友だち削除エラー1:", deleteError1);
@@ -258,11 +259,15 @@ export default function ProfilePage({
       return;
     }
   
-    const { error: deleteError2 } = await supabase
+    const { data: deletedRows2, error: deleteError2 } = await supabase
       .from("friends")
       .delete()
       .eq("owner_user_id", friendUserId)
-      .eq("friend_user_id", currentUser.userId);
+      .eq("friend_user_id", currentUser.userId)
+      .select();
+
+    console.log("削除対象1:", currentUser.userId, friendUserId, deletedRows1);
+    console.log("削除対象2:", friendUserId, currentUser.userId, deletedRows2);
   
     if (deleteError2) {
       console.error("友だち削除エラー2:", deleteError2);
