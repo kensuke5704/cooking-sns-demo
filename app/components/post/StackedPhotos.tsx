@@ -27,7 +27,7 @@ export default function StackedPhotos({
   ];
 
   return (
-    <div className="relative h-64 z-10">
+    <div className="relative h-54 z-10">
       {photos.map((photo) => (
         <div
           key={photo.label}

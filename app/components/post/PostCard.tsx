@@ -280,9 +280,6 @@ if (!existingNotification) {
         </div>
 
         <div className="flex items-center gap-2">
-        <span className="rounded-full bg-[#fff4d7] px-3 py-1 text-xs font-black text-[#f39a00]">
-            {createdDate.getMonth() + 1}/{createdDate.getDate()}
-        </span>
 
           {isMyPost && onDelete && (
             <button
