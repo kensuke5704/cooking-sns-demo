@@ -246,7 +246,7 @@ export default function ProfilePage({
 
       await sendPushNotification({
         toUserId: profile.user_id,
-        title: "FMK論",
+        title: "ごはんなにかな",
         body: `${currentUser.name}さんがあなたを友だち追加しました`,
       });
 

@@ -238,7 +238,7 @@ export async function publishPostData({
               notifications.map((notification) =>
                 sendPushNotification({
                   toUserId: notification.to_user_id,
-                  title: "FMK論",
+                  title: "ごはんなにかな",
                   body: notification.message,
                 })
               )
