@@ -246,9 +246,34 @@ export default function ProfilePage({
       await loadFriends();
   };
 
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+  
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+  
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+  
+    return outputArray;
+  }
+
   const handleEnableNotifications = async () => {
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) return;
+  
     if (!("Notification" in window)) {
       alert("この端末は通知に対応していません");
+      return;
+    }
+  
+    if (!("serviceWorker" in navigator)) {
+      alert("この端末はService Workerに対応していません");
       return;
     }
   
@@ -262,16 +287,91 @@ export default function ProfilePage({
     }
   
     try {
-      const registration = await navigator.serviceWorker.register(
-        "/sw.js"
-      );
+      const registration = await navigator.serviceWorker.register("/sw.js");
   
-      console.log("SW登録完了", registration);
+      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  
+      if (!publicKey) {
+        alert("VAPID公開鍵が設定されていません");
+        return;
+      }
+  
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+  
+      const subscriptionJson = subscription.toJSON();
+  
+      const { error } = await supabase
+        .from("push_subscriptions")
+        .upsert(
+          {
+            user_id: currentUser.userId,
+            endpoint: subscription.endpoint,
+            p256dh: subscriptionJson.keys?.p256dh,
+            auth: subscriptionJson.keys?.auth,
+          },
+          {
+            onConflict: "endpoint",
+          }
+        );
+  
+      if (error) {
+        console.error("Push購読保存エラー:", error);
+        alert("通知設定の保存に失敗しました");
+        return;
+      }
   
       alert("通知を有効化しました");
     } catch (error) {
       console.error(error);
-      alert("Service Worker登録に失敗しました");
+      alert("Push通知の登録に失敗しました");
+    }
+  };
+
+  const handleDisableNotifications = async () => {
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) return;
+  
+    if (!("serviceWorker" in navigator)) {
+      alert("この端末はService Workerに対応していません");
+      return;
+    }
+  
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+  
+      if (!registration) {
+        alert("通知登録が見つかりません");
+        return;
+      }
+  
+      const subscription = await registration.pushManager.getSubscription();
+  
+      if (!subscription) {
+        alert("通知登録が見つかりません");
+        return;
+      }
+  
+      const { error } = await supabase
+        .from("push_subscriptions")
+        .delete()
+        .eq("endpoint", subscription.endpoint);
+  
+        if (error) {
+          console.error("Push購読保存エラー:", error);
+          alert(`通知設定の保存に失敗しました: ${error.message}`);
+          return;
+        }
+  
+      await subscription.unsubscribe();
+  
+      alert("通知を無効化しました");
+    } catch (error) {
+      console.error(error);
+      alert("通知の無効化に失敗しました");
     }
   };
 
@@ -446,15 +546,23 @@ export default function ProfilePage({
         <section className="mt-5 rounded-[32px] bg-white p-5 shadow-xl">
           <h2 className="text-lg font-black">通知</h2>
 
-          <button
-            type="button"
-            onClick={handleEnableNotifications}
-            className="mt-4 w-full rounded-2xl bg-[#f39a00] px-4 py-3 font-black text-white"
-          >
-            {notificationPermission === "granted"
-              ? "通知は有効です"
-              : "通知を有効化"}
-          </button>
+          <div className="mt-4 space-y-3">
+            <button
+              type="button"
+              onClick={handleEnableNotifications}
+              className="w-full rounded-2xl bg-[#f39a00] px-4 py-3 font-black text-white"
+            >
+              通知を有効化
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDisableNotifications}
+              className="w-full rounded-2xl bg-[#fff4d7] px-4 py-3 font-black text-[#6b2f13]"
+            >
+              通知を無効化
+            </button>
+          </div>
         </section>
       </div>
     </main>
