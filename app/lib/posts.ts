@@ -170,7 +170,9 @@ export async function publishPostData({
       )
     : null;
 
-  const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString("sv-SE", {
+      timeZone: "Asia/Tokyo",
+    });
 
   const { data: existingPost } = await supabase
     .from("posts")

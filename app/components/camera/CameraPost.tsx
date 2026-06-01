@@ -30,12 +30,16 @@ const shotLabels: Record<ShotType, string> = {
 
 
 function getTodayKey(userId?: string) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString("sv-SE", {
+    timeZone: "Asia/Tokyo",
+  });
   return `daily-cooking-photos-${userId || "guest"}-${today}`;
 }
 
 function getDraftIdKey(userId?: string) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString("sv-SE", {
+    timeZone: "Asia/Tokyo",
+  });
   return `daily-cooking-draft-id-${userId || "guest"}-${today}`;
 }
 

@@ -14,8 +14,10 @@ import ProfilePage from "./screens/ProfileScreen";
 import NotificationScreen from "./screens/NotificationScreen";
 import { supabase } from "./lib/supabase";
 import { deletePostData, loadPostsData } from "./lib/posts";
+import { getTodayRecipe } from "./lib/todayRecipe";
 
 const APP_VERSION = "2026-05-31 fixed";
+const todayRecipe = getTodayRecipe();
 
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -131,7 +133,9 @@ export default function Home() {
   ) {
     if (!currentUser || !targetPost) return;
   
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString("sv-SE", {
+      timeZone: "Asia/Tokyo",
+    });
   
     const isOwnPost = targetPost.userId === currentUser.userId;
     const isTodayPost = targetPost.postDate === today;
@@ -288,11 +292,11 @@ export default function Home() {
             <p className="text-sm font-black text-[#f39a00]">今日の献立</p>
 
             <h2 className="mt-2 text-3xl font-black text-[#6b2f13]">
-              アスパラベーコン
+              {todayRecipe.title}
             </h2>
 
             <p className="mt-3 text-sm font-bold text-[#6b2f13]/60">
-              ベーコンの旨味とアスパラの食感を楽しめる定番レシピ
+              {todayRecipe.description}
             </p>
 
             <button
