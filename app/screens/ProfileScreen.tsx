@@ -8,6 +8,7 @@ import {
   type Friend,
 } from "../lib/auth";
 import { supabase } from "../lib/supabase";
+import { resizeImageFile } from "../lib/image";
 
 export default function ProfilePage({
   onProfileChange,
@@ -74,21 +75,46 @@ export default function ProfilePage({
     loadFriends();
   }, []);
 
+  function getAvatarStoragePathFromUrl(url?: string | null) {
+    if (!url) return null;
+  
+    const marker = "/storage/v1/object/public/avatars/";
+    const index = url.indexOf(marker);
+  
+    if (index === -1) return null;
+  
+    return url.slice(index + marker.length);
+  }
+
   const handleIconChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const compressedBase64 = await resizeImageFile(
+      file,
+      500,
+      0.6
+    );
+    
+    const response = await fetch(compressedBase64);
+    const compressedBlob = await response.blob();
   
     const currentUser = getCurrentUser();
     if (!currentUser) return;
   
     const fileExt = file.name.split(".").pop();
     const filePath = `${currentUser.userId}/avatar-${Date.now()}.${fileExt}`;
+    const oldAvatarPath = getAvatarStoragePathFromUrl(currentUser.iconUrl);
   
     const { error: uploadError } = await supabase.storage
       .from("avatars")
-      .upload(filePath, file, {
-        upsert: true,
-      });
+      .upload(
+        filePath,
+        compressedBlob,
+        {
+          contentType: "image/jpeg",
+          upsert: true,
+        }
+      );
   
     if (uploadError) {
       console.error(uploadError);
@@ -99,11 +125,21 @@ export default function ProfilePage({
     const { data } = supabase.storage
       .from("avatars")
       .getPublicUrl(filePath);
-  
-    const publicUrl = data.publicUrl;
-  
-    setIconUrl(publicUrl);
-    await updateCurrentUser({ iconUrl: publicUrl });
+
+      const publicUrl = data.publicUrl;
+
+      if (oldAvatarPath) {
+        const { error: deleteError } = await supabase.storage
+          .from("avatars")
+          .remove([oldAvatarPath]);
+
+        if (deleteError) {
+          console.error("古いプロフィール画像の削除に失敗:", deleteError);
+        }
+      }
+
+      setIconUrl(publicUrl);
+      await updateCurrentUser({ iconUrl: publicUrl });
   
     onProfileChange();
     setMessage("プロフィール画像を更新しました");
