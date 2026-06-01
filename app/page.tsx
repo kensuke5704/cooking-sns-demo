@@ -240,9 +240,44 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#f8b72a] pb-28 text-[#6b2f13]">
       <div className="px-5 pt-5">
-        <p className="text-xs font-black opacity-70">
-          最終更新: {APP_VERSION}
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-black opacity-70">
+            最終更新: {APP_VERSION}
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setCurrentTab("通知")}
+            className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white shadow"
+            aria-label="通知"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-6 w-6"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M4 7.5C4 6.12 5.12 5 6.5 5h11C18.88 5 20 6.12 20 7.5v9C20 17.88 18.88 19 17.5 19h-11C5.12 19 4 17.88 4 16.5v-9Z"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <path
+                d="M5.5 7.5 12 12.5l6.5-5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+
+            {unreadCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
+        </div>
 
         <div className="mt-4 w-full overflow-hidden rounded-[36px] bg-white shadow-xl">
           <div className="bg-[#f39a00] px-5 py-2 text-left">
