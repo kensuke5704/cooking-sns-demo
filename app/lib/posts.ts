@@ -149,32 +149,25 @@ export async function publishPostData({
 
   const { ensureImageUrl } = await import("./storage");
 
-  console.log("prep画像処理開始");
   const prepPhotoUrl = photos.prep
     ? await ensureImageUrl(
         photos.prep,
         `${userId}/${timestamp}-prep.jpg`
       )
     : null;
-  console.log("prep画像処理完了");
 
-  console.log("cooking画像処理開始");
   const cookingPhotoUrl = photos.cooking
     ? await ensureImageUrl(
         photos.cooking,
         `${userId}/${timestamp}-cooking.jpg`
       )
     : null;
-  console.log("cooking画像処理完了");
-
-  console.log("finished画像処理開始");
   const finishedPhotoUrl = photos.finished
     ? await ensureImageUrl(
         photos.finished,
         `${userId}/${timestamp}-finished.jpg`
       )
     : null;
-  console.log("finished画像処理完了");
 
     const today = new Date().toLocaleDateString("sv-SE", {
       timeZone: "Asia/Tokyo",
