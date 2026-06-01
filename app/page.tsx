@@ -39,6 +39,57 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    loadUnreadCount();
+  }, [authVersion]);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) return;
+  
+    const channel = supabase
+      .channel("notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+        },
+        () => {
+          loadUnreadCount();
+        }
+      )
+      .subscribe();
+  
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [authVersion]);
+  
+  async function loadUnreadCount() {
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) return;
+  
+    const { count, error } = await supabase
+      .from("notifications")
+      .select("*", {
+        count: "exact",
+        head: true,
+      })
+      .eq("to_user_id", currentUser.userId)
+      .eq("read", false);
+  
+    if (error) {
+      console.error(error);
+      return;
+    }
+  
+    setUnreadCount(count || 0);
+  }
+
+  useEffect(() => {
     localStorage.setItem("current-tab", currentTab);
   }, [currentTab]);
 
@@ -115,7 +166,11 @@ export default function Home() {
     return (
       <>
         <RecipePage />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+        <BottomNav
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        unreadCount={unreadCount}
+        />
       </>
     );
   }
@@ -124,7 +179,11 @@ export default function Home() {
     return (
       <>
         <CalendarPage />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+        <BottomNav
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        unreadCount={unreadCount}
+        />
       </>
     );
   }
@@ -133,7 +192,11 @@ export default function Home() {
     return (
       <>
         <EmptyPage title="記事" />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+        <BottomNav
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        unreadCount={unreadCount}
+        />
       </>
     );
   }
@@ -142,11 +205,12 @@ export default function Home() {
     return (
       <>
         <NotificationScreen
-          onReadChange={() => {}}
+          onReadChange={loadUnreadCount}
         />
         <BottomNav
           currentTab={currentTab}
           setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
         />
       </>
     );
@@ -160,7 +224,10 @@ export default function Home() {
             setAuthVersion((v) => v + 1);
           }}
         />
-        <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+        <BottomNav currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        unreadCount={unreadCount}
+        />
       </>
     );
   }
@@ -239,7 +306,11 @@ export default function Home() {
         </div>
       )}
 
-      <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
+      <BottomNav
+      currentTab={currentTab}
+      setCurrentTab={setCurrentTab}
+      unreadCount={unreadCount}
+      />
     </main>
   );
 }

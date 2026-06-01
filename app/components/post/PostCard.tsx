@@ -104,18 +104,47 @@ export default function PostCard({
     });
   
     if (error) {
-      console.error(error);
-      return;
+      if (error.code === "23505") {
+        console.log("すでにいいね済みです");
+      } else {
+        console.error(error);
+        return;
+      }
     }
+
     if (post.userId !== currentUser.userId) {
-      await supabase.from("notifications").insert({
-        post_id: post.id,
-        from_user_id: currentUser.userId,
-        from_user_name: currentUser.name,
-        to_user_id: post.userId,
-        type: "like",
-        message: `${currentUser.name}さんがあなたの投稿に「おいしそう」しました`,
-      });
+      const { data: existingNotification, error: checkNotificationError } =
+  await supabase
+    .from("notifications")
+    .select("id")
+    .eq("post_id", post.id)
+    .eq("from_user_id", currentUser.userId)
+    .eq("to_user_id", post.userId)
+    .eq("type", "like")
+    .maybeSingle();
+
+if (checkNotificationError) {
+  console.error("通知確認エラー:", checkNotificationError);
+  return;
+}
+
+if (!existingNotification) {
+  const { error: notificationError } = await supabase
+    .from("notifications")
+    .insert({
+      post_id: post.id,
+      from_user_id: currentUser.userId,
+      from_user_name: currentUser.name,
+      to_user_id: post.userId,
+      type: "like",
+      message: `${currentUser.name}さんがあなたの投稿に「おいしそう」しました`,
+      read: false,
+    });
+
+  if (notificationError) {
+    console.error("通知作成エラー:", notificationError);
+  }
+}
     }
   
     setLiked(true);

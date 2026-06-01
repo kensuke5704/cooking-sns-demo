@@ -1,9 +1,14 @@
 type BottomNavProps = {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
+  unreadCount?: number;
 };
 
-export default function BottomNav({ currentTab, setCurrentTab }: BottomNavProps) {
+export default function BottomNav({
+  currentTab,
+  setCurrentTab,
+  unreadCount = 0,
+}: BottomNavProps) {
   const items = [
     ["/images/home-icon.png", "ホーム"],
     ["/images/calendar-icon.png", "カレンダー"],
@@ -28,7 +33,19 @@ export default function BottomNav({ currentTab, setCurrentTab }: BottomNavProps)
                 active ? "bg-[#f8b72a] text-white" : "text-[#f39a00]"
               }`}
             >
-              <img src={iconSrc} alt="" className="h-7 w-7 object-contain" />
+              <div className="relative">
+                <img
+                  src={iconSrc}
+                  alt=""
+                  className="h-6 w-6 object-contain"
+                />
+
+                {label === "通知" && unreadCount > 0 && (
+                  <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black text-white">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </div>
               <span>{label}</span>
             </button>
           );

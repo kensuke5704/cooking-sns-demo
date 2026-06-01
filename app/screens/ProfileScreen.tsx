@@ -225,13 +225,14 @@ export default function ProfilePage({
         .insert({
           to_user_id: profile.user_id,
           from_user_id: currentUser.userId,
+          from_user_name: currentUser.name,
           type: "friend",
-          message: `${currentUser.name}さんがあなたを友だち追加しました`,
+          message: `${currentUser.userId}さんがあなたを友だち追加しました`,
         });
 
       if (notificationError) {
         console.error("通知作成エラー:", notificationError);
-        setMessage("友だちは追加されましたが、通知作成に失敗しました");
+        setMessage(`通知作成エラー: ${notificationError.message}`);
         return;
       }
 
