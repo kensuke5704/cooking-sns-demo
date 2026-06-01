@@ -167,7 +167,10 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       onBack();
     } catch (error) {
       console.error("投稿エラー:", error);
-      alert("投稿に失敗しました");
+
+      alert(
+        `投稿に失敗しました\n\n${JSON.stringify(error)}`
+      );
     } finally {
       setIsPublishing(false);
     }
