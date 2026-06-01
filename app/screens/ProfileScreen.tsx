@@ -9,6 +9,7 @@ import {
 } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 import { resizeImageFile } from "../lib/image";
+import { sendPushNotification } from "../lib/sendPush";
 
 export default function ProfilePage({
   onProfileChange,
@@ -242,6 +243,12 @@ export default function ProfilePage({
         setMessage(`通知作成エラー: ${notificationError.message}`);
         return;
       }
+
+      await sendPushNotification({
+        toUserId: profile.user_id,
+        title: "FMK論",
+        body: `${currentUser.name}さんがあなたを友だち追加しました`,
+      });
 
       await loadFriends();
   };
