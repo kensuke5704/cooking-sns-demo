@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Post } from "../types/post";
+import type { Post } from "../../types/post";
 import StackedPhotos from "./StackedPhotos";
-import { supabase } from "../utils/supabase";
-import { getCurrentUser } from "../utils/auth";
+import { supabase } from "../../lib/supabase";
+import { getCurrentUser } from "../../lib/auth";
 
 export default function PostCard({
   post,

@@ -6,7 +6,7 @@ import {
   logoutUser,
   registerUser,
   loginUser,
-} from "../utils/auth";
+} from "../lib/auth";
 
 export default function AuthPage({
   onAuthChange,

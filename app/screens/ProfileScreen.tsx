@@ -6,8 +6,8 @@ import {
   updateCurrentUser,
   logoutUser,
   type Friend,
-} from "../utils/auth";
-import { supabase } from "../utils/supabase";
+} from "../lib/auth";
+import { supabase } from "../lib/supabase";
 
 export default function ProfilePage({
   onProfileChange,

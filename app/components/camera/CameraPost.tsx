@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "./utils/supabase";
-import { getCurrentUser } from "./utils/auth";
+import { supabase } from "../../lib/supabase";
+import { getCurrentUser } from "../../lib/auth";
 
 type ShotType = "prep" | "cooking" | "finished";
 

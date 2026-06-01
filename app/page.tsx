@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import CameraPost from "./camera";
-import BottomNav from "./components/BottomNav";
 import EmptyPage from "./components/EmptyPage";
-import PostCard from "./components/PostCard";
-import RecipePage from "./pages/RecipePage";
-import CalendarPage from "./pages/CalendarPage";
-import AuthPage from "./pages/AuthPage";
 import type { Post } from "./types/post";
-import { getCurrentUser } from "./utils/auth";
-import ProfilePage from "./pages/ProfilePage";
-import { supabase } from "./utils/supabase";
+import CameraPost from "./components/camera/CameraPost";
+import BottomNav from "./components/navigation/BottomNav";
+import PostCard from "./components/post/PostCard";
+import RecipePage from "./screens/RecipeScreen";
+import CalendarPage from "./screens/CalendarScreen";
+import AuthPage from "./screens/AuthScreen";
+import { getCurrentUser } from "./lib/auth";
+import ProfilePage from "./screens/ProfileScreen";
+import { supabase } from "./lib/supabase";
 
 const APP_VERSION = "2026-05-31 fixed";
 
