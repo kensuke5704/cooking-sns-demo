@@ -1,5 +1,6 @@
 import type { Post } from "../types/post";
 import { supabase } from "./supabase";
+import { sendPushNotification } from "./sendPush";
 
 type FriendRow = {
   friend_user_id: string;
@@ -224,15 +225,25 @@ export async function publishPostData({
             read: false,
           })) || [];
     
-        if (notifications.length > 0) {
-          const { error: notificationError } = await supabase
-            .from("notifications")
-            .insert(notifications);
-    
-          if (notificationError) {
-            console.error("投稿通知作成エラー:", notificationError);
+          if (notifications.length > 0) {
+            const { error: notificationError } = await supabase
+              .from("notifications")
+              .insert(notifications);
+          
+            if (notificationError) {
+              console.error("投稿通知作成エラー:", notificationError);
+            }
+          
+            await Promise.all(
+              notifications.map((notification) =>
+                sendPushNotification({
+                  toUserId: notification.to_user_id,
+                  title: "FMK論",
+                  body: notification.message,
+                })
+              )
+            );
           }
-        }
       }
     }
     

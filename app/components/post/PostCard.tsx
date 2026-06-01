@@ -5,6 +5,7 @@ import type { Post } from "../../types/post";
 import StackedPhotos from "./StackedPhotos";
 import { supabase } from "../../lib/supabase";
 import { getCurrentUser } from "../../lib/auth";
+import { sendPushNotification } from "../../lib/sendPush";
 
 export default function PostCard({
   post,
@@ -141,6 +142,14 @@ if (!existingNotification) {
       read: false,
     });
 
+    if (post.userId) {
+      await sendPushNotification({
+        toUserId: post.userId,
+        title: "FMK論",
+        body: `${currentUser.name}さんがあなたの投稿に「おいしそう」しました`,
+      });
+    }
+
   if (notificationError) {
     console.error("通知作成エラー:", notificationError);
   }
@@ -183,6 +192,14 @@ if (!existingNotification) {
           message: `${currentUser.name}さんがあなたの投稿にコメントしました`,
           read: false,
         });
+
+      if (post.userId) {
+        await sendPushNotification({
+          toUserId: post.userId,
+          title: "FMK論",
+          body: `${currentUser.name}さんがあなたの投稿にコメントしました`,
+        });
+      }
     
       if (notificationError) {
         console.error("コメント通知作成エラー:", notificationError);
