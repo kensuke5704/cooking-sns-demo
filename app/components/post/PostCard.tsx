@@ -31,6 +31,18 @@ export default function PostCard({
   const currentUser = getCurrentUser();
   const isMyPost = currentUser?.userId === post.userId;
 
+  const createdDate = new Date(post.createdAt);
+
+  const createdTimeText = createdDate.toLocaleTimeString("ja-JP", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const createdDateText = createdDate.toLocaleDateString("ja-JP", {
+    month: "numeric",
+    day: "numeric",
+  });
+
   useEffect(() => {
     loadComments();
     loadLikes();
@@ -248,14 +260,16 @@ if (!existingNotification) {
             <p className="text-base font-black text-[#6b2f13]">
               {post.userName}
             </p>
-            <p className="text-xs font-bold text-[#6b2f13]/50">たった今</p>
+            <p className="text-xs font-bold text-[#6b2f13]/50">
+              {createdTimeText}
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-[#fff4d7] px-3 py-1 text-xs font-black text-[#f39a00]">
-            今日
-          </span>
+        <span className="rounded-full bg-[#fff4d7] px-3 py-1 text-xs font-black text-[#f39a00]">
+          {createdDateText}
+        </span>
 
           {isMyPost && onDelete && (
             <button
