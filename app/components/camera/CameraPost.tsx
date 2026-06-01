@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "../../lib/supabase";
 import { getCurrentUser } from "../../lib/auth";
+import { supabase } from "../../lib/supabase";
+import { resizeImageFile } from "../../lib/image";
+import { ensureImageUrl } from "../../lib/storage";
 
 type ShotType = "prep" | "cooking" | "finished";
 
@@ -24,45 +26,6 @@ const shotLabels: Record<ShotType, string> = {
   finished: "完成",
 };
 
-function resizeImageFile(
-  file: File,
-  maxWidth = 900,
-  quality = 0.6
-): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      img.src = reader.result as string;
-    };
-
-    img.onload = () => {
-      const scale = Math.min(1, maxWidth / img.width);
-      const width = Math.round(img.width * scale);
-      const height = Math.round(img.height * scale);
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        reject(new Error("画像変換に失敗しました"));
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0, width, height);
-
-      resolve(canvas.toDataURL("image/jpeg", quality));
-    };
-
-    img.onerror = () => reject(new Error("画像読み込みに失敗しました"));
-    reader.onerror = () => reject(new Error("ファイル読み込みに失敗しました"));
-
-    reader.readAsDataURL(file);
-  });
-}
 
 function getTodayKey(userId?: string) {
   const today = new Date().toISOString().slice(0, 10);
@@ -89,42 +52,6 @@ function clearDraftId(userId?: string) {
   localStorage.removeItem(getDraftIdKey(userId));
 }
 
-async function ensureImageUrl(
-  image: string,
-  filePath: string
-): Promise<string> {
-  if (image.startsWith("http")) {
-    return image;
-  }
-
-  return uploadBase64Image(image, filePath);
-}
-
-async function uploadBase64Image(
-  base64: string,
-  filePath: string
-): Promise<string> {
-  const res = await fetch(base64);
-  const blob = await res.blob();
-
-  const { error } = await supabase.storage
-    .from("post-images")
-    .upload(filePath, blob, {
-      contentType: "image/jpeg",
-      upsert: true,
-    });
-
-  if (error) {
-    console.error(error);
-    throw new Error("画像アップロードに失敗しました");
-  }
-
-  const { data } = supabase.storage
-    .from("post-images")
-    .getPublicUrl(filePath);
-
-  return data.publicUrl;
-}
 
 export default function CameraPost({ onBack }: CameraPostProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);

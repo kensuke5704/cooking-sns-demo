@@ -11,7 +11,7 @@ import CalendarPage from "./screens/CalendarScreen";
 import AuthPage from "./screens/AuthScreen";
 import { getCurrentUser } from "./lib/auth";
 import ProfilePage from "./screens/ProfileScreen";
-import { supabase } from "./lib/supabase";
+import { deletePostData, loadPostsData } from "./lib/posts";
 
 const APP_VERSION = "2026-05-31 fixed";
 
@@ -20,7 +20,8 @@ export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [currentTab, setCurrentTab] = useState("ホーム");
   const [authVersion, setAuthVersion] = useState(0);
-  const [currentUser, setCurrentUser] = useState<ReturnType<typeof getCurrentUser>>(null);
+  const [currentUser, setCurrentUser] =
+    useState<ReturnType<typeof getCurrentUser>>(null);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -29,85 +30,18 @@ export default function Home() {
   useEffect(() => {
     loadPosts();
   }, []);
-  
+
   async function loadPosts() {
     const currentUser = getCurrentUser();
-  
+
     if (!currentUser) return;
-  
-    const { data: friendsData, error: friendsError } = await supabase
-      .from("friends")
-      .select("friend_user_id")
-      .eq("owner_user_id", currentUser.userId);
-  
-    if (friendsError) {
-      console.error("友だち取得エラー:", friendsError);
-      return;
-    }
-  
-    const friendUserIds =
-      friendsData?.map((friend) => friend.friend_user_id) || [];
-  
-    const visibleUserIds = [currentUser.userId, ...friendUserIds];
-  
-    const { data, error } = await supabase
-      .from("posts")
-      .select("*")
-      .in("user_id", visibleUserIds)
-      .order("created_at", { ascending: false });
 
-    if (error) {
+    try {
+      const loadedPosts = await loadPostsData(currentUser.userId);
+      setPosts(loadedPosts);
+    } catch (error) {
       console.error("投稿取得エラー:", error);
-      return;
     }
-
-    const postUserIds = [...new Set(data?.map((post) => post.user_id) || [])];
-
-    const { data: profiles, error: profileError } = await supabase
-      .from("profiles")
-      .select("user_id, name, icon_url")
-      .in("user_id", postUserIds);
-
-    if (profileError) {
-      console.error("プロフィール取得エラー:", profileError);
-      return;
-    }
-
-    const profileMap = new Map(
-      profiles?.map((profile) => [profile.user_id, profile]) || []
-    );
-
-    const mappedPosts: Post[] =
-      data?.map((post) => {
-        const profile = profileMap.get(post.user_id);
-
-        return {
-          id: post.id,
-          userId: post.user_id,
-          userName: profile?.name || post.user_name,
-          userIcon: profile?.icon_url || "/images/user1-icon.jpg",
-          createdAt: post.created_at,
-          postDate: post.post_date,
-          prepPhoto: post.prep_photo,
-          cookingPhoto: post.cooking_photo,
-          finishedPhoto: post.finished_photo,
-          dishName: post.dish_name,
-          memo: post.memo,
-        };
-      }) || [];
-
-    setPosts(mappedPosts);
-  }
-
-  function getStoragePathFromUrl(url?: string | null) {
-    if (!url) return null;
-  
-    const marker = "/storage/v1/object/public/post-images/";
-    const index = url.indexOf(marker);
-  
-    if (index === -1) return null;
-  
-    return url.slice(index + marker.length);
   }
 
   async function deletePost(postId: string | number) {
@@ -117,50 +51,34 @@ export default function Home() {
     const currentUser = getCurrentUser();
     const targetPost = posts.find((post) => post.id === postId);
   
-    const imagePaths = [
-      getStoragePathFromUrl(targetPost?.prepPhoto),
-      getStoragePathFromUrl(targetPost?.cookingPhoto),
-      getStoragePathFromUrl(targetPost?.finishedPhoto),
-    ].filter((path): path is string => Boolean(path));
+    try {
+      await deletePostData(postId, targetPost);
   
-    if (imagePaths.length > 0) {
-      const { error: storageError } = await supabase.storage
-        .from("post-images")
-        .remove(imagePaths);
+      resetTodayDraftIfNeeded(currentUser, targetPost);
   
-      if (storageError) {
-        console.error("画像削除エラー:", storageError);
-        alert("画像削除に失敗しました");
-        return;
-      }
-    }
-  
-    const { error } = await supabase
-      .from("posts")
-      .delete()
-      .eq("id", postId);
-  
-    if (error) {
+      setPosts((prev) => prev.filter((post) => post.id !== postId));
+    } catch (error) {
       console.error("投稿削除エラー:", error);
-      alert(error.message || "削除に失敗しました");
-      return;
+      alert("削除に失敗しました");
     }
+  }
+  
+  function resetTodayDraftIfNeeded(
+    currentUser: ReturnType<typeof getCurrentUser>,
+    targetPost?: Post
+  ) {
+    if (!currentUser || !targetPost) return;
   
     const today = new Date().toISOString().slice(0, 10);
   
-    if (
-      currentUser &&
-      targetPost?.userId === currentUser.userId &&
-      targetPost?.postDate === today
-    ) {
-      localStorage.removeItem(
-        `daily-cooking-photos-${currentUser.userId}-${today}`
-      );
-    }
+    const isOwnPost = targetPost.userId === currentUser.userId;
+    const isTodayPost = targetPost.postDate === today;
   
-    setPosts((prev) => prev.filter((post) => post.id !== postId));
+    if (!isOwnPost || !isTodayPost) return;
+  
+    localStorage.removeItem(`daily-cooking-photos-${currentUser.userId}-${today}`);
   }
-
+  
   if (!currentUser) {
     return (
       <AuthPage
@@ -222,9 +140,7 @@ export default function Home() {
     );
   }
 
-  const allPosts = posts;
-
-  const visiblePosts = allPosts.filter((post) => {
+  const visiblePosts = posts.filter((post) => {
     const created = new Date(post.createdAt).getTime();
     return Date.now() - created <= 24 * 60 * 60 * 1000;
   });
@@ -232,21 +148,17 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#f8b72a] pb-28 text-[#6b2f13]">
       <div className="px-5 pt-5">
-        <p className="text-xs font-black opacity-70">最終更新: {APP_VERSION}</p>
+        <p className="text-xs font-black opacity-70">
+          最終更新: {APP_VERSION}
+        </p>
 
-        <div
-          className="mt-4 w-full overflow-hidden rounded-[36px] bg-white shadow-xl"
-        >
+        <div className="mt-4 w-full overflow-hidden rounded-[36px] bg-white shadow-xl">
           <div className="bg-[#f39a00] px-5 py-2 text-left">
-            <p className="text-xs font-black text-white">
-              TODAY'S RECIPE
-            </p>
+            <p className="text-xs font-black text-white">TODAY&apos;S RECIPE</p>
           </div>
 
           <div className="p-5 text-center">
-            <p className="text-sm font-black text-[#f39a00]">
-              今日の献立
-            </p>
+            <p className="text-sm font-black text-[#f39a00]">今日の献立</p>
 
             <h2 className="mt-2 text-3xl font-black text-[#6b2f13]">
               アスパラベーコン
@@ -281,11 +193,11 @@ export default function Home() {
       {selectedImage && (
         <div
           onClick={() => setSelectedImage(null)}
-          className="fixed inset-0 z-[9999] bg-black/70 flex items-center justify-center p-6"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-6"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl p-4 w-full max-w-sm"
+            className="w-full max-w-sm rounded-2xl bg-white p-4"
           >
             <img
               src={selectedImage}
