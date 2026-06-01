@@ -243,12 +243,12 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#f8b72a] pb-28 text-[#6b2f13]">
       <div className="px-5 pt-5">
-        <div className="flex items-center justify-between">
+      <div className="relative">
 
-          <button
-            type="button"
-            onClick={() => setCurrentTab("通知")}
-            className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white shadow"
+        <button
+          type="button"
+          onClick={() => setCurrentTab("通知")}
+          className="fixed right-5 top-5 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow"
             aria-label="通知"
           >
             <svg

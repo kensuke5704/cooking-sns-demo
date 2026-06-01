@@ -18,7 +18,10 @@ export default function BottomNav({
   ];
 
   return (
-    <nav className="fixed bottom-4 left-0 right-0 z-50 bg-white border-t border-[#f1d59a] px-3 py-2">
+    <>
+      <div className="fixed bottom-0 left-0 right-0 h-20 bg-white z-40" />
+
+      <nav className="fixed bottom-3 left-3 right-3 z-50 bg-white border border-[#f1d59a] px-3 py-2 rounded-3xl shadow-lg">
       <div className="mx-auto flex max-w-md justify-between">
         {items.map(([iconSrc, label]) => {
           const active = currentTab === label;
@@ -51,5 +54,6 @@ export default function BottomNav({
         })}
       </div>
     </nav>
+    </>
   );
 }
