@@ -15,6 +15,14 @@ export type Friend = {
 
 const CURRENT_USER_KEY = "current-user";
 
+const USER_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
+
+function validateUserId(userId: string) {
+  if (!USER_ID_PATTERN.test(userId)) {
+    throw new Error("IDに使用できるのは英数字、_、- のみです");
+  }
+}
+
 export function getCurrentUser(): AppUser | null {
   if (typeof window === "undefined") return null;
 
@@ -26,6 +34,7 @@ export async function registerUser(
   name: string,
   userId: string
 ): Promise<AppUser> {
+  validateUserId(userId);
   const user: AppUser = {
     id: crypto.randomUUID(),
     name,
@@ -67,6 +76,7 @@ export function logoutUser() {
 }
 
 export async function loginUser(userId: string) {
+  validateUserId(userId);
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
@@ -95,6 +105,7 @@ export async function loginUser(userId: string) {
 export async function searchUserByUserId(
   userId: string
 ): Promise<AppUser | null> {
+  validateUserId(userId);
   const { data, error } = await supabase
     .from("profiles")
     .select("*")

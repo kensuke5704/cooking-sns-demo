@@ -107,6 +107,16 @@ export default function PostCard({
       console.error(error);
       return;
     }
+    if (post.userId !== currentUser.userId) {
+      await supabase.from("notifications").insert({
+        post_id: post.id,
+        from_user_id: currentUser.userId,
+        from_user_name: currentUser.name,
+        to_user_id: post.userId,
+        type: "like",
+        message: `${currentUser.name}さんがあなたの投稿に「おいしそう」しました`,
+      });
+    }
   
     setLiked(true);
     setLikeCount((v) => v + 1);
@@ -130,6 +140,17 @@ export default function PostCard({
       console.error(error);
       alert("コメント保存失敗");
       return;
+    }
+
+    if (post.userId !== currentUser.userId) {
+      await supabase.from("notifications").insert({
+        post_id: post.id,
+        from_user_id: currentUser.userId,
+        from_user_name: currentUser.name,
+        to_user_id: post.userId,
+        type: "comment",
+        message: `${currentUser.name}さんがあなたの投稿にコメントしました`,
+      });
     }
   
     setCommentText("");

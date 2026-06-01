@@ -11,6 +11,8 @@ import CalendarPage from "./screens/CalendarScreen";
 import AuthPage from "./screens/AuthScreen";
 import { getCurrentUser } from "./lib/auth";
 import ProfilePage from "./screens/ProfileScreen";
+import NotificationScreen from "./screens/NotificationScreen";
+import { supabase } from "./lib/supabase";
 import { deletePostData, loadPostsData } from "./lib/posts";
 
 const APP_VERSION = "2026-05-31 fixed";
@@ -24,6 +26,7 @@ export default function Home() {
     return localStorage.getItem("current-tab") || "ホーム";
   });
   const [authVersion, setAuthVersion] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [currentUser, setCurrentUser] =
     useState<ReturnType<typeof getCurrentUser>>(null);
 

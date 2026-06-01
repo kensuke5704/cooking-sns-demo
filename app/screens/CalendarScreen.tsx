@@ -35,7 +35,12 @@ export default function CalendarPage() {
 
       try {
         const loadedPosts = await loadPostsData(currentUser.userId);
-        setPosts(loadedPosts);
+
+        const myPosts = loadedPosts.filter(
+          (post) => post.userId === currentUser.userId
+        );
+
+        setPosts(myPosts);
       } catch (error) {
         console.error("カレンダー投稿取得エラー:", error);
       }
