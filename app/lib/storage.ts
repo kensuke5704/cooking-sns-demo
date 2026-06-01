@@ -49,29 +49,44 @@ export async function uploadBase64Image(
   base64: string,
   filePath: string
 ): Promise<string> {
-  const blob = await normalizeImage(base64);
+  try {
+    console.log("base64先頭:", base64.slice(0, 50));
+    console.log("元filePath:", filePath);
 
-  const safePath = filePath
-    .replace(/[^a-zA-Z0-9/_\-.]/g, "_")
-    .replace(/\/+/g, "/");
+    const blob = await normalizeImage(base64);
 
-  const { error } = await supabase.storage
-    .from("post-images")
-    .upload(safePath, blob, {
-      contentType: "image/jpeg",
-      upsert: true,
+    console.log("変換後blob:", {
+      type: blob.type,
+      size: blob.size,
     });
 
-  if (error) {
-    console.error("画像アップロードエラー:", error);
-    throw new Error(`画像アップロードに失敗しました: ${error.message}`);
+    const safePath = filePath
+      .replace(/[^a-zA-Z0-9/_\-.]/g, "_")
+      .replace(/\/+/g, "/");
+
+    console.log("safePath:", safePath);
+
+    const { error } = await supabase.storage
+      .from("post-images")
+      .upload(safePath, blob, {
+        contentType: "image/jpeg",
+        upsert: true,
+      });
+
+    if (error) {
+      console.error("Storage upload error:", error);
+      throw new Error(`Storage upload error: ${JSON.stringify(error)}`);
+    }
+
+    const { data } = supabase.storage
+      .from("post-images")
+      .getPublicUrl(safePath);
+
+    return data.publicUrl;
+  } catch (error: any) {
+    console.error("uploadBase64Image error:", error);
+    throw new Error(error?.message || String(error));
   }
-
-  const { data } = supabase.storage
-    .from("post-images")
-    .getPublicUrl(safePath);
-
-  return data.publicUrl;
 }
 
 export async function ensureImageUrl(
