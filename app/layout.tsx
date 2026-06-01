@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FMK論",
+  title: "ごはんなにかな",
   description: "料理記録SNS",
 
   manifest: "/manifest.json",

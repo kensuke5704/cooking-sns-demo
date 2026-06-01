@@ -20,6 +20,13 @@ export default function ProfilePage({
   const [friends, setFriends] = useState<Friend[]>([]);
   const [friendId, setFriendId] = useState("");
   const [message, setMessage] = useState("");
+  const [notificationPermission, setNotificationPermission] =
+    useState<NotificationPermission>("default");
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
   const currentUser = getCurrentUser();
 
   async function loadFriends() {
@@ -239,6 +246,23 @@ export default function ProfilePage({
       await loadFriends();
   };
 
+  const handleEnableNotifications = async () => {
+    if (!("Notification" in window)) {
+      alert("この端末は通知に対応していません");
+      return;
+    }
+  
+    const permission = await Notification.requestPermission();
+  
+    setNotificationPermission(permission);
+  
+    if (permission === "granted") {
+      alert("通知を有効化しました");
+    } else {
+      alert("通知が許可されませんでした");
+    }
+  };
+
   const handleDeleteFriend = async (friendUserId: string) => {
     const ok = confirm("この友だちを削除しますか？");
   
@@ -405,6 +429,20 @@ export default function ProfilePage({
               ))}
             </div>
           )}
+        </section>
+
+        <section className="mt-5 rounded-[32px] bg-white p-5 shadow-xl">
+          <h2 className="text-lg font-black">通知</h2>
+
+          <button
+            type="button"
+            onClick={handleEnableNotifications}
+            className="mt-4 w-full rounded-2xl bg-[#f39a00] px-4 py-3 font-black text-white"
+          >
+            {notificationPermission === "granted"
+              ? "通知は有効です"
+              : "通知を有効化"}
+          </button>
         </section>
       </div>
     </main>
