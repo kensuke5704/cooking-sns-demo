@@ -21,11 +21,22 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
 
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
+  const [calendarDate, setCalendarDate] = useState(new Date());
+
+  const year = calendarDate.getFullYear();
+  const month = calendarDate.getMonth();
 
   const days = getMonthDays(year, month);
+
+  const goPrevMonth = () => {
+    setSelectedDate(null);
+    setCalendarDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const goNextMonth = () => {
+    setSelectedDate(null);
+    setCalendarDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
 
   useEffect(() => {
     async function loadCalendarPosts() {
@@ -71,9 +82,27 @@ export default function CalendarPage() {
             COOKING CALENDAR
           </p>
 
-          <h1 className="mt-1 text-3xl font-black">
-            {year}年 {month + 1}月
-          </h1>
+          <div className="mt-1 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={goPrevMonth}
+              className="rounded-full bg-[#fff4d7] px-4 py-2 text-sm font-black"
+            >
+              ←
+            </button>
+
+            <h1 className="text-3xl font-black">
+              {year}年 {month + 1}月
+            </h1>
+
+            <button
+              type="button"
+              onClick={goNextMonth}
+              className="rounded-full bg-[#fff4d7] px-4 py-2 text-sm font-black"
+            >
+              →
+            </button>
+          </div>
 
           <p className="mt-3 text-sm font-bold text-[#6b2f13]/60">
             投稿した日は色付きで表示されます。

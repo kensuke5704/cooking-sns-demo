@@ -172,14 +172,21 @@ if (!existingNotification) {
     }
 
     if (post.userId !== currentUser.userId) {
-      await supabase.from("notifications").insert({
-        post_id: post.id,
-        from_user_id: currentUser.userId,
-        from_user_name: currentUser.name,
-        to_user_id: post.userId,
-        type: "comment",
-        message: `${currentUser.name}さんがあなたの投稿にコメントしました`,
-      });
+      const { error: notificationError } = await supabase
+        .from("notifications")
+        .insert({
+          post_id: post.id,
+          from_user_id: currentUser.userId,
+          from_user_name: currentUser.name,
+          to_user_id: post.userId,
+          type: "comment",
+          message: `${currentUser.name}さんがあなたの投稿にコメントしました`,
+          read: false,
+        });
+    
+      if (notificationError) {
+        console.error("コメント通知作成エラー:", notificationError);
+      }
     }
   
     setCommentText("");
