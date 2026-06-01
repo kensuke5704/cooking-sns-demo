@@ -219,14 +219,22 @@ export default function ProfilePage({
   
       setFriendId("");
       setMessage("友だちを追加しました");
-      
-      await supabase.from("notifications").insert({
-        to_user_id: profile.user_id,
-        from_user_id: currentUser.userId,
-        type: "friend",
-        message: `${currentUser.name}さんがあなたを友だち追加しました`,
-      });
-      
+
+      const { error: notificationError } = await supabase
+        .from("notifications")
+        .insert({
+          to_user_id: profile.user_id,
+          from_user_id: currentUser.userId,
+          type: "friend",
+          message: `${currentUser.name}さんがあなたを友だち追加しました`,
+        });
+
+      if (notificationError) {
+        console.error("通知作成エラー:", notificationError);
+        setMessage("友だちは追加されましたが、通知作成に失敗しました");
+        return;
+      }
+
       await loadFriends();
   };
 
@@ -238,18 +246,33 @@ export default function ProfilePage({
     const currentUser = getCurrentUser();
     if (!currentUser) return;
   
-    const { error } = await supabase
+    const { error: deleteError1 } = await supabase
       .from("friends")
       .delete()
-      .or(
-        `and(owner_user_id.eq.${currentUser.userId},friend_user_id.eq.${friendUserId}),and(owner_user_id.eq.${friendUserId},friend_user_id.eq.${currentUser.userId})`
-      );
+      .eq("owner_user_id", currentUser.userId)
+      .eq("friend_user_id", friendUserId);
   
-    if (error) {
-      console.error(error);
+    if (deleteError1) {
+      console.error("友だち削除エラー1:", deleteError1);
       setMessage("友だち削除に失敗しました");
       return;
     }
+  
+    const { error: deleteError2 } = await supabase
+      .from("friends")
+      .delete()
+      .eq("owner_user_id", friendUserId)
+      .eq("friend_user_id", currentUser.userId);
+  
+    if (deleteError2) {
+      console.error("友だち削除エラー2:", deleteError2);
+      setMessage("友だち削除に失敗しました");
+      return;
+    }
+  
+    setFriends((prev) =>
+      prev.filter((friend) => friend.userId !== friendUserId)
+    );
   
     setMessage("友だちを削除しました");
     await loadFriends();
