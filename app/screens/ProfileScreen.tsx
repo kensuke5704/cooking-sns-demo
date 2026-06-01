@@ -101,9 +101,7 @@ export default function ProfilePage({
     const currentUser = getCurrentUser();
     if (!currentUser) return;
   
-    const fileExt = file.name.split(".").pop();
-    const filePath = `${currentUser.userId}/avatar-${Date.now()}.${fileExt}`;
-    const oldAvatarPath = getAvatarStoragePathFromUrl(iconUrl);
+    const filePath = `${currentUser.userId}/avatar.jpg`;
   
     const { error: uploadError } = await supabase.storage
       .from("avatars")
@@ -122,25 +120,19 @@ export default function ProfilePage({
       return;
     }
   
-    const { data } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(filePath);
+    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
 
-      const publicUrl = data.publicUrl;
+    const publicUrl = `${data.publicUrl}?v=${Date.now()}`;
 
-      console.log("oldAvatarPath:", oldAvatarPath);
+    const { error: profileUpdateError } = await supabase
+      .from("profiles")
+      .update({ icon_url: publicUrl })
+      .eq("user_id", currentUser.userId);
 
-      if (oldAvatarPath) {
-        const { data: deleteData, error: deleteError } = await supabase.storage
-          .from("avatars")
-          .remove([oldAvatarPath]);
-
-        console.log("deleteData:", deleteData);
-        console.log("deleteError:", deleteError);
-
-        if (deleteError) {
-          console.error("古いプロフィール画像の削除に失敗:", deleteError);
-        }
+      if (profileUpdateError) {
+        console.error("プロフィール画像URL更新エラー:", profileUpdateError);
+        setMessage("プロフィール画像URLの保存に失敗しました");
+        return;
       }
 
       setIconUrl(publicUrl);
