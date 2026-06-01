@@ -1,12 +1,34 @@
 import type { Post } from "../types/post";
 import { supabase } from "./supabase";
 
+type FriendRow = {
+  friend_user_id: string;
+};
+
+type PostRow = {
+  id: string;
+  user_id: string;
+  user_name: string;
+  created_at: string;
+  post_date: string;
+  prep_photo: string;
+  cooking_photo: string;
+  finished_photo: string;
+  dish_name: string;
+  memo: string;
+};
+
+type ProfileRow = {
+  user_id: string;
+  name: string | null;
+  icon_url: string | null;
+};
+
 export async function loadPostsData(userId: string): Promise<Post[]> {
   const { data: friendsData, error: friendsError } = await supabase
     .from("friends")
     .select("friend_user_id")
-    .eq("owner_user_id", userId);
-
+    .eq("owner_user_id", userId)
   if (friendsError) {
     throw friendsError;
   }
@@ -20,7 +42,7 @@ export async function loadPostsData(userId: string): Promise<Post[]> {
     .from("posts")
     .select("*")
     .in("user_id", visibleUserIds)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
 
   if (postsError) {
     throw postsError;
@@ -37,7 +59,7 @@ export async function loadPostsData(userId: string): Promise<Post[]> {
   const { data: profilesData, error: profilesError } = await supabase
     .from("profiles")
     .select("user_id, name, icon_url")
-    .in("user_id", postUserIds);
+    .in("user_id", postUserIds)
 
   if (profilesError) {
     throw profilesError;
