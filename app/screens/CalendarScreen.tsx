@@ -1,14 +1,9 @@
 "use client";
 
-import { useState } from "react";
-
-type CalendarPhotos = {
-  prep?: string;
-  cooking?: string;
-  finished?: string;
-  dishName?: string;
-  memo?: string;
-};
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "../lib/auth";
+import { loadPostsData } from "../lib/posts";
+import type { Post } from "../types/post";
 
 function getMonthDays(year: number, month: number) {
   const firstDay = new Date(year, month, 1);
@@ -24,6 +19,7 @@ function getMonthDays(year: number, month: number) {
 
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
 
   const today = new Date();
   const year = today.getFullYear();
@@ -31,20 +27,35 @@ export default function CalendarPage() {
 
   const days = getMonthDays(year, month);
 
+  useEffect(() => {
+    async function loadCalendarPosts() {
+      const currentUser = getCurrentUser();
+
+      if (!currentUser) return;
+
+      try {
+        const loadedPosts = await loadPostsData(currentUser.userId);
+        setPosts(loadedPosts);
+      } catch (error) {
+        console.error("カレンダー投稿取得エラー:", error);
+      }
+    }
+
+    loadCalendarPosts();
+  }, []);
+
   const getDateKey = (day: number) => {
     const mm = String(month + 1).padStart(2, "0");
     const dd = String(day).padStart(2, "0");
     return `${year}-${mm}-${dd}`;
   };
 
-  const getPhotos = (dateKey: string): CalendarPhotos => {
-    const saved = localStorage.getItem(`daily-cooking-photos-${dateKey}`);
-    return saved ? JSON.parse(saved) : {};
+  const getPostsByDate = (dateKey: string) => {
+    return posts.filter((post) => post.postDate === dateKey);
   };
 
   const hasPost = (day: number) => {
-    const photos = getPhotos(getDateKey(day));
-    return photos.prep || photos.cooking || photos.finished;
+    return getPostsByDate(getDateKey(day)).length > 0;
   };
 
   return (
@@ -75,8 +86,9 @@ export default function CalendarPage() {
             {days.map((day, index) => {
               if (!day) return <div key={`empty-${index}`} />;
 
-              const posted = hasPost(day);
               const dateKey = getDateKey(day);
+              const dayPosts = getPostsByDate(dateKey);
+              const posted = dayPosts.length > 0;
               const selected = selectedDate === dateKey;
 
               return (
@@ -91,62 +103,92 @@ export default function CalendarPage() {
                   } ${selected ? "ring-4 ring-[#f39a00]/40" : ""}`}
                 >
                   <span>{day}</span>
-                  {posted && <span className="mt-1 text-[9px]">記録</span>}
+                  {posted && (
+                    <span className="mt-1 text-[9px]">
+                      {dayPosts.length}件
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
         </section>
 
-        {selectedDate && <CalendarDetail dateKey={selectedDate} />}
+        {selectedDate && (
+          <CalendarDetail dateKey={selectedDate} posts={getPostsByDate(selectedDate)} />
+        )}
       </div>
     </main>
   );
 }
 
-function CalendarDetail({ dateKey }: { dateKey: string }) {
-  const saved = localStorage.getItem(`daily-cooking-photos-${dateKey}`);
-  const photos: CalendarPhotos = saved ? JSON.parse(saved) : {};
-
-  const hasPhoto = photos.prep || photos.cooking || photos.finished;
-
+function CalendarDetail({
+  dateKey,
+  posts,
+}: {
+  dateKey: string;
+  posts: Post[];
+}) {
   return (
     <section className="mt-5 rounded-[36px] bg-white p-5 shadow-xl">
       <p className="text-xs font-black text-[#f39a00]">SELECTED DAY</p>
 
       <h2 className="mt-1 text-2xl font-black">{dateKey}</h2>
 
-      {!hasPhoto ? (
+      {posts.length === 0 ? (
         <p className="mt-4 rounded-2xl bg-[#fff4d7] px-4 py-4 text-sm font-bold text-[#6b2f13]/70">
           この日の投稿はありません
         </p>
       ) : (
-        <>
-          {photos.dishName && (
-            <p className="mt-4 text-lg font-black">{photos.dishName}</p>
-          )}
-
-          {photos.memo && (
-            <p className="mt-2 rounded-2xl bg-[#fff4d7] px-4 py-3 text-sm font-bold">
-              {photos.memo}
-            </p>
-          )}
-
-          <div className="mt-5 grid grid-cols-3 gap-3">
-            <CalendarPhoto label="準備" src={photos.prep} />
-            <CalendarPhoto label="調理" src={photos.cooking} />
-            <CalendarPhoto label="完成" src={photos.finished} />
-          </div>
-        </>
+        <div className="mt-5 space-y-6">
+          {posts.map((post) => (
+            <CalendarPost key={post.id} post={post} />
+          ))}
+        </div>
       )}
     </section>
+  );
+}
+
+function CalendarPost({ post }: { post: Post }) {
+  return (
+    <div className="rounded-[28px] bg-[#fff4d7] p-4">
+      <div className="flex items-center gap-3">
+        <img
+          src={post.userIcon || "/images/user1-icon.jpg"}
+          alt={post.userName}
+          className="h-10 w-10 rounded-full object-cover"
+        />
+
+        <div>
+          <p className="text-sm font-black">{post.userName}</p>
+          {post.dishName && (
+            <p className="text-xs font-bold text-[#6b2f13]/70">
+              {post.dishName}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {post.memo && (
+        <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm font-bold">
+          {post.memo}
+        </p>
+      )}
+
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        <CalendarPhoto label="準備" src={post.prepPhoto} />
+        <CalendarPhoto label="調理" src={post.cookingPhoto} />
+        <CalendarPhoto label="完成" src={post.finishedPhoto} />
+      </div>
+    </div>
   );
 }
 
 function CalendarPhoto({ label, src }: { label: string; src?: string }) {
   if (!src) {
     return (
-      <div className="flex aspect-[3/4] items-center justify-center rounded-2xl border-2 border-dashed border-[#f1d59a] bg-[#fff4d7] text-sm font-black text-[#6b2f13]/50">
+      <div className="flex aspect-[3/4] items-center justify-center rounded-2xl border-2 border-dashed border-[#f1d59a] bg-white/60 text-sm font-black text-[#6b2f13]/40">
         {label}
       </div>
     );
