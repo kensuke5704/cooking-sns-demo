@@ -21,9 +21,12 @@ async function normalizeImage(base64: string): Promise<Blob> {
   try {
     bitmap = await createImageBitmap(originalBlob);
   } catch {
-    throw new Error(
-      `画像の読み込みに失敗しました: ${originalBlob.type || "unknown"}`
-    );
+    console.warn("画像変換できないため、元画像のままアップロードします", {
+      type: originalBlob.type,
+      size: originalBlob.size,
+    });
+  
+    return originalBlob;
   }
 
   const maxWidth = 1200;
