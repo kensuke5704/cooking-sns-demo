@@ -27,6 +27,8 @@ export default function PhotoBox({
           src={src}
           alt={label}
           draggable={false}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover pointer-events-none select-none"
         />
       </div>
