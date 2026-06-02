@@ -32,9 +32,16 @@ export default function PostCard({
   const [deleteCommentId, setDeleteCommentId] = useState<string | number | null>(
     null
   );
+  const [toastMessage, setToastMessage] = useState("");
   const currentUser = getCurrentUser();
   const isMyPost = currentUser?.userId === post.userId;
-
+  function showToast(message: string) {
+    setToastMessage(message);
+  
+    setTimeout(() => {
+      setToastMessage("");
+    }, 2500);
+  }
   const createdDate = new Date(post.createdAt);
   const now = new Date();
 
@@ -205,7 +212,7 @@ if (!existingNotification) {
   
     if (error) {
       console.error(error);
-      alert("コメント保存失敗");
+      showToast("コメント保存に失敗しました");
       return;
     }
 
@@ -237,6 +244,7 @@ if (!existingNotification) {
   
     setCommentText("");
     await loadComments();
+    showToast("コメントを投稿しました");
   };
 
   const deleteComment = async (commentId: string | number) => {
@@ -252,15 +260,22 @@ if (!existingNotification) {
   
     if (error) {
       console.error(error);
-      alert("コメント削除に失敗しました");
+      showToast("コメント削除に失敗しました");
       return;
     }
   
     setComments((prev) => prev.filter((comment) => comment.id !== commentId));
     setDeleteCommentId(null);
+    showToast("コメントを削除しました");
   };
   
   return (
+    <>
+      {toastMessage && (
+        <div className="fixed left-1/2 top-5 z-[200] -translate-x-1/2 rounded-full bg-[#6b2f13] px-5 py-3 text-sm font-black text-white shadow-xl">
+          {toastMessage}
+        </div>
+      )}
     <article className="overflow-hidden rounded-[36px] bg-white shadow-xl">
       <div className="flex items-center justify-between px-5 pt-5">
         <div className="flex items-center gap-3">
@@ -491,6 +506,7 @@ if (!existingNotification) {
           </div>
         </div>
       )}
-  </article>
+    </article>
+  </>
   );
 }
