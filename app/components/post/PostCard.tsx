@@ -28,6 +28,7 @@ export default function PostCard({
   const [showComments, setShowComments] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0); 
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const currentUser = getCurrentUser();
   const isMyPost = currentUser?.userId === post.userId;
 
@@ -284,7 +285,7 @@ if (!existingNotification) {
           {isMyPost && onDelete && (
             <button
               type="button"
-              onClick={() => onDelete(post.id)}
+              onClick={() => setShowDeleteConfirm(true)}
               className="rounded-full bg-red-500 px-3 py-1 text-xs font-black text-white"
             >
               削除
@@ -424,6 +425,40 @@ if (!existingNotification) {
           )}
         </div>
       </div>
-    </article>
+      {showDeleteConfirm && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-6">
+        <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center shadow-2xl">
+          <p className="text-lg font-black text-[#6b2f13]">
+            投稿を削除しますか？
+          </p>
+
+          <p className="mt-2 text-sm font-bold text-[#6b2f13]/60">
+            削除すると元に戻せません。
+          </p>
+
+          <div className="mt-6 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(false)}
+              className="flex-1 rounded-2xl bg-[#fff4d7] py-3 text-sm font-black text-[#6b2f13]"
+            >
+              キャンセル
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                onDelete?.(post.id);
+              }}
+              className="flex-1 rounded-2xl bg-red-500 py-3 text-sm font-black text-white"
+            >
+              削除
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </article>
   );
 }
