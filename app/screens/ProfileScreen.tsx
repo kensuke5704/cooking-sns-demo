@@ -10,6 +10,7 @@ import {
 import { supabase } from "../lib/supabase";
 import { resizeImageFile } from "../lib/image";
 import { sendPushNotification } from "../lib/sendPush";
+import AppPopup, { type AppPopupState } from "../components/common/AppPopup";
 
 export default function ProfilePage({
   onProfileChange,
@@ -24,6 +25,7 @@ export default function ProfilePage({
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermission>("default");
   const [isNotificationOn, setIsNotificationOn] = useState(false);
+  const [popup, setPopup] = useState<AppPopupState | null>(null);
   useEffect(() => {
     if ("Notification" in window) {
       setNotificationPermission(Notification.permission);
@@ -296,12 +298,12 @@ export default function ProfilePage({
     if (!currentUser) return;
   
     if (!("Notification" in window)) {
-      alert("この端末は通知に対応していません");
+      setPopup({ title: "通知に対応していません", message: "この端末では通知機能を利用できません。" });
       return;
     }
   
     if (!("serviceWorker" in navigator)) {
-      alert("この端末はService Workerに対応していません");
+      setPopup({ title: "通知に対応していません", message: "この端末ではService Workerを利用できません。" });
       return;
     }
   
@@ -310,7 +312,7 @@ export default function ProfilePage({
     setNotificationPermission(permission);
   
     if (permission !== "granted") {
-      alert("通知が許可されませんでした");
+      setPopup({ title: "通知が許可されませんでした", message: "ブラウザの通知許可を確認してください。" });
       return;
     }
   
@@ -320,7 +322,7 @@ export default function ProfilePage({
       const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   
       if (!publicKey) {
-        alert("VAPID公開鍵が設定されていません");
+        setPopup({ title: "通知設定が不足しています", message: "VAPID公開鍵が設定されていません。" });
         return;
       }
   
@@ -347,7 +349,7 @@ export default function ProfilePage({
   
       if (error) {
         console.error("Push購読保存エラー:", error);
-        alert("通知設定の保存に失敗しました");
+        setPopup({ title: "通知設定の保存に失敗しました", message: "時間をおいてもう一度試してください。" });
         return;
       }
   
@@ -355,7 +357,7 @@ export default function ProfilePage({
       setMessage("通知を有効化しました");
     } catch (error) {
       console.error(error);
-      alert("Push通知の登録に失敗しました");
+      setPopup({ title: "Push通知の登録に失敗しました", message: "通知設定またはブラウザ設定を確認してください。" });
     }
   };
 
@@ -365,7 +367,7 @@ export default function ProfilePage({
     if (!currentUser) return;
   
     if (!("serviceWorker" in navigator)) {
-      alert("この端末はService Workerに対応していません");
+      setPopup({ title: "通知に対応していません", message: "この端末ではService Workerを利用できません。" });
       return;
     }
   
@@ -373,14 +375,14 @@ export default function ProfilePage({
       const registration = await navigator.serviceWorker.getRegistration();
   
       if (!registration) {
-        alert("通知登録が見つかりません");
+        setPopup({ title: "通知登録が見つかりません", message: "すでに通知が無効になっている可能性があります。" });
         return;
       }
   
       const subscription = await registration.pushManager.getSubscription();
   
       if (!subscription) {
-        alert("通知登録が見つかりません");
+        setPopup({ title: "通知登録が見つかりません", message: "すでに通知が無効になっている可能性があります。" });
         return;
       }
   
@@ -391,7 +393,7 @@ export default function ProfilePage({
   
         if (error) {
           console.error("Push購読保存エラー:", error);
-          alert(`通知設定の保存に失敗しました: ${error.message}`);
+          setPopup({ title: "通知設定の保存に失敗しました", message: error.message });
           return;
         }
   
@@ -401,53 +403,57 @@ export default function ProfilePage({
       setMessage("通知を無効化しました");
     } catch (error) {
       console.error(error);
-      alert("通知の無効化に失敗しました");
+      setPopup({ title: "通知の無効化に失敗しました", message: "時間をおいてもう一度試してください。" });
     }
   };
 
   const handleDeleteFriend = async (friendUserId: string) => {
-    const ok = confirm("この友だちを削除しますか？");
-  
-    if (!ok) return;
-  
-    const currentUser = getCurrentUser();
-    if (!currentUser) return;
-  
-    const { data: deletedRows1, error: deleteError1 } = await supabase
-      .from("friends")
-      .delete()
-      .eq("owner_user_id", currentUser.userId)
-      .eq("friend_user_id", friendUserId)
-      .select();
-  
-    if (deleteError1) {
-      console.error("友だち削除エラー1:", deleteError1);
-      setMessage("友だち削除に失敗しました");
-      return;
-    }
-  
-    const { data: deletedRows2, error: deleteError2 } = await supabase
-      .from("friends")
-      .delete()
-      .eq("owner_user_id", friendUserId)
-      .eq("friend_user_id", currentUser.userId)
-      .select();
+    setPopup({
+      title: "友だちを削除しますか？",
+      message: "この友だちを一覧から削除します。",
+      confirmLabel: "削除する",
+      cancelLabel: "やめる",
+      onConfirm: async () => {
+        const currentUser = getCurrentUser();
+        if (!currentUser) return;
 
-    console.log("削除対象1:", currentUser.userId, friendUserId, deletedRows1);
-    console.log("削除対象2:", friendUserId, currentUser.userId, deletedRows2);
-  
-    if (deleteError2) {
-      console.error("友だち削除エラー2:", deleteError2);
-      setMessage("友だち削除に失敗しました");
-      return;
-    }
-  
-    setFriends((prev) =>
-      prev.filter((friend) => friend.userId !== friendUserId)
-    );
-  
-    setMessage("友だちを削除しました");
-    await loadFriends();
+        const { data: deletedRows1, error: deleteError1 } = await supabase
+          .from("friends")
+          .delete()
+          .eq("owner_user_id", currentUser.userId)
+          .eq("friend_user_id", friendUserId)
+          .select();
+
+        if (deleteError1) {
+          console.error("友だち削除エラー1:", deleteError1);
+          setMessage("友だち削除に失敗しました");
+          return;
+        }
+
+        const { data: deletedRows2, error: deleteError2 } = await supabase
+          .from("friends")
+          .delete()
+          .eq("owner_user_id", friendUserId)
+          .eq("friend_user_id", currentUser.userId)
+          .select();
+
+        console.log("削除対象1:", currentUser.userId, friendUserId, deletedRows1);
+        console.log("削除対象2:", friendUserId, currentUser.userId, deletedRows2);
+
+        if (deleteError2) {
+          console.error("友だち削除エラー2:", deleteError2);
+          setMessage("友だち削除に失敗しました");
+          return;
+        }
+
+        setFriends((prev) =>
+          prev.filter((friend) => friend.userId !== friendUserId)
+        );
+
+        setMessage("友だちを削除しました");
+        await loadFriends();
+      },
+    });
   };
 
   return (
@@ -619,6 +625,8 @@ export default function ProfilePage({
           </div>
         </section>
       </div>
+
+      <AppPopup popup={popup} onClose={() => setPopup(null)} />
     </main>
   );
 }

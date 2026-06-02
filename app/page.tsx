@@ -18,6 +18,7 @@ import LayoutWithNav from "./components/LayoutWithNav";
 import NotificationButton from "./components/NotificationButton";
 import ImageModal from "./components/ImageModal";
 import BottomNav from "./components/navigation/BottomNav";
+import AppPopup, { type AppPopupState } from "./components/common/AppPopup";
 
 const todayRecipe = getTodayRecipe();
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -34,6 +35,7 @@ export default function Home() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentUser, setCurrentUser] =
     useState<ReturnType<typeof getCurrentUser>>(null);
+  const [popup, setPopup] = useState<AppPopupState | null>(null);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -131,22 +133,30 @@ export default function Home() {
   }
 
   async function deletePost(postId: string | number) {
-    const ok = confirm("この投稿を削除しますか？");
-    if (!ok) return;
+    setPopup({
+      title: "投稿を削除しますか？",
+      message: "この操作は取り消せません。",
+      confirmLabel: "削除する",
+      cancelLabel: "やめる",
+      onConfirm: async () => {
+        const currentUser = getCurrentUser();
+        const targetPost = posts.find((post) => post.id === postId);
 
-    const currentUser = getCurrentUser();
-    const targetPost = posts.find((post) => post.id === postId);
+        try {
+          await deletePostData(postId, targetPost);
 
-    try {
-      await deletePostData(postId, targetPost);
+          resetTodayDraftIfNeeded(currentUser, targetPost);
 
-      resetTodayDraftIfNeeded(currentUser, targetPost);
-
-      setPosts((prev) => prev.filter((post) => post.id !== postId));
-    } catch (error) {
-      console.error("投稿削除エラー:", error);
-      alert("削除に失敗しました");
-    }
+          setPosts((prev) => prev.filter((post) => post.id !== postId));
+        } catch (error) {
+          console.error("投稿削除エラー:", error);
+          setPopup({
+            title: "削除に失敗しました",
+            message: "時間をおいてもう一度試してください。",
+          });
+        }
+      },
+    });
   }
 
   function resetTodayDraftIfNeeded(
@@ -318,6 +328,8 @@ export default function Home() {
         setCurrentTab={setCurrentTab}
         unreadCount={unreadCount}
       />
+
+      <AppPopup popup={popup} onClose={() => setPopup(null)} />
     </main>
   );
 }

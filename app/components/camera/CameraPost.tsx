@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabase";
 import { resizeImageFile } from "../../lib/image";
 import { publishPostData } from "../../lib/posts";
 import CameraCard from "./CameraCard";
+import AppPopup, { type AppPopupState } from "../common/AppPopup";
 
 
 type ShotType = "prep" | "cooking" | "finished";
@@ -69,6 +70,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   const [dishName, setDishName] = useState("");
   const [memo, setMemo] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
+  const [popup, setPopup] = useState<AppPopupState | null>(null);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -93,20 +95,24 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   };
 
   const resetTodayPhotos = () => {
-    const ok = confirm("今日撮った写真とメモをリセットしますか？");
-  
-    if (!ok) return;
-  
-    const currentUser = getCurrentUser();
-  
-    localStorage.removeItem(getTodayKey(currentUser?.userId));
-    clearDraftId(currentUser?.userId);
-  
-    setPhotos({});
-    setDishName("");
-    setMemo("");
-    setSelectedType(null);
-    setIsCameraOn(false);
+    setPopup({
+      title: "今日の写真をリセットしますか？",
+      message: "撮影済みの写真とメモがこの端末から削除されます。",
+      confirmLabel: "リセットする",
+      cancelLabel: "やめる",
+      onConfirm: () => {
+        const currentUser = getCurrentUser();
+
+        localStorage.removeItem(getTodayKey(currentUser?.userId));
+        clearDraftId(currentUser?.userId);
+
+        setPhotos({});
+        setDishName("");
+        setMemo("");
+        setSelectedType(null);
+        setIsCameraOn(false);
+      },
+    });
   };
 
   const savePostText = () => {
@@ -117,7 +123,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     };
   
     savePhotos(nextPhotos);
-    alert("料理名とコメントを保存しました");
+    setPopup({ title: "保存しました", message: "料理名とコメントを保存しました。" });
   };
 
   const publishPost = async () => {
@@ -126,7 +132,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     const currentUser = getCurrentUser();
   
     if (!currentUser) {
-      alert("ログインしてください");
+      setPopup({ title: "ログインしてください", message: "投稿するにはログインが必要です。" });
       return;
     }
   
@@ -158,19 +164,21 @@ export default function CameraPost({ onBack }: CameraPostProps) {
         setMemo("");
       }
   
-      alert(
-        shouldCompleteDraft
+      setPopup({
+        title: "投稿しました",
+        message: shouldCompleteDraft
           ? "完成まで投稿しました。次の料理を開始できます。"
-          : "投稿しました。続きの写真を追加できます。"
-      );
+          : "投稿しました。続きの写真を追加できます。",
+      });
   
       onBack();
     } catch (error: any) {
       console.error("投稿エラー:", error);
-
-      alert(
-        `投稿に失敗しました\n\n型: ${typeof error}\n内容: ${String(error)}`
-      );
+      setPopup({
+        title: "投稿に失敗しました",
+        message: `型: ${typeof error}
+内容: ${String(error)}`,
+      });
     } finally {
       setIsPublishing(false);
     }
@@ -178,7 +186,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
 
   const startCamera = async (type: ShotType) => {
     if (photos[type]) {
-      alert(`${shotLabels[type]}は本日すでに撮影済みです。`);
+      setPopup({ title: "撮影済みです", message: `${shotLabels[type]}は本日すでに撮影済みです。` });
       return;
     }
 
@@ -204,7 +212,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       }, 100);
     } catch (error) {
       console.error(error);
-      alert("カメラを起動できませんでした。HTTPS環境またはカメラ許可を確認してください。");
+      setPopup({ title: "カメラを起動できませんでした", message: "HTTPS環境またはカメラ許可を確認してください。" });
     }
   };
 
@@ -257,7 +265,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     if (!file) return;
   
     if (photos[type]) {
-      alert(`${shotLabels[type]}は本日すでに登録済みです。`);
+      setPopup({ title: "登録済みです", message: `${shotLabels[type]}は本日すでに登録済みです。` });
       return;
     }
   
@@ -272,7 +280,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       })
       .catch((error) => {
         console.error(error);
-        alert("画像の読み込みに失敗しました");
+        setPopup({ title: "画像の読み込みに失敗しました", message: "別の画像で試してください。" });
       });
   };
 
@@ -413,6 +421,8 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   
         <canvas ref={canvasRef} className="hidden" />
       </div>
+
+      <AppPopup popup={popup} onClose={() => setPopup(null)} />
     </div>
   );
 }
