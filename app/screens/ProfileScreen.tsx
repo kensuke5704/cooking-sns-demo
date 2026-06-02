@@ -23,12 +23,33 @@ export default function ProfilePage({
   const [message, setMessage] = useState("");
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermission>("default");
+  const [isNotificationOn, setIsNotificationOn] = useState(false);
   useEffect(() => {
     if ("Notification" in window) {
       setNotificationPermission(Notification.permission);
     }
+  
+    checkNotificationStatus();
   }, []);
   const currentUser = getCurrentUser();
+
+  async function checkNotificationStatus() {
+    if (!("serviceWorker" in navigator)) {
+      setIsNotificationOn(false);
+      return;
+    }
+  
+    const registration = await navigator.serviceWorker.getRegistration();
+  
+    if (!registration) {
+      setIsNotificationOn(false);
+      return;
+    }
+  
+    const subscription = await registration.pushManager.getSubscription();
+  
+    setIsNotificationOn(!!subscription);
+  }
 
   async function loadFriends() {
     const currentUser = getCurrentUser();
@@ -330,7 +351,8 @@ export default function ProfilePage({
         return;
       }
   
-      alert("通知を有効化しました");
+      setIsNotificationOn(true);
+      setMessage("通知を有効化しました");
     } catch (error) {
       console.error(error);
       alert("Push通知の登録に失敗しました");
@@ -375,7 +397,8 @@ export default function ProfilePage({
   
       await subscription.unsubscribe();
   
-      alert("通知を無効化しました");
+      setIsNotificationOn(false);
+      setMessage("通知を無効化しました");
     } catch (error) {
       console.error(error);
       alert("通知の無効化に失敗しました");
@@ -551,13 +574,32 @@ export default function ProfilePage({
         </section>
 
         <section className="mt-5 rounded-[32px] bg-white p-5 shadow-xl">
-          <h2 className="text-lg font-black">通知</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-black">通知</h2>
+
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-black ${
+                isNotificationOn
+                  ? "bg-green-100 text-green-700"
+                  : "bg-[#fff4d7] text-[#6b2f13]/60"
+              }`}
+            >
+              {isNotificationOn ? "ON" : "OFF"}
+            </span>
+          </div>
+
+          <p className="mt-2 text-sm font-bold opacity-60">
+            現在の通知設定：{isNotificationOn ? "通知を受け取る" : "通知を受け取らない"}
+          </p>
 
           <div className="mt-4 space-y-3">
             <button
               type="button"
               onClick={handleEnableNotifications}
-              className="w-full rounded-2xl bg-[#f39a00] px-4 py-3 font-black text-white"
+              disabled={isNotificationOn}
+              className={`w-full rounded-2xl px-4 py-3 font-black text-white ${
+                isNotificationOn ? "bg-gray-300" : "bg-[#f39a00]"
+              }`}
             >
               通知を有効化
             </button>
@@ -565,7 +607,12 @@ export default function ProfilePage({
             <button
               type="button"
               onClick={handleDisableNotifications}
-              className="w-full rounded-2xl bg-[#fff4d7] px-4 py-3 font-black text-[#6b2f13]"
+              disabled={!isNotificationOn}
+              className={`w-full rounded-2xl px-4 py-3 font-black ${
+                isNotificationOn
+                  ? "bg-[#fff4d7] text-[#6b2f13]"
+                  : "bg-gray-200 text-gray-400"
+              }`}
             >
               通知を無効化
             </button>
