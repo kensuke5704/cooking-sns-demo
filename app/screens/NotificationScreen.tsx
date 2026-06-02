@@ -53,7 +53,7 @@ export default function NotificationScreen({
   }
 
   return (
-    <main className="min-h-screen bg-[#f8b72a] px-5 pt-6 pb-28 text-[#6b2f13]">
+    <div className="px-5 pt-6">
       <div className="mx-auto max-w-md">
         <h1 className="mb-5 text-3xl font-black">通知</h1>
 
@@ -83,6 +83,6 @@ export default function NotificationScreen({
           )}
         </section>
       </div>
-    </main>
+    </div>
   );
 }
