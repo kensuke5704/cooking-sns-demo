@@ -90,6 +90,25 @@ export default function Home() {
     setUnreadCount(count || 0);
   }
 
+  async function markNotificationsAsRead() {
+    const currentUser = getCurrentUser();
+  
+    if (!currentUser) return;
+  
+    const { error } = await supabase
+      .from("notifications")
+      .update({ read: true })
+      .eq("to_user_id", currentUser.userId)
+      .eq("read", false);
+  
+    if (error) {
+      console.error(error);
+      return;
+    }
+  
+    setUnreadCount(0);
+  }
+
   useEffect(() => {
     localStorage.setItem("current-tab", currentTab);
   }, [currentTab]);
@@ -247,7 +266,10 @@ export default function Home() {
 
         <button
           type="button"
-          onClick={() => setCurrentTab("通知")}
+          onClick={() => {
+            setCurrentTab("通知");
+            markNotificationsAsRead();
+          }}
           className="fixed right-5 top-5 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow"
             aria-label="通知"
           >
