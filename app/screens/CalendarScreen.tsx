@@ -32,10 +32,29 @@ type PairState = {
   partner: Profile | null;
 };
 
+type PairPartner = {
+  code: string;
+  partner: Profile;
+};
+
+type PairConnection = {
+  code: string;
+  user1_id: string;
+  user2_id: string;
+  created_at: string;
+};
+
+type CodeEntry = {
+  code: string;
+  created_at: string;
+};
+
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [pairPosts, setPairPosts] = useState<Post[]>([]);
+  const [selectedPairCode, setSelectedPairCode] = useState<string | null>(null);
+  const [pairPartners, setPairPartners] = useState<PairPartner[]>([]);
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [pairState, setPairState] = useState<PairState>({
     status: "loading",
@@ -45,11 +64,13 @@ export default function CalendarPage() {
   const [codeInput, setCodeInput] = useState("");
   const [codeMessage, setCodeMessage] = useState("");
   const [isPairCalendarOpen, setIsPairCalendarOpen] = useState(false);
+
   const currentUser = getCurrentUser();
   const year = calendarDate.getFullYear();
   const month = calendarDate.getMonth();
   const days = getMonthDays(year, month);
   const activePosts = isPairCalendarOpen ? pairPosts : posts;
+
   const streakCount = useMemo(() => {
     if (!currentUser || !pairState.partner) return 0;
     return getPairStreak(pairPosts, currentUser.userId, pairState.partner.user_id);
@@ -68,13 +89,8 @@ export default function CalendarPage() {
   useEffect(() => {
     loadCalendarPosts();
     loadPairStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (pairState.status !== "paired" || !pairState.partner) return;
-
-    loadPairPosts(pairState.partner.user_id);
-  }, [pairState.status, pairState.partner?.user_id]);
 
   async function loadCalendarPosts() {
     if (!currentUser) return;
@@ -88,104 +104,157 @@ export default function CalendarPage() {
     }
   }
 
-  async function loadPairStatus() {
-    if (!currentUser) return;
-  
-    setPairState({ status: "loading", code: "", partner: null });
-  
-    const { data: pair, error: pairError } = await supabase
-      .from("pair_connections")
-      .select("*")
-      .or(`user1_id.eq.${currentUser.userId},user2_id.eq.${currentUser.userId}`)
-      .maybeSingle();
-  
-    if (pairError) {
-      console.error("ペア取得エラー:", pairError);
-      setPairState({ status: "none", code: "", partner: null });
-      return;
-    }
-  
-    if (pair) {
-      const partnerUserId =
-        pair.user1_id === currentUser.userId ? pair.user2_id : pair.user1_id;
-  
-      const { data: partnerProfile, error: profileError } = await supabase
-        .from("profiles")
-        .select("user_id, name, icon_url")
-        .eq("user_id", partnerUserId)
-        .maybeSingle();
-  
-      if (profileError) {
-        console.error("相手プロフィール取得エラー:", profileError);
-        setPairState({ status: "pending", code: pair.code, partner: null });
-        return;
-      }
-  
-      setPairState({
-        status: "paired",
-        code: pair.code,
-        partner: partnerProfile,
-      });
+  async function fetchPairPartners() {
+    if (!currentUser) return [] as PairPartner[];
 
-      await loadPairPosts(partnerUserId);
-  
-      return;
-    }
-  
-    const { data: myEntry, error: entryError } = await supabase
-      .from("calendar_code_entries")
-      .select("code")
-      .eq("user_id", currentUser.userId)
-      .maybeSingle();
-  
-    if (entryError) {
-      console.error("コード入力状況取得エラー:", entryError);
-      setPairState({ status: "none", code: "", partner: null });
-      return;
-    }
-  
-    if (!myEntry) {
-      setPairState({ status: "none", code: "", partner: null });
-      return;
-    }
-  
-    await createPairConnectionIfReady(myEntry.code);
-  
-    const { data: updatedPair } = await supabase
+    const { data: pairs, error: pairsError } = await supabase
       .from("pair_connections")
-      .select("*")
+      .select("code, user1_id, user2_id, created_at")
       .or(`user1_id.eq.${currentUser.userId},user2_id.eq.${currentUser.userId}`)
-      .maybeSingle();
-  
-    if (!updatedPair) {
-      setPairState({ status: "pending", code: myEntry.code, partner: null });
-      return;
+      .order("created_at", { ascending: false });
+
+    if (pairsError) {
+      console.error("ペア取得エラー:", pairsError);
+      return [] as PairPartner[];
     }
-  
-    const partnerUserId =
-      updatedPair.user1_id === currentUser.userId
-        ? updatedPair.user2_id
-        : updatedPair.user1_id;
-  
-    const { data: partnerProfile } = await supabase
+
+    const pairList = (pairs ?? []) as PairConnection[];
+
+    if (pairList.length === 0) {
+      return [] as PairPartner[];
+    }
+
+    const partnerUserIds = pairList.map((pair) =>
+      pair.user1_id === currentUser.userId ? pair.user2_id : pair.user1_id
+    );
+
+    const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("user_id, name, icon_url")
-      .eq("user_id", partnerUserId)
-      .maybeSingle();
-  
-    setPairState({
-      status: "paired",
-      code: updatedPair.code,
-      partner: partnerProfile,
-    });
+      .in("user_id", partnerUserIds);
 
-    await loadPairPosts(partnerUserId);
+    if (profilesError) {
+      console.error("相手プロフィール取得エラー:", profilesError);
+      return [] as PairPartner[];
+    }
+
+    return pairList
+      .map((pair) => {
+        const partnerUserId =
+          pair.user1_id === currentUser.userId ? pair.user2_id : pair.user1_id;
+
+        const partnerProfile = profiles?.find(
+          (profile) => profile.user_id === partnerUserId
+        );
+
+        if (!partnerProfile) return null;
+
+        return {
+          code: pair.code,
+          partner: partnerProfile as Profile,
+        };
+      })
+      .filter((item): item is PairPartner => item !== null);
+  }
+
+  async function loadPairStatus() {
+    if (!currentUser) return;
+
+    setPairState({ status: "loading", code: "", partner: null });
+    setPairPartners([]);
+
+    const { data: myEntriesData, error: entriesError } = await supabase
+      .from("calendar_code_entries")
+      .select("code, created_at")
+      .eq("user_id", currentUser.userId)
+      .order("created_at", { ascending: false });
+
+    if (entriesError) {
+      console.error("コード入力状況取得エラー:", entriesError);
+      setPairState({ status: "none", code: "", partner: null });
+      return;
+    }
+
+    const myEntries = (myEntriesData ?? []) as CodeEntry[];
+
+    for (const entry of myEntries) {
+      await createPairConnectionIfReady(entry.code);
+    }
+
+    const partners = await fetchPairPartners();
+    setPairPartners(partners);
+
+    const pairedCodes = new Set(partners.map((pair) => pair.code));
+    const pendingEntry = myEntries.find((entry) => !pairedCodes.has(entry.code));
+
+    if (pendingEntry) {
+      setPairState({ status: "pending", code: pendingEntry.code, partner: null });
+      setPairPosts([]);
+      setIsPairCalendarOpen(false);
+      return;
+    }
+
+    if (partners.length > 0) {
+      const selectedPair =
+        partners.find((pair) => pair.code === selectedPairCode) ?? partners[0];
+
+      setPairState({
+        status: "paired",
+        code: selectedPair.code,
+        partner: selectedPair.partner,
+      });
+
+      await loadPairPosts(selectedPair.partner.user_id);
+      return;
+    }
+
+    setPairState({ status: "none", code: "", partner: null });
+    setPairPosts([]);
+  }
+
+  async function deletePair(code: string) {
+    if (!currentUser) return;
+
+    const ok = window.confirm(
+      "このペアを解除しますか？\n解除しても投稿は削除されません。"
+    );
+
+    if (!ok) return;
+
+    const { error: pairError } = await supabase
+      .from("pair_connections")
+      .delete()
+      .eq("code", code);
+
+    if (pairError) {
+      console.error("ペア解除エラー:", pairError);
+      alert("ペア解除に失敗しました");
+      return;
+    }
+
+    const { error: entryError } = await supabase
+      .from("calendar_code_entries")
+      .delete()
+      .eq("code", code);
+
+    if (entryError) {
+      console.error("コード入力履歴削除エラー:", entryError);
+      alert("コード履歴の削除に失敗しました");
+      return;
+    }
+
+    setIsPairCalendarOpen(false);
+    setSelectedPairCode(null);
+    setSelectedDate(null);
+    setPairPosts([]);
+
+    await loadPairStatus();
   }
 
   async function submitPairCode() {
     if (!currentUser) return;
 
-    const normalizedCode = codeInput.trim().toUpperCase();
+    const normalizedCode = codeInput.trim();
 
     if (!normalizedCode) {
       setCodeMessage("コードを入力してください");
@@ -210,6 +279,24 @@ export default function CalendarPage() {
       return;
     }
 
+    const { data: existingEntry, error: existingEntryError } = await supabase
+      .from("calendar_code_entries")
+      .select("code")
+      .eq("code", normalizedCode)
+      .eq("user_id", currentUser.userId)
+      .maybeSingle();
+
+    if (existingEntryError) {
+      console.error("コード入力済み確認エラー:", existingEntryError);
+      setCodeMessage("コードの確認に失敗しました");
+      return;
+    }
+
+    if (existingEntry) {
+      setCodeMessage("このコードはすでに入力済みです");
+      return;
+    }
+
     const { count, error: countError } = await supabase
       .from("calendar_code_entries")
       .select("*", { count: "exact", head: true })
@@ -221,7 +308,7 @@ export default function CalendarPage() {
       return;
     }
 
-    if ((count || 0) >= 2) {
+    if ((count ?? 0) >= 2) {
       setCodeMessage("このコードはすでに2人が使用しています");
       return;
     }
@@ -235,7 +322,7 @@ export default function CalendarPage() {
 
     if (insertError) {
       console.error("コード登録エラー:", insertError);
-      setCodeMessage("すでに別のコードを入力済みです");
+      setCodeMessage("コード登録に失敗しました");
       return;
     }
 
@@ -247,37 +334,33 @@ export default function CalendarPage() {
   }
 
   async function createPairConnectionIfReady(code: string) {
-    if (!currentUser) return;
-  
     const { data: entries, error: entriesError } = await supabase
       .from("calendar_code_entries")
       .select("user_id, created_at")
       .eq("code", code)
       .order("created_at", { ascending: true });
-  
+
     if (entriesError) {
       console.error("ペア成立確認エラー:", entriesError);
       return;
     }
-  
+
     if (!entries || entries.length !== 2) {
       return;
     }
-  
-    const [firstUser, secondUser] = entries;
-  
-    if (!firstUser || !secondUser) {
+
+    if (entries[0].user_id === entries[1].user_id) {
       return;
     }
-  
+
     const { error: pairError } = await supabase
       .from("pair_connections")
       .insert({
         code,
-        user1_id: firstUser.user_id,
-        user2_id: secondUser.user_id,
+        user1_id: entries[0].user_id,
+        user2_id: entries[1].user_id,
       });
-  
+
     if (pairError && pairError.code !== "23505") {
       console.error("ペア保存エラー:", pairError);
     }
@@ -296,6 +379,7 @@ export default function CalendarPage() {
 
     if (postsError) {
       console.error("ペア投稿取得エラー:", postsError);
+      setPairPosts([]);
       return;
     }
 
@@ -306,6 +390,7 @@ export default function CalendarPage() {
 
     if (profilesError) {
       console.error("ペアプロフィール取得エラー:", profilesError);
+      setPairPosts([]);
       return;
     }
 
@@ -320,8 +405,8 @@ export default function CalendarPage() {
         return {
           id: post.id,
           userId: post.user_id,
-          userName: profile?.name || post.user_name,
-          userIcon: profile?.icon_url || "/images/user1-icon.jpg",
+          userName: profile?.name || post.user_name || "ユーザー",
+          userIcon: profile?.icon_url || post.user_icon || "/images/user1-icon.jpg",
           createdAt: post.created_at,
           postDate: post.post_date,
           prepPhoto: post.prep_photo,
@@ -333,6 +418,18 @@ export default function CalendarPage() {
       }) || [];
 
     setPairPosts(mappedPosts);
+  }
+
+  async function openPairCalendar(pair: PairPartner) {
+    setSelectedPairCode(pair.code);
+    setPairState({
+      status: "paired",
+      code: pair.code,
+      partner: pair.partner,
+    });
+    setSelectedDate(null);
+    await loadPairPosts(pair.partner.user_id);
+    setIsPairCalendarOpen(true);
   }
 
   const getDateKey = (day: number) => {
@@ -410,9 +507,25 @@ export default function CalendarPage() {
               : "投稿した日は色付きで表示されます。"}
           </p>
 
-          {isPairCalendarOpen && (
+          {isPairCalendarOpen && pairState.partner && (
             <div className="mt-5 rounded-[28px] bg-[#fff4d7] p-4">
-              <p className="text-sm font-black">現在 {streakCount}日連続</p>
+              <div className="flex items-center gap-3">
+                <img
+                  src={pairState.partner.icon_url || "/images/default-icon.png"}
+                  alt={pairState.partner.name ?? "ペア相手"}
+                  className="h-11 w-11 rounded-full object-cover"
+                />
+                <div>
+                  <p className="text-xs font-black text-[#f39a00]">
+                    {pairState.code}
+                  </p>
+                  <p className="text-sm font-black">
+                    {pairState.partner.name || pairState.partner.user_id}
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-4 text-sm font-black">現在 {streakCount}日連続</p>
               <p className="mt-1 text-xs font-bold text-[#6b2f13]/70">
                 2人とも投稿している連続日数です。50日連続、100日連続などで特典がもらえます。
               </p>
@@ -475,14 +588,13 @@ export default function CalendarPage() {
         {!isPairCalendarOpen && (
           <PairCodeSection
             pairState={pairState}
+            pairPartners={pairPartners}
             codeInput={codeInput}
             codeMessage={codeMessage}
             onCodeInputChange={setCodeInput}
             onSubmitCode={submitPairCode}
-            onOpenPairCalendar={() => {
-              setIsPairCalendarOpen(true);
-              setSelectedDate(null);
-            }}
+            onOpenPairCalendar={openPairCalendar}
+            onDeletePair={deletePair}
           />
         )}
       </div>
@@ -492,19 +604,26 @@ export default function CalendarPage() {
 
 function PairCodeSection({
   pairState,
+  pairPartners,
   codeInput,
   codeMessage,
   onCodeInputChange,
   onSubmitCode,
   onOpenPairCalendar,
+  onDeletePair,
 }: {
   pairState: PairState;
+  pairPartners: PairPartner[];
   codeInput: string;
   codeMessage: string;
   onCodeInputChange: (value: string) => void;
   onSubmitCode: () => void;
-  onOpenPairCalendar: () => void;
+  onOpenPairCalendar: (pair: PairPartner) => void;
+  onDeletePair: (code: string) => void;
 }) {
+  const hasPendingCode = pairState.status === "pending";
+  const canInputCode = pairState.status === "none" || pairState.status === "paired";
+
   return (
     <section className="mt-5 rounded-[36px] bg-white p-5 shadow-xl">
       <p className="text-xs font-black text-[#f39a00]">GIFT CONNECTION</p>
@@ -516,11 +635,78 @@ function PairCodeSection({
         </p>
       )}
 
-      {pairState.status === "none" && (
-        <div className="mt-4 space-y-3">
+      {pairPartners.length > 0 && (
+        <div className="mt-5 space-y-3">
+          <p className="text-sm font-bold text-[#6b2f13]/70">
+            ペア一覧です。プロフィール画像またはボタンを押すと、相手ごとの2人カレンダーを開けます。
+          </p>
+
+          {pairPartners.map((pair) => (
+            <div
+              key={pair.code}
+              className="flex w-full items-center gap-4 rounded-[28px] bg-[#fff4d7] p-4"
+            >
+              <button
+                type="button"
+                onClick={() => onOpenPairCalendar(pair)}
+                className="shrink-0"
+                aria-label={`${pair.partner.name || "ペア相手"}のカレンダーを見る`}
+              >
+                <img
+                  src={pair.partner.icon_url || "/images/default-icon.png"}
+                  alt={pair.partner.name ?? "ペア相手"}
+                  className="h-14 w-14 rounded-full object-cover"
+                />
+              </button>
+
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-xs font-black text-[#f39a00]">
+                  {pair.code}
+                </p>
+                <p className="truncate font-black text-[#6b2f13]">
+                  {pair.partner.name || pair.partner.user_id}
+                </p>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onOpenPairCalendar(pair)}
+                    className="rounded-full bg-[#f39a00] px-3 py-1 text-xs font-black text-white"
+                  >
+                    カレンダーを見る
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onDeletePair(pair.code)}
+                    className="rounded-full bg-white px-3 py-1 text-xs font-black text-red-500"
+                  >
+                    ペア解除
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {hasPendingCode && (
+        <div className="mt-4 rounded-2xl bg-[#fff4d7] px-4 py-4">
+          <p className="text-sm font-black">入力済みコード：{pairState.code}</p>
+          <p className="mt-2 text-sm font-bold text-[#6b2f13]/70">
+            相手が入力するまでお待ちください。入力済みの間は、新しいコードは入力できません。
+          </p>
+        </div>
+      )}
+
+      {canInputCode && (
+        <div className="mt-5 space-y-3">
+          <p className="text-sm font-bold text-[#6b2f13]/70">
+            新しい2人カレンダーを追加する場合は、有効なコードを入力してください。
+          </p>
           <input
             value={codeInput}
-            onChange={(e) => onCodeInputChange(e.target.value.toUpperCase())}
+            onChange={(e) => onCodeInputChange(e.target.value)}
             placeholder="コードを入力"
             className="w-full rounded-2xl bg-[#fff4d7] px-4 py-4 text-sm font-black outline-none"
           />
@@ -534,45 +720,6 @@ function PairCodeSection({
           {codeMessage && (
             <p className="text-sm font-bold text-red-600">{codeMessage}</p>
           )}
-        </div>
-      )}
-
-      {pairState.status === "pending" && (
-        <div className="mt-4 rounded-2xl bg-[#fff4d7] px-4 py-4">
-          <p className="text-sm font-black">入力済みコード：{pairState.code}</p>
-          <p className="mt-2 text-sm font-bold text-[#6b2f13]/70">
-            相手が入力するまでお待ちください。入力済みの間は、新しいコードは入力できません。
-          </p>
-        </div>
-      )}
-
-      {pairState.status === "paired" && pairState.partner && (
-        <div className="mt-5">
-          <p className="text-sm font-bold text-[#6b2f13]/70">
-            ペアになりました。プロフィール画像をタップすると、2人のカレンダーを開けます。
-          </p>
-
-          <button
-            type="button"
-            onClick={onOpenPairCalendar}
-            className="mt-4 flex w-full items-center gap-4 rounded-[28px] bg-[#fff4d7] p-4 text-left"
-          >
-              <img
-                src={pairState.partner.icon_url || "/images/default-icon.png"}
-                alt={pairState.partner.name ?? "ペア相手"}
-                className="h-14 w-14 rounded-full object-cover"
-              />
-
-              <div className="text-left">
-                <p className="text-xs font-black text-[#9b6b2f]">ペア中</p>
-                <p className="font-black text-[#6b2f13]">
-                  {pairState.partner.name}
-                </p>
-                <p className="text-xs font-bold text-[#9b6b2f]">
-                  ふたりのカレンダーを見る
-                </p>
-              </div>
-          </button>
         </div>
       )}
     </section>
@@ -613,7 +760,7 @@ function CalendarPost({ post }: { post: Post }) {
       <div className="flex items-center gap-3">
         <img
           src={post.userIcon || "/images/user1-icon.jpg"}
-          alt={post.userName}
+          alt={post.userName || "ユーザー"}
           className="h-10 w-10 rounded-full object-cover"
         />
 
@@ -643,12 +790,12 @@ function CalendarPost({ post }: { post: Post }) {
 }
 
 function CalendarPhoto({
-    label,
-    src,
-  }: {
-    label: string;
-    src?: string | null;
-  }) {
+  label,
+  src,
+}: {
+  label: string;
+  src?: string | null;
+}) {
   if (!src) {
     return (
       <div className="flex aspect-[3/4] items-center justify-center rounded-2xl border-2 border-dashed border-[#f1d59a] bg-white/60 text-sm font-black text-[#6b2f13]/40">
@@ -695,21 +842,38 @@ function hasBothPostedOnDate(
   return postedUserIds.has(myUserId) && postedUserIds.has(partnerUserId);
 }
 
-function getPairStreak(posts: Post[], myUserId: string, partnerUserId: string) {
+function getPairStreak(
+  posts: Post[],
+  myUserId: string,
+  partnerUserId: string
+) {
+  const myDates = new Set(
+    posts
+      .filter((post) => post.userId === myUserId)
+      .map((post) => post.postDate)
+  );
+
+  const partnerDates = new Set(
+    posts
+      .filter((post) => post.userId === partnerUserId)
+      .map((post) => post.postDate)
+  );
+
   let streak = 0;
-  const current = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
 
-  while (true) {
-    const dateKey = current.toLocaleDateString("sv-SE", {
-      timeZone: "Asia/Tokyo",
-    });
+  for (let i = 0; i < 365; i++) {
+    const date = new Date(yesterday);
+    date.setDate(yesterday.getDate() - i);
 
-    if (!hasBothPostedOnDate(posts, dateKey, myUserId, partnerUserId)) {
+    const dateKey = date.toISOString().slice(0, 10);
+
+    if (myDates.has(dateKey) && partnerDates.has(dateKey)) {
+      streak++;
+    } else {
       break;
     }
-
-    streak += 1;
-    current.setDate(current.getDate() - 1);
   }
 
   return streak;
