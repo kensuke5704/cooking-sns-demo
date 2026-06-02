@@ -29,6 +29,9 @@ export default function PostCard({
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0); 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteCommentId, setDeleteCommentId] = useState<string | number | null>(
+    null
+  );
   const currentUser = getCurrentUser();
   const isMyPost = currentUser?.userId === post.userId;
 
@@ -237,10 +240,6 @@ if (!existingNotification) {
   };
 
   const deleteComment = async (commentId: string | number) => {
-    const ok = confirm("このコメントを削除しますか？");
-  
-    if (!ok) return;
-  
     const currentUser = getCurrentUser();
   
     if (!currentUser) return;
@@ -258,6 +257,7 @@ if (!existingNotification) {
     }
   
     setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+    setDeleteCommentId(null);
   };
   
   return (
@@ -394,7 +394,7 @@ if (!existingNotification) {
                     {canDeleteComment && (
                       <button
                         type="button"
-                        onClick={() => deleteComment(comment.id)}
+                        onClick={() => setDeleteCommentId(comment.id)}
                         className="shrink-0 rounded-full bg-red-500 px-2 py-1 text-[10px] font-black text-white"
                       >
                         削除
@@ -459,6 +459,38 @@ if (!existingNotification) {
         </div>
       </div>
     )}
+
+      {deleteCommentId !== null && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-6">
+          <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center shadow-2xl">
+            <p className="text-lg font-black text-[#6b2f13]">
+              コメントを削除しますか？
+            </p>
+
+            <p className="mt-2 text-sm font-bold text-[#6b2f13]/60">
+              削除すると元に戻せません。
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteCommentId(null)}
+                className="flex-1 rounded-2xl bg-[#fff4d7] py-3 text-sm font-black text-[#6b2f13]"
+              >
+                キャンセル
+              </button>
+
+              <button
+                type="button"
+                onClick={() => deleteComment(deleteCommentId)}
+                className="flex-1 rounded-2xl bg-red-500 py-3 text-sm font-black text-white"
+              >
+                削除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
   </article>
   );
 }
