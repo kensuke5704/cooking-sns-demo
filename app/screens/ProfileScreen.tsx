@@ -13,6 +13,7 @@ import { sendPushNotification } from "../lib/sendPush";
 import AppPopup, { type AppPopupState } from "../components/common/AppPopup";
 import ScreenShell from "../components/common/ScreenShell";
 import SectionCard from "../components/common/SectionCard";
+import EmptyState from "../components/common/EmptyState";
 
 export default function ProfilePage({
   onProfileChange,
@@ -494,7 +495,7 @@ export default function ProfilePage({
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-2 w-full rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+            className="mt-2 w-full rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
           />
 
           <button
@@ -512,7 +513,7 @@ export default function ProfilePage({
         title="通知"
         description={isNotificationOn ? "現在は通知を受け取る設定です。" : "現在は通知を受け取らない設定です。"}
       >
-        <div className="flex items-center justify-between rounded-2xl bg-[#fff4d7] px-4 py-3">
+        <div className="flex items-center justify-between rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-3">
           <span className="text-sm font-black">通知状態</span>
           <span
             className={`rounded-full px-3 py-1 text-xs font-black ${
@@ -530,7 +531,7 @@ export default function ProfilePage({
             type="button"
             onClick={handleEnableNotifications}
             disabled={isNotificationOn}
-            className={`rounded-2xl px-4 py-3 font-black text-white ${
+            className={`rounded-[18px] px-4 py-3 font-black text-white ${
               isNotificationOn ? "bg-gray-300" : "bg-[#f39a00]"
             }`}
           >
@@ -541,7 +542,7 @@ export default function ProfilePage({
             type="button"
             onClick={handleDisableNotifications}
             disabled={!isNotificationOn}
-            className={`rounded-2xl px-4 py-3 font-black ${
+            className={`rounded-[18px] px-4 py-3 font-black ${
               isNotificationOn
                 ? "bg-[#fff4d7] text-[#6b2f13]"
                 : "bg-gray-200 text-gray-400"
@@ -563,20 +564,20 @@ export default function ProfilePage({
             value={friendId}
             onChange={(e) => setFriendId(e.target.value)}
             placeholder="友だちのID"
-            className="min-w-0 flex-1 rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+            className="min-w-0 flex-1 rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
           />
 
           <button
             type="button"
             onClick={handleAddFriend}
-            className="rounded-2xl bg-[#f39a00] px-4 font-black text-white"
+            className="rounded-[18px] bg-[#f39a00] px-4 font-black text-white"
           >
             追加
           </button>
         </div>
 
         {message && (
-          <p className="mt-3 rounded-2xl bg-[#fff4d7] px-4 py-3 text-sm font-black text-[#f39a00]">
+          <p className="mt-3 rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-3 text-sm font-black text-[#f39a00]">
             {message}
           </p>
         )}
@@ -584,15 +585,16 @@ export default function ProfilePage({
 
       <SectionCard className="mt-5" title={`友だち一覧 ${friends.length}人`}>
         {friends.length === 0 ? (
-          <p className="rounded-2xl bg-[#fff4d7] px-4 py-5 text-center text-sm font-bold text-[#6b2f13]/60">
-            まだ友だちはいません
-          </p>
+          <EmptyState
+            title="まだ友だちはいません"
+            message="友だちのIDを入力すると、投稿や2人カレンダーを一緒に楽しめます。"
+          />
         ) : (
           <div className="space-y-3">
             {friends.map((friend) => (
               <div
                 key={friend.id}
-                className="flex items-center justify-between gap-3 rounded-2xl bg-[#fff4d7] px-4 py-3"
+                className="flex items-center justify-between gap-3 rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-3"
               >
                 <div className="min-w-0">
                   <p className="truncate font-black">{friend.name}</p>

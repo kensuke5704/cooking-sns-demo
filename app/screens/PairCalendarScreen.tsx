@@ -80,13 +80,13 @@ export default function PairCalendarScreen({
         <button
           type="button"
           onClick={onBack}
-          className="rounded-full bg-white px-4 py-2 text-sm font-black shadow"
+          className="rounded-full bg-white px-4 py-2 text-sm font-black shadow-[0_10px_24px_rgba(107,47,19,0.12)]"
         >
           戻る
         </button>
       }
     >
-      <div className="mb-5 flex items-center justify-center gap-4 rounded-[32px] bg-white p-5 shadow-xl">
+      <div className="mb-5 flex items-center justify-center gap-4 rounded-[28px] border border-white/75 bg-white/95 p-5 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
         <img
           src={currentUser.iconUrl ?? "/images/default-icon.png"}
           alt={currentUser.name ?? "自分"}

@@ -27,7 +27,7 @@ export default function AppPopup({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-5">
-      <div className="w-full max-w-sm rounded-[32px] bg-white p-6 text-center text-[#6b2f13] shadow-2xl">
+      <div className="w-full max-w-sm rounded-[32px] bg-white p-6 text-center text-[#6b2f13] shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
         <p className="text-xs font-black text-[#f39a00]">MESSAGE</p>
         <h2 className="mt-2 text-2xl font-black">{popup.title}</h2>
         <p className="mt-3 whitespace-pre-line text-sm font-bold leading-6 opacity-70">

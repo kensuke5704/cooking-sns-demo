@@ -18,7 +18,7 @@ export default function CalendarGrid({
   onSelectDate,
 }: CalendarGridProps) {
   return (
-    <section className="mt-5 rounded-[36px] bg-white p-4 shadow-xl">
+    <section className="mt-5 rounded-[28px] border border-white/75 bg-white/95 p-4 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
       <div className="grid grid-cols-7 gap-2 text-center">
         {["日", "月", "火", "水", "木", "金", "土"].map((d) => (
           <div key={d} className="py-2 text-xs font-black text-[#f39a00]">
@@ -40,10 +40,10 @@ export default function CalendarGrid({
               key={dateKey}
               type="button"
               onClick={() => onSelectDate(dateKey)}
-              className={`relative flex aspect-square flex-col items-center justify-center rounded-2xl text-sm font-black transition ${
+              className={`relative flex aspect-square flex-col items-center justify-center rounded-[18px] text-sm font-black transition active:scale-[0.96] ${
                 posted
                   ? "bg-[#6b2f13] text-white"
-                  : "bg-[#fff4d7] text-[#6b2f13]"
+                  : "bg-[#fff4d7]/85 text-[#6b2f13]"
               } ${selected ? "ring-4 ring-[#f39a00]/40" : ""}`}
             >
               {pairStar && (
@@ -65,7 +65,7 @@ function StarIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-6 w-6 drop-shadow"
+      className="h-6 w-6 drop-shadow-[0_10px_24px_rgba(107,47,19,0.12)]"
       fill="#f39a00"
       aria-hidden="true"
     >

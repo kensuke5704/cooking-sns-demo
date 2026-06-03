@@ -6,9 +6,17 @@ type CalendarHeaderProps = {
   isPairCalendarOpen: boolean;
   pairState: PairState;
   streakCount: number;
+  achievedMilestone: number | null;
+  nextMilestone: number | null;
   onPrevMonth: () => void;
   onNextMonth: () => void;
 };
+
+const REWARDS = [
+  { days: 50, text: "記念バッジを表示" },
+  { days: 100, text: "特別フレームを解放" },
+  { days: 365, text: "1年記念カードを表示" },
+];
 
 export default function CalendarHeader({
   year,
@@ -16,16 +24,18 @@ export default function CalendarHeader({
   isPairCalendarOpen,
   pairState,
   streakCount,
+  achievedMilestone,
+  nextMilestone,
   onPrevMonth,
   onNextMonth,
 }: CalendarHeaderProps) {
   return (
-    <section className="rounded-[36px] bg-white p-5 shadow-xl">
+    <section className="rounded-[28px] border border-white/75 bg-white/95 p-5 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={onPrevMonth}
-          className="rounded-full bg-[#fff4d7] px-4 py-2 text-sm font-black"
+          className="rounded-full border border-[#f1d59a]/70 bg-[#fff4d7]/80 px-4 py-2 text-sm font-black transition active:scale-[0.97]"
         >
           ←
         </button>
@@ -37,44 +47,66 @@ export default function CalendarHeader({
         <button
           type="button"
           onClick={onNextMonth}
-          className="rounded-full bg-[#fff4d7] px-4 py-2 text-sm font-black"
+          className="rounded-full border border-[#f1d59a]/70 bg-[#fff4d7]/80 px-4 py-2 text-sm font-black transition active:scale-[0.97]"
         >
           →
         </button>
       </div>
 
-      <div className="mt-4 rounded-2xl bg-[#fff4d7] px-4 py-3 text-sm font-bold text-[#6b2f13]/70">
+      <div className="mt-4 rounded-[20px] border border-[#f1d59a]/60 bg-[#fff4d7]/70 px-4 py-3 text-[13px] font-bold text-[#6b2f13]/64">
         {isPairCalendarOpen
           ? "星マークの日は2人とも投稿済みです。"
           : "色付きの日を押すと投稿を確認できます。"}
       </div>
 
       {isPairCalendarOpen && pairState.partner && (
-        <div className="mt-5 rounded-[28px] bg-[#fff4d7] p-4">
+        <div className="mt-5 rounded-[24px] border border-[#f1d59a]/70 bg-[#fff4d7]/70 p-4">
           <div className="flex items-center gap-3">
             <img
               src={pairState.partner.icon_url || "/images/default-icon.png"}
               alt={pairState.partner.name ?? "ペア相手"}
               className="h-11 w-11 rounded-full object-cover"
             />
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-black text-[#f39a00]">
                 {pairState.code}
               </p>
-              <p className="text-sm font-black">
+              <p className="truncate text-sm font-black">
                 {pairState.partner.name || pairState.partner.user_id}
               </p>
             </div>
+
+            {achievedMilestone && (
+              <div className="shrink-0 rounded-full bg-[#f39a00] px-3 py-2 text-xs font-black text-white shadow-[0_10px_24px_rgba(107,47,19,0.12)]">
+                {achievedMilestone}日達成
+              </div>
+            )}
           </div>
 
-          <p className="mt-4 text-sm font-black">現在 {streakCount}日連続</p>
+          <div className="mt-4 rounded-[22px] border border-[#f1d59a]/50 bg-white/90 px-4 py-4 text-center">
+            <p className="text-xs font-black text-[#f39a00]">CURRENT STREAK</p>
+            <p className="mt-1 text-4xl font-black text-[#6b2f13]">
+              {streakCount}
+              <span className="ml-1 text-base">日</span>
+            </p>
+            <p className="mt-2 text-xs font-bold text-[#6b2f13]/60">
+              {nextMilestone
+                ? `次の特典まであと${Math.max(nextMilestone - streakCount, 0)}日`
+                : "すべての特典を達成済みです"}
+            </p>
+          </div>
 
-          <div className="mt-4 rounded-2xl bg-white p-3">
+          <div className="mt-4 rounded-[20px] border border-[#f1d59a]/50 bg-white/90 p-3">
             <p className="text-xs font-black text-[#f39a00]">連続特典</p>
             <div className="mt-3 space-y-2 text-xs font-bold text-[#6b2f13]/75">
-              <RewardRow days="50日" text="記念バッジを表示" />
-              <RewardRow days="100日" text="特別フレームを解放" />
-              <RewardRow days="365日" text="1年記念カードを表示" />
+              {REWARDS.map((reward) => (
+                <RewardRow
+                  key={reward.days}
+                  days={`${reward.days}日`}
+                  text={reward.text}
+                  achieved={streakCount >= reward.days}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -83,11 +115,23 @@ export default function CalendarHeader({
   );
 }
 
-function RewardRow({ days, text }: { days: string; text: string }) {
+function RewardRow({
+  days,
+  text,
+  achieved,
+}: {
+  days: string;
+  text: string;
+  achieved: boolean;
+}) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl bg-[#fff4d7] px-3 py-2">
-      <span className="shrink-0 font-black text-[#6b2f13]">{days}</span>
-      <span className="text-right">{text}</span>
+    <div
+      className={`flex items-center justify-between gap-3 rounded-[16px] px-3 py-2 ${
+        achieved ? "bg-[#f39a00] text-white" : "bg-[#fff4d7]"
+      }`}
+    >
+      <span className="shrink-0 font-black">{days}</span>
+      <span className="text-right">{achieved ? "達成済み" : text}</span>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getCurrentUser } from "../lib/auth";
 import ScreenShell from "../components/common/ScreenShell";
 import SectionCard from "../components/common/SectionCard";
+import EmptyState from "../components/common/EmptyState";
 import { supabase } from "../lib/supabase";
 
 type Notification = {
@@ -67,16 +68,17 @@ export default function NotificationScreen({
         description={unreadCount > 0 ? `${unreadCount}件の未読があります。` : undefined}
       >
         {notifications.length === 0 ? (
-          <p className="rounded-2xl bg-[#fff4d7] px-4 py-5 text-center text-sm font-bold text-[#6b2f13]/60">
-            新しい通知が届くとここに表示されます。
-          </p>
+          <EmptyState
+            title="まだ通知はありません"
+            message="いいね、コメント、友だち追加、2人カレンダーの達成通知がここに表示されます。"
+          />
         ) : (
           <div className="space-y-3">
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`rounded-2xl px-4 py-3 ${
-                  notification.read ? "bg-[#fff4d7]" : "bg-[#f39a00]/20"
+                className={`rounded-[20px] border border-[#f1d59a]/55 px-4 py-3 ${
+                  notification.read ? "bg-[#fff4d7]/75" : "bg-[#f39a00]/15"
                 }`}
               >
                 <div className="flex items-start gap-3">

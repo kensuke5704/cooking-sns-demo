@@ -79,3 +79,15 @@ export function getPairStreak(
 
   return streak;
 }
+
+export const PAIR_STREAK_MILESTONES = [50, 100, 365] as const;
+
+export function getAchievedPairStreakMilestone(streakCount: number) {
+  return [...PAIR_STREAK_MILESTONES]
+    .reverse()
+    .find((milestone) => streakCount >= milestone) ?? null;
+}
+
+export function getNextPairStreakMilestone(streakCount: number) {
+  return PAIR_STREAK_MILESTONES.find((milestone) => streakCount < milestone) ?? null;
+}

@@ -7,7 +7,7 @@ export default function PairCalendarBackButton({ onClick }: PairCalendarBackButt
     <button
       type="button"
       onClick={onClick}
-      className="mb-4 rounded-full bg-white px-5 py-3 text-sm font-black shadow"
+      className="mb-4 rounded-full bg-white px-5 py-3 text-sm font-black shadow-[0_10px_24px_rgba(107,47,19,0.12)]"
     >
       ← 元のカレンダーに戻る
     </button>

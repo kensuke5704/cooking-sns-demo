@@ -20,6 +20,7 @@ import AppPopup, { type AppPopupState } from "./components/common/AppPopup";
 import PullToRefresh from "./components/common/PullToRefresh";
 import ScreenShell from "./components/common/ScreenShell";
 import SectionCard from "./components/common/SectionCard";
+import EmptyState from "./components/common/EmptyState";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -318,20 +319,14 @@ export default function Home() {
             description="投稿から24時間以内の料理が表示されます。"
           >
             {visiblePosts.length === 0 ? (
-              <div className="rounded-2xl bg-[#fff4d7] px-4 py-6 text-center">
-                <p className="text-sm font-black text-[#6b2f13]">
-                  まだ今日の投稿はありません
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setCurrentTab("カメラ")}
-                  className="mt-4 rounded-full bg-[#f39a00] px-5 py-3 text-sm font-black text-white shadow"
-                >
-                  最初に投稿する
-                </button>
-              </div>
+              <EmptyState
+                title="まだ今日の投稿はありません"
+                message="今日の料理を投稿すると、ここに24時間表示されます。"
+                actionLabel="投稿する"
+                onAction={() => setCurrentTab("カメラ")}
+              />
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-5">
                 {visiblePosts.map((post) => (
                   <PostCard
                     key={post.id}

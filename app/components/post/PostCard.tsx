@@ -292,24 +292,24 @@ export default function PostCard({
   return (
     <>
       {toastMessage && (
-        <div className="fixed left-1/2 top-5 z-[200] -translate-x-1/2 rounded-full bg-[#6b2f13] px-5 py-3 text-sm font-black text-white shadow-xl">
+        <div className="fixed left-1/2 top-5 z-[200] -translate-x-1/2 rounded-full bg-[#6b2f13] px-5 py-3 text-sm font-black text-white shadow-[0_14px_34px_rgba(107,47,19,0.24)]">
           {toastMessage}
         </div>
       )}
-    <article className="overflow-hidden rounded-[36px] bg-white shadow-xl">
+    <article className="overflow-hidden rounded-[28px] border border-white/75 bg-white/95 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
       <div className="flex items-center justify-between px-5 pt-5">
         <div className="flex items-center gap-3">
           <img
             src={post.userIcon}
             alt={post.userName}
-            className="h-11 w-11 rounded-full border-2 border-[#f8b72a] object-cover"
+            className="h-11 w-11 rounded-full border border-[#f8b72a] object-cover shadow-sm"
           />
 
           <div>
-            <p className="text-base font-black text-[#6b2f13]">
+            <p className="text-[15px] font-black tracking-[-0.02em] text-[#6b2f13]">
               {post.userName}
             </p>
-            <p className="text-xs font-bold text-[#6b2f13]/50">
+            <p className="text-[11px] font-bold text-[#6b2f13]/45">
               {createdTimeText}
             </p>
           </div>
@@ -393,7 +393,7 @@ export default function PostCard({
         </p>
 
         {post.memo && (
-          <p className="mt-2 rounded-2xl bg-[#fff4d7] px-4 py-3 text-sm font-bold text-[#6b2f13]">
+          <p className="mt-2 rounded-[18px] bg-[#fff4d7]/80 px-4 py-3 text-sm font-bold text-[#6b2f13]">
             {post.memo}
           </p>
         )}
@@ -463,7 +463,7 @@ export default function PostCard({
       </div>
       {showDeleteConfirm && (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-6">
-        <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center shadow-2xl">
+        <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
           <p className="text-lg font-black text-[#6b2f13]">
             投稿を削除しますか？
           </p>
@@ -476,7 +476,7 @@ export default function PostCard({
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
-              className="flex-1 rounded-2xl bg-[#fff4d7] py-3 text-sm font-black text-[#6b2f13]"
+              className="flex-1 rounded-[18px] bg-[#fff4d7]/80 py-3 text-sm font-black text-[#6b2f13]"
             >
               キャンセル
             </button>
@@ -498,7 +498,7 @@ export default function PostCard({
 
       {deleteCommentId !== null && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-6">
-          <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center shadow-2xl">
+          <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
             <p className="text-lg font-black text-[#6b2f13]">
               コメントを削除しますか？
             </p>
@@ -511,7 +511,7 @@ export default function PostCard({
               <button
                 type="button"
                 onClick={() => setDeleteCommentId(null)}
-                className="flex-1 rounded-2xl bg-[#fff4d7] py-3 text-sm font-black text-[#6b2f13]"
+                className="flex-1 rounded-[18px] bg-[#fff4d7]/80 py-3 text-sm font-black text-[#6b2f13]"
               >
                 キャンセル
               </button>

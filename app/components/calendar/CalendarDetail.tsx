@@ -1,3 +1,4 @@
+import EmptyState from "../common/EmptyState";
 import type { Post } from "../../types/post";
 
 type CalendarDetailProps = {
@@ -7,14 +8,17 @@ type CalendarDetailProps = {
 
 export default function CalendarDetail({ dateKey, posts }: CalendarDetailProps) {
   return (
-    <section className="mt-5 rounded-[36px] bg-white p-5 shadow-xl">
+    <section className="mt-5 rounded-[28px] border border-white/75 bg-white/95 p-5 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
       <p className="text-xs font-black text-[#f39a00]">SELECTED DAY</p>
       <h2 className="mt-1 text-2xl font-black">{dateKey}</h2>
 
       {posts.length === 0 ? (
-        <p className="mt-4 rounded-2xl bg-[#fff4d7] px-4 py-4 text-sm font-bold text-[#6b2f13]/70">
-          この日の投稿はありません
-        </p>
+        <div className="mt-4">
+          <EmptyState
+            title="この日の投稿はありません"
+            message="投稿した日を選ぶと、写真やメモをここで確認できます。"
+          />
+        </div>
       ) : (
         <div className="mt-5 space-y-6">
           {posts.map((post) => (
@@ -28,7 +32,7 @@ export default function CalendarDetail({ dateKey, posts }: CalendarDetailProps) 
 
 function CalendarPost({ post }: { post: Post }) {
   return (
-    <div className="rounded-[28px] bg-[#fff4d7] p-4">
+    <div className="rounded-[24px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 p-4">
       <div className="flex items-center gap-3">
         <img
           src={post.userIcon || "/images/user1-icon.jpg"}
@@ -71,7 +75,7 @@ function CalendarPhoto({ label, src }: { label: string; src?: string | null }) {
   }
 
   return (
-    <div className="bg-white p-2 pb-6 shadow-xl">
+    <div className="bg-white p-2 pb-6 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
       <img src={src} alt={label} className="aspect-[3/4] w-full object-cover" />
       <p className="mt-1 text-center text-[11px] font-black text-[#6b2f13]">
         {label}

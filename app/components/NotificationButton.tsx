@@ -11,7 +11,7 @@ export default function NotificationButton({
     <button
       type="button"
       onClick={onClick}
-      className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white shadow"
+      className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-[0_10px_24px_rgba(107,47,19,0.12)]"
       aria-label="通知"
     >
       <svg

@@ -12,11 +12,14 @@ import { useCalendarPosts } from "../hooks/calendar/useCalendarPosts";
 import { usePairCalendar } from "../hooks/calendar/usePairCalendar";
 import { getCurrentUser } from "../lib/auth";
 import {
+  getAchievedPairStreakMilestone,
   getMonthDays,
+  getNextPairStreakMilestone,
   getPairStreak,
   hasBothPostedOnDate,
 } from "../lib/calendar";
 import type { CalendarPopupState } from "../types/calendar";
+import { supabase } from "../lib/supabase";
 
 export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -67,11 +70,42 @@ export default function CalendarPage() {
     return getPairStreak(pairPosts, currentUser.userId, pairState.partner.user_id);
   }, [currentUser, pairPosts, pairState.partner]);
 
+  const achievedMilestone = getAchievedPairStreakMilestone(streakCount);
+  const nextMilestone = getNextPairStreakMilestone(streakCount);
+
   useEffect(() => {
     loadCalendarPosts();
     loadPairStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!currentUser || !pairState.partner || !achievedMilestone) return;
+
+    const storageKey = `pair-streak-achievement-${currentUser.userId}-${pairState.code}-${achievedMilestone}`;
+    if (localStorage.getItem(storageKey)) return;
+
+    localStorage.setItem(storageKey, "shown");
+    showPopup(
+      `${achievedMilestone}日連続を達成しました`,
+      `${pairState.partner.name || pairState.partner.user_id}さんとの2人カレンダーで特典を獲得しました。`
+    );
+
+    supabase
+      .from("notifications")
+      .insert({
+        to_user_id: currentUser.userId,
+        from_user_id: currentUser.userId,
+        from_user_name: currentUser.userId,
+        type: "pair",
+        message: `2人カレンダーで${achievedMilestone}日連続を達成しました`,
+      })
+      .then(({ error }) => {
+        if (error) {
+          console.error("達成通知作成エラー:", error);
+        }
+      });
+  }, [achievedMilestone, currentUser, pairState.code, pairState.partner]);
 
   function goPrevMonth() {
     setSelectedDate(null);
@@ -121,6 +155,8 @@ export default function CalendarPage() {
           isPairCalendarOpen={isPairCalendarOpen}
           pairState={pairState}
           streakCount={streakCount}
+          achievedMilestone={achievedMilestone}
+          nextMilestone={nextMilestone}
           onPrevMonth={goPrevMonth}
           onNextMonth={goNextMonth}
         />

@@ -1,3 +1,4 @@
+import EmptyState from "../common/EmptyState";
 import type { PairPartner, PairState } from "../../types/calendar";
 
 type PairCodeSectionProps = {
@@ -25,12 +26,12 @@ export default function PairCodeSection({
   const canInputCode = pairState.status === "none" || pairState.status === "paired";
 
   return (
-    <section className="mt-5 rounded-[36px] bg-white p-5 shadow-xl">
+    <section className="mt-5 rounded-[28px] border border-white/75 bg-white/95 p-5 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
       <p className="text-xs font-black text-[#f39a00]">GIFT CONNECTION</p>
       <h2 className="mt-1 text-2xl font-black">2人カレンダー</h2>
 
       {pairState.status === "loading" && (
-        <p className="mt-4 rounded-2xl bg-[#fff4d7] px-4 py-4 text-sm font-bold text-[#6b2f13]/70">
+        <p className="mt-4 rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-4 text-sm font-bold text-[#6b2f13]/70">
           確認中です
         </p>
       )}
@@ -52,8 +53,18 @@ export default function PairCodeSection({
         </div>
       )}
 
+
+      {pairState.status === "none" && pairPartners.length === 0 && (
+        <div className="mt-5">
+          <EmptyState
+            title="まだペアはありません"
+            message="同じコードを2人で入力すると、2人だけの連続投稿カレンダーを作れます。"
+          />
+        </div>
+      )}
+
       {hasPendingCode && (
-        <div className="mt-4 rounded-2xl bg-[#fff4d7] px-4 py-4">
+        <div className="mt-4 rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-4">
           <p className="text-sm font-black">入力済みコード：{pairState.code}</p>
           <p className="mt-2 text-sm font-bold text-[#6b2f13]/70">
             相手が入力すると2人カレンダーが作成されます。キャンセルすると、新しいコードを入力できます。
@@ -77,12 +88,12 @@ export default function PairCodeSection({
             value={codeInput}
             onChange={(e) => onCodeInputChange(e.target.value)}
             placeholder="コードを入力"
-            className="w-full rounded-2xl bg-[#fff4d7] px-4 py-4 text-sm font-black outline-none"
+            className="w-full rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-4 text-sm font-black outline-none"
           />
           <button
             type="button"
             onClick={onSubmitCode}
-            className="w-full rounded-full bg-[#f39a00] py-3 text-sm font-black text-white shadow"
+            className="w-full rounded-full bg-[#f39a00] py-3 text-sm font-black text-white shadow-[0_10px_24px_rgba(107,47,19,0.12)]"
           >
             コードを登録する
           </button>
@@ -102,7 +113,7 @@ function PairPartnerCard({
   onDeletePair: (code: string) => void;
 }) {
   return (
-    <div className="flex w-full items-center gap-4 rounded-[28px] bg-[#fff4d7] p-4">
+    <div className="flex w-full items-center gap-4 rounded-[24px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 p-4">
       <button
         type="button"
         onClick={() => onOpenPairCalendar(pair)}

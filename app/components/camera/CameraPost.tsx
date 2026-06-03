@@ -295,7 +295,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
         <button
           type="button"
           onClick={onBack}
-          className="rounded-full bg-white/90 px-4 py-2 text-sm font-black shadow"
+          className="rounded-full bg-white/90 px-4 py-2 text-sm font-black shadow-[0_10px_24px_rgba(107,47,19,0.12)]"
         >
           戻る
         </button>
@@ -326,7 +326,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
               />
               </div>
             </div>
-            <div className="mt-5 rounded-[28px] bg-[#fff4d7] p-4">
+            <div className="mt-5 rounded-[24px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 p-4">
               <h3 className="text-xl font-black">料理メモ</h3>
 
               <label className="mt-4 block text-sm font-black">料理名</label>
@@ -334,7 +334,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                value={dishName}
                onChange={(e) => setDishName(e.target.value)}
                 placeholder="例：アスパラベーコン"
-                className="mt-2 w-full rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+                className="mt-2 w-full rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
              />
 
              <label className="mt-4 block text-sm font-black">コメント</label>
@@ -343,7 +343,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                onChange={(e) => setMemo(e.target.value)}
                placeholder="例：少し焦げたけどおいしくできた"
                rows={3}
-               className="mt-2 w-full resize-none rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+               className="mt-2 w-full resize-none rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
              />
 
               <button
@@ -399,7 +399,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   
             <button
               onClick={takePhoto}
-              className="mt-4 w-full rounded-full bg-[#f39a00] py-4 text-lg font-black text-white shadow"
+              className="mt-4 w-full rounded-full bg-[#f39a00] py-4 text-lg font-black text-white shadow-[0_10px_24px_rgba(107,47,19,0.12)]"
             >
               撮影する
             </button>
