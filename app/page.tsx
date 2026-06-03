@@ -87,6 +87,18 @@ export default function Home() {
 
     if (!currentUser) return;
 
+    const cutoff = new Date(Date.now() - ONE_DAY_MS).toISOString();
+
+    const { error: deleteError } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("to_user_id", currentUser.userId)
+      .lt("created_at", cutoff);
+
+    if (deleteError) {
+      console.error(deleteError);
+    }
+
     const { count, error } = await supabase
       .from("notifications")
       .select("*", {
@@ -94,7 +106,8 @@ export default function Home() {
         head: true,
       })
       .eq("to_user_id", currentUser.userId)
-      .eq("read", false);
+      .eq("read", false)
+      .gte("created_at", cutoff);
 
     if (error) {
       console.error(error);
@@ -109,11 +122,14 @@ export default function Home() {
 
     if (!currentUser) return;
 
+    const cutoff = new Date(Date.now() - ONE_DAY_MS).toISOString();
+
     const { error } = await supabase
       .from("notifications")
       .update({ read: true })
       .eq("to_user_id", currentUser.userId)
-      .eq("read", false);
+      .eq("read", false)
+      .gte("created_at", cutoff);
 
     if (error) {
       console.error(error);

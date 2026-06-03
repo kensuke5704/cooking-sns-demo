@@ -7,6 +7,8 @@ import SectionCard from "../components/common/SectionCard";
 import EmptyState from "../components/common/EmptyState";
 import { supabase } from "../lib/supabase";
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 type Notification = {
   id: string;
   message: string;
@@ -30,10 +32,23 @@ export default function NotificationScreen({
     const currentUser = getCurrentUser();
     if (!currentUser) return;
 
+    const cutoff = new Date(Date.now() - ONE_DAY_MS).toISOString();
+
+    const { error: deleteError } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("to_user_id", currentUser.userId)
+      .lt("created_at", cutoff);
+
+    if (deleteError) {
+      console.error("古い通知削除エラー:", deleteError);
+    }
+
     const { data, error } = await supabase
       .from("notifications")
       .select("*")
       .eq("to_user_id", currentUser.userId)
+      .gte("created_at", cutoff)
       .order("created_at", { ascending: false });
 
     if (error) {

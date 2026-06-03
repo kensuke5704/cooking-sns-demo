@@ -19,7 +19,7 @@ export default function RecipeScreen() {
         <button
           type="button"
           onClick={() => setShowDetail(true)}
-          className="w-full overflow-hidden rounded-[28px] border border-white/75 bg-white/95 text-left shadow-[0_16px_44px_rgba(107,47,19,0.13)] transition active:scale-[0.99]"
+          className="w-full overflow-hidden rounded-[28px] bg-white/95 text-left shadow-[0_16px_44px_rgba(107,47,19,0.13)] transition active:scale-[0.99]"
         >
           <div className="bg-[#f39a00] px-5 py-2.5">
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white">
@@ -48,7 +48,7 @@ export default function RecipeScreen() {
         </button>
       ) : (
         <>
-          <section className="overflow-hidden rounded-[28px] border border-white/75 bg-white/95 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
+          <section className="overflow-hidden rounded-[28px] bg-white/95 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
             <div className="bg-[#f39a00] px-5 py-2.5">
               <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white">
                 MENU DETAIL
