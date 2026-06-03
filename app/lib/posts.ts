@@ -104,6 +104,27 @@ export function getStoragePathFromUrl(url?: string | null) {
 }
 
 export async function deletePostData(postId: string | number, targetPost?: Post) {
+  const postIdValue = String(postId);
+
+  const relatedDeletes = [
+    supabase.from("comments").delete().eq("post_id", postIdValue),
+    supabase.from("likes").delete().eq("post_id", postIdValue),
+    supabase.from("notifications").delete().eq("post_id", postIdValue),
+  ];
+
+  const relatedResults = await Promise.all(relatedDeletes);
+
+  const relatedError = relatedResults.find((result) => result.error)?.error;
+  if (relatedError) {
+    throw relatedError;
+  }
+
+  const { error } = await supabase.from("posts").delete().eq("id", postIdValue);
+
+  if (error) {
+    throw error;
+  }
+
   const imagePaths = [
     getStoragePathFromUrl(targetPost?.prepPhoto),
     getStoragePathFromUrl(targetPost?.cookingPhoto),
@@ -116,14 +137,8 @@ export async function deletePostData(postId: string | number, targetPost?: Post)
       .remove(imagePaths);
 
     if (storageError) {
-      throw storageError;
+      console.error("投稿画像削除エラー:", storageError);
     }
-  }
-
-  const { error } = await supabase.from("posts").delete().eq("id", postId);
-
-  if (error) {
-    throw error;
   }
 }
 

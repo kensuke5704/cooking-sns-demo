@@ -29,10 +29,10 @@ export default function PostCard({
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteCommentId, setDeleteCommentId] = useState<string | number | null>(
     null
   );
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const currentUser = getCurrentUser();
   const isMyPost = currentUser?.userId === post.userId;
@@ -269,23 +269,27 @@ export default function PostCard({
 
   const deleteComment = async (commentId: string | number) => {
     const currentUser = getCurrentUser();
-  
-    if (!currentUser) return;
-  
+
+    if (!currentUser || isDeletingComment) return;
+
+    setIsDeletingComment(true);
+    setDeleteCommentId(null);
+
     const { error } = await supabase
       .from("comments")
       .delete()
       .eq("id", commentId)
       .eq("user_id", currentUser.userId);
-  
+
+    setIsDeletingComment(false);
+
     if (error) {
       console.error(error);
       showToast("コメント削除に失敗しました");
       return;
     }
-  
+
     setComments((prev) => prev.filter((comment) => comment.id !== commentId));
-    setDeleteCommentId(null);
     showToast("コメントを削除しました");
   };
   
@@ -320,7 +324,7 @@ export default function PostCard({
           {isMyPost && onDelete && (
             <button
               type="button"
-              onClick={() => setShowDeleteConfirm(true)}
+              onClick={() => onDelete?.(post.id)}
               className="rounded-full bg-red-500 px-3 py-1 text-xs font-black text-white"
             >
               削除
@@ -329,9 +333,9 @@ export default function PostCard({
         </div>
       </div>
 
-      <div className="px-5 pb-3 pt-5">
-        <div className="relative rounded-[28px] bg-[#f8b72a] px-2 pb-2 pt-5 shadow-inner">
-          <div className="-mx-8 -mt-2">
+      <div className="px-5 pb-3 pt-4">
+        <div className="relative rounded-[28px] bg-[#f8b72a] px-3 pb-2 pt-4 shadow-inner">
+          <div className="-mx-3 -mt-1">
             <StackedPhotos post={post} onClick={onImageClick} />
           </div>
         </div>
@@ -463,41 +467,6 @@ export default function PostCard({
           )}
         </div>
       </div>
-      {showDeleteConfirm && (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-6">
-        <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
-          <p className="text-lg font-black text-[#6b2f13]">
-            投稿を削除しますか？
-          </p>
-
-          <p className="mt-2 text-sm font-bold text-[#6b2f13]/60">
-            削除すると元に戻せません。
-          </p>
-
-          <div className="mt-6 flex gap-3">
-            <button
-              type="button"
-              onClick={() => setShowDeleteConfirm(false)}
-              className="flex-1 rounded-[18px] bg-[#fff4d7]/80 py-3 text-sm font-black text-[#6b2f13]"
-            >
-              キャンセル
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setShowDeleteConfirm(false);
-                onDelete?.(post.id);
-              }}
-              className="flex-1 rounded-2xl bg-red-500 py-3 text-sm font-black text-white"
-            >
-              削除
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-
       {deleteCommentId !== null && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-6">
           <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
@@ -520,8 +489,9 @@ export default function PostCard({
 
               <button
                 type="button"
+                disabled={isDeletingComment}
                 onClick={() => deleteComment(deleteCommentId)}
-                className="flex-1 rounded-2xl bg-red-500 py-3 text-sm font-black text-white"
+                className="flex-1 rounded-2xl bg-red-500 py-3 text-sm font-black text-white disabled:opacity-50"
               >
                 削除
               </button>

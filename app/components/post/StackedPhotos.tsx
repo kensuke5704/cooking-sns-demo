@@ -12,7 +12,7 @@ export default function StackedPhotos({
     {
       label: "準備",
       src: post.prepPhoto,
-      className: "left-[-2%] top-10 rotate-[-8deg] z-10",
+      className: "left-[0%] top-8 rotate-[-7deg] z-10",
     },
     {
       label: "調理",
@@ -22,17 +22,17 @@ export default function StackedPhotos({
     {
       label: "完成",
       src: post.finishedPhoto,
-      className: "right-[-2%] top-10 rotate-[8deg] z-30",
+      className: "right-[0%] top-8 rotate-[7deg] z-30",
     },
   ];
 
   return (
-    <div className="relative z-10 h-64">
+    <div className="relative z-10 h-56">
       {photos.map((photo) => (
         <div
           key={photo.label}
           onClick={() => photo.src && onClick(photo.src)}
-          className={`absolute aspect-[3/4] w-[50%] cursor-pointer ${photo.className}`}
+          className={`absolute aspect-[3/4] w-[46%] cursor-pointer ${photo.className}`}
         >
           <PhotoBox label={photo.label} src={photo.src} onClick={onClick} />
         </div>
