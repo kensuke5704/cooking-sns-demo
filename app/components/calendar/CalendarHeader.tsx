@@ -72,11 +72,26 @@ export default function CalendarHeader({
           </div>
 
           <p className="mt-4 text-sm font-black">現在 {streakCount}日連続</p>
-          <p className="mt-1 text-xs font-bold text-[#6b2f13]/70">
-            2人とも投稿している連続日数です。今日2人とも投稿済みなら、今日まで含めて数えます。
-          </p>
+
+          <div className="mt-4 rounded-2xl bg-white p-3">
+            <p className="text-xs font-black text-[#f39a00]">連続特典</p>
+            <div className="mt-3 space-y-2 text-xs font-bold text-[#6b2f13]/75">
+              <RewardRow days="50日" text="記念バッジを表示" />
+              <RewardRow days="100日" text="特別フレームを解放" />
+              <RewardRow days="365日" text="1年記念カードを表示" />
+            </div>
+          </div>
         </div>
       )}
     </section>
+  );
+}
+
+function RewardRow({ days, text }: { days: string; text: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-[#fff4d7] px-3 py-2">
+      <span className="shrink-0 font-black text-[#6b2f13]">{days}</span>
+      <span className="text-right">{text}</span>
+    </div>
   );
 }

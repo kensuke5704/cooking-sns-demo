@@ -52,12 +52,21 @@ export function getPairStreak(
       .map((post) => post.postDate)
   );
 
-  let streak = 0;
   const today = new Date();
+  const todayKey = toLocalDateKey(today);
+  const shouldStartFromToday =
+    myDates.has(todayKey) && partnerDates.has(todayKey);
+
+  const baseDate = new Date(today);
+  if (!shouldStartFromToday) {
+    baseDate.setDate(today.getDate() - 1);
+  }
+
+  let streak = 0;
 
   for (let i = 0; i < 365; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
+    const date = new Date(baseDate);
+    date.setDate(baseDate.getDate() - i);
 
     const dateKey = toLocalDateKey(date);
 
