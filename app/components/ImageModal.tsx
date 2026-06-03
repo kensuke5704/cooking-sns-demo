@@ -1,3 +1,7 @@
+"use client";
+
+import ViewportPortal from "./common/ViewportPortal";
+
 type ImageModalProps = {
     src: string;
     onClose: () => void;
@@ -5,9 +9,10 @@ type ImageModalProps = {
   
   export default function ImageModal({ src, onClose }: ImageModalProps) {
     return (
-      <div
+      <ViewportPortal>
+        <div
         onClick={onClose}
-        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-6"
+        className="fixed inset-0 z-[9999] flex min-h-[100dvh] items-center justify-center bg-black/70 p-6"
       >
         <div
           onClick={(e) => e.stopPropagation()}
@@ -23,7 +28,8 @@ type ImageModalProps = {
             閉じる
           </button>
         </div>
-      </div>
+        </div>
+      </ViewportPortal>
     );
   }
   

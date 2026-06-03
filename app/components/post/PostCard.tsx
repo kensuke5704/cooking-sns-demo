@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Post } from "../../types/post";
 import StackedPhotos from "./StackedPhotos";
+import ViewportPortal from "../common/ViewportPortal";
 import { supabase } from "../../lib/supabase";
 import { getCurrentUser } from "../../lib/auth";
 import { sendPushNotification } from "../../lib/sendPush";
@@ -479,7 +480,8 @@ export default function PostCard({
         </div>
       </div>
       {deleteCommentId !== null && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-6">
+        <ViewportPortal>
+          <div className="fixed inset-0 z-[1000] flex min-h-[100dvh] items-center justify-center bg-black/40 px-6">
           <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
             <p className="text-lg font-black text-[#6b2f13]">
               コメントを削除しますか？
@@ -508,7 +510,8 @@ export default function PostCard({
               </button>
             </div>
           </div>
-        </div>
+          </div>
+        </ViewportPortal>
       )}
     </article>
   </>

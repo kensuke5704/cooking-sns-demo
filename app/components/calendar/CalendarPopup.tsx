@@ -1,3 +1,6 @@
+"use client";
+
+import ViewportPortal from "../common/ViewportPortal";
 import type { CalendarPopupState } from "../../types/calendar";
 
 type CalendarPopupProps = {
@@ -23,7 +26,8 @@ export default function CalendarPopup({ popup, onClose }: CalendarPopupProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-5">
+    <ViewportPortal>
+      <div className="fixed inset-0 z-[1000] flex min-h-[100dvh] items-center justify-center bg-black/40 px-5">
       <div className="w-full max-w-sm rounded-[32px] bg-white p-6 text-[#6b2f13] shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
         <p className="text-xs font-black text-[#f39a00]">CALENDAR MESSAGE</p>
         <h2 className="mt-2 text-2xl font-black">{popup.title}</h2>
@@ -55,6 +59,7 @@ export default function CalendarPopup({ popup, onClose }: CalendarPopupProps) {
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </ViewportPortal>
   );
 }
