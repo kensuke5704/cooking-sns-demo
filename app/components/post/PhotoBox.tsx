@@ -9,7 +9,7 @@ export default function PhotoBox({
   }) {
     if (!src) {
       return (
-        <div className="w-full h-full rounded-xl border-2 border-dashed border-white/70 bg-white/20 flex items-center justify-center text-white text-sm font-bold">
+        <div className="flex h-full w-full items-center justify-center rounded-xl border-2 border-dashed border-white/70 bg-white/20 text-sm font-bold text-white">
           {label}
         </div>
       );
@@ -21,7 +21,7 @@ export default function PhotoBox({
         tabIndex={0}
         onClick={() => onClick(src)}
         onPointerUp={() => onClick(src)}
-        className="w-full h-full bg-white p-2 pb-8 shadow-[0_16px_44px_rgba(107,47,19,0.13)] cursor-pointer touch-manipulation select-none"
+        className="h-full w-full cursor-pointer touch-manipulation select-none bg-white p-2 pb-7 shadow-[0_18px_46px_rgba(107,47,19,0.16)]"
       >
         <img
           src={src}
@@ -29,7 +29,7 @@ export default function PhotoBox({
           draggable={false}
           loading="lazy"
           decoding="async"
-          className="w-full h-full object-cover pointer-events-none select-none"
+          className="h-full w-full object-cover pointer-events-none select-none"
         />
       </div>
     );

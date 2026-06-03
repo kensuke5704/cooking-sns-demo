@@ -27,12 +27,12 @@ export default function PairCodeSection({
 
   return (
     <section className="mt-5 rounded-[28px] border border-white/75 bg-white/95 p-5 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
-      <p className="text-xs font-black text-[#f39a00]">PAIR</p>
+      <p className="text-xs font-black text-[#f39a00]">GIFT CONNECTION</p>
       <h2 className="mt-1 text-2xl font-black">2人カレンダー</h2>
 
       {pairState.status === "loading" && (
         <p className="mt-4 rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-4 text-sm font-bold text-[#6b2f13]/70">
-          確認中
+          確認中です
         </p>
       )}
 
@@ -53,26 +53,33 @@ export default function PairCodeSection({
       {pairState.status === "none" && pairPartners.length === 0 && (
         <div className="mt-5">
           <EmptyState
-            title="ペアはありません"
+            title="まだペアはありません"
+            message="同じコードを2人で入力すると、2人だけの連続投稿カレンダーを作れます。"
           />
         </div>
       )}
 
       {hasPendingCode && (
         <div className="mt-4 rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-4">
-          <p className="text-sm font-black">待機中：{pairState.code}</p>
+          <p className="text-sm font-black">入力済みコード：{pairState.code}</p>
+          <p className="mt-2 text-sm font-bold text-[#6b2f13]/70">
+            相手が入力すると2人カレンダーが作成されます。キャンセルすると、新しいコードを入力できます。
+          </p>
           <button
             type="button"
             onClick={onCancelPendingCode}
             className="mt-3 rounded-full bg-white px-4 py-2 text-xs font-black text-red-500 shadow-sm"
           >
-            キャンセル
+            コード入力をキャンセル
           </button>
         </div>
       )}
 
       {canInputCode && (
         <div className="mt-5 space-y-3">
+          <p className="text-sm font-bold text-[#6b2f13]/70">
+            新しい2人カレンダーを追加する場合は、有効なコードを入力してください。
+          </p>
           <input
             value={codeInput}
             onChange={(e) => onCodeInputChange(e.target.value)}
@@ -84,7 +91,7 @@ export default function PairCodeSection({
             onClick={onSubmitCode}
             className="w-full rounded-full bg-[#f39a00] py-3 text-sm font-black text-white shadow-[0_10px_24px_rgba(107,47,19,0.12)]"
           >
-            登録
+            コードを登録する
           </button>
         </div>
       )}
@@ -102,44 +109,34 @@ function PairPartnerCard({
   onDeletePair: (code: string) => void;
 }) {
   return (
-    <div className="flex w-full items-center gap-4 rounded-[24px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 p-4">
+    <div className="flex w-full items-center gap-3 rounded-[24px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 p-4">
       <button
         type="button"
         onClick={() => onOpenPairCalendar(pair)}
-        className="shrink-0"
+        className="flex min-w-0 flex-1 items-center gap-4 text-left"
         aria-label={`${pair.partner.name || "ペア相手"}のカレンダーを見る`}
       >
         <img
           src={pair.partner.icon_url || "/images/default-icon.png"}
           alt={pair.partner.name ?? "ペア相手"}
-          className="h-14 w-14 rounded-full object-cover"
+          className="h-14 w-14 shrink-0 rounded-full object-cover"
         />
+
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-black text-[#f39a00]">{pair.code}</p>
+          <p className="truncate font-black text-[#6b2f13]">
+            {pair.partner.name || pair.partner.user_id}
+          </p>
+        </div>
       </button>
 
-      <div className="min-w-0 flex-1 text-left">
-        <p className="text-xs font-black text-[#f39a00]">{pair.code}</p>
-        <p className="truncate font-black text-[#6b2f13]">
-          {pair.partner.name || pair.partner.user_id}
-        </p>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => onOpenPairCalendar(pair)}
-            className="rounded-full bg-[#f39a00] px-3 py-1 text-xs font-black text-white"
-          >
-            見る
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onDeletePair(pair.code)}
-            className="rounded-full bg-white px-3 py-1 text-xs font-black text-red-500"
-          >
-            解除
-          </button>
-        </div>
-      </div>
+      <button
+        type="button"
+        onClick={() => onDeletePair(pair.code)}
+        className="shrink-0 rounded-full bg-white px-3 py-2 text-xs font-black text-red-500"
+      >
+        解除
+      </button>
     </div>
   );
 }

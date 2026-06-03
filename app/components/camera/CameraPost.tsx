@@ -137,6 +137,13 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       setPopup({ title: "ログインしてください", message: "投稿するにはログインが必要です。" });
       return;
     }
+
+    const hasAnyPhoto = Boolean(photos.prep || photos.cooking || photos.finished);
+
+    if (!hasAnyPhoto) {
+      setPopup({ title: "写真を追加してください" });
+      return;
+    }
   
     setIsPublishing(true);
   
@@ -290,7 +297,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     <ScreenShell
       label="TODAY'S COOKING"
       title="今日の料理を投稿"
-
+      subtitle="準備・調理・完成の順に写真を残せます。"
       action={
         <button
           type="button"
@@ -303,7 +310,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     >
   
         {!isCameraOn && (
-          <SectionCard label="PHOTOS" title="写真">
+          <SectionCard label="PHOTOS" title="写真" description="各カードを押すと撮影、ライブラリからも選択できます。">
             <div className="rounded-[28px] bg-[#6b2f13] p-4">
               <div className="grid grid-cols-3 gap-3">
             <CameraCard

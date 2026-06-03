@@ -296,7 +296,7 @@ export default function PostCard({
           {toastMessage}
         </div>
       )}
-    <article className="overflow-hidden rounded-[28px] border border-white/75 bg-white/95 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
+    <article className="rounded-[28px] border border-white/75 bg-white/95 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
       <div className="flex items-center justify-between px-5 pt-5">
         <div className="flex items-center gap-3">
           <img
@@ -329,9 +329,11 @@ export default function PostCard({
         </div>
       </div>
 
-      <div className="px-4 py-5">
-        <div className="rounded-[28px] bg-[#f8b72a] p-4 shadow-inner">
-          <StackedPhotos post={post} onClick={onImageClick} />
+      <div className="px-5 pb-3 pt-5">
+        <div className="relative rounded-[28px] bg-[#f8b72a] px-2 pb-2 pt-5 shadow-inner">
+          <div className="-mx-8 -mt-2">
+            <StackedPhotos post={post} onClick={onImageClick} />
+          </div>
         </div>
       </div>
 

@@ -18,7 +18,7 @@ export default function BottomNav({
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#f5e7c3] bg-white/95 px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-2 shadow-[0_-8px_24px_rgba(107,47,19,0.06)] backdrop-blur">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#f5e7c3] bg-white/95 px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 shadow-[0_-8px_24px_rgba(107,47,19,0.05)] backdrop-blur">
       <div className="mx-auto flex max-w-md items-center justify-between">
         {items.map(([iconSrc, label]) => {
           const active = currentTab === label;
@@ -28,7 +28,7 @@ export default function BottomNav({
               key={label}
               type="button"
               onClick={() => setCurrentTab(label)}
-              className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-1.5 text-[10px] font-black transition active:scale-[0.97] ${
+              className={`relative flex min-w-0 flex-1 items-center justify-center px-1 py-1.5 transition active:scale-[0.97] ${
                 active ? "text-[#f39a00]" : "text-[#b88748]"
               }`}
             >
@@ -36,8 +36,8 @@ export default function BottomNav({
                 <img
                   src={iconSrc}
                   alt=""
-                  className={`h-6 w-6 object-contain transition ${
-                    active ? "scale-110" : "scale-100 opacity-75"
+                  className={`h-7 w-7 object-contain transition ${
+                    active ? "scale-110" : "scale-100 opacity-70"
                   }`}
                 />
 
@@ -48,10 +48,8 @@ export default function BottomNav({
                 )}
               </div>
 
-              <span className="truncate leading-none">{label}</span>
-
               {active && (
-                <span className="mt-1 h-1 w-5 rounded-full bg-[#f39a00]" />
+                <span className="absolute bottom-0 h-1 w-5 rounded-full bg-[#f39a00]" />
               )}
             </button>
           );
