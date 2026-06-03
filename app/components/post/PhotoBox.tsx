@@ -21,7 +21,7 @@ export default function PhotoBox({
         tabIndex={0}
         onClick={() => onClick(src)}
         onPointerUp={() => onClick(src)}
-        className="h-full w-full cursor-pointer touch-manipulation select-none bg-white p-1.5 pb-5 shadow-[0_14px_34px_rgba(107,47,19,0.14)]"
+        className="h-full w-full cursor-pointer touch-manipulation select-none rounded-[10px] border border-[#f1d59a]/70 bg-[#fffaf2] p-1.5 pb-5 shadow-[0_16px_36px_rgba(107,47,19,0.22)] ring-1 ring-white/80"
       >
         <img
           src={src}
@@ -29,7 +29,7 @@ export default function PhotoBox({
           draggable={false}
           loading="lazy"
           decoding="async"
-          className="h-full w-full object-cover pointer-events-none select-none"
+          className="pointer-events-none h-full w-full select-none rounded-[6px] object-cover"
         />
       </div>
     );

@@ -32,7 +32,9 @@ export default function PostCard({
   const [deleteCommentId, setDeleteCommentId] = useState<string | number | null>(
     null
   );
-  const [isDeletingComment, setIsDeletingComment] = useState(false);
+  const [isDeletingCommentId, setIsDeletingCommentId] = useState<string | number | null>(
+    null
+  );
   const [toastMessage, setToastMessage] = useState("");
   const currentUser = getCurrentUser();
   const isMyPost = currentUser?.userId === post.userId;
@@ -269,19 +271,27 @@ export default function PostCard({
 
   const deleteComment = async (commentId: string | number) => {
     const currentUser = getCurrentUser();
+    const targetComment = comments.find((comment) => comment.id === commentId);
 
-    if (!currentUser || isDeletingComment) return;
+    if (!currentUser || !targetComment) return;
 
-    setIsDeletingComment(true);
-    setDeleteCommentId(null);
+    if (targetComment.userId !== currentUser.userId) {
+      setDeleteCommentId(null);
+      showToast("削除できません");
+      return;
+    }
+
+    if (isDeletingCommentId !== null) return;
+
+    setIsDeletingCommentId(commentId);
 
     const { error } = await supabase
       .from("comments")
       .delete()
-      .eq("id", commentId)
-      .eq("user_id", currentUser.userId);
+      .eq("id", commentId);
 
-    setIsDeletingComment(false);
+    setIsDeletingCommentId(null);
+    setDeleteCommentId(null);
 
     if (error) {
       console.error(error);
@@ -290,6 +300,7 @@ export default function PostCard({
     }
 
     setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+    await loadComments();
     showToast("コメントを削除しました");
   };
   
@@ -489,11 +500,11 @@ export default function PostCard({
 
               <button
                 type="button"
-                disabled={isDeletingComment}
+                disabled={isDeletingCommentId !== null}
                 onClick={() => deleteComment(deleteCommentId)}
                 className="flex-1 rounded-2xl bg-red-500 py-3 text-sm font-black text-white disabled:opacity-50"
               >
-                削除
+                {isDeletingCommentId !== null ? "削除中" : "削除"}
               </button>
             </div>
           </div>
