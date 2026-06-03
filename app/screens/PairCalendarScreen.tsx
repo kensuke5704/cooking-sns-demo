@@ -75,14 +75,14 @@ export default function PairCalendarScreen({
     <ScreenShell
       label="PAIR CALENDAR"
       title="ふたりのカレンダー"
-      subtitle="2人とも投稿した日と連続日数を確認できます。"
+
       action={
         <button
           type="button"
           onClick={onBack}
           className="rounded-full bg-white px-4 py-2 text-sm font-black shadow-[0_10px_24px_rgba(107,47,19,0.12)]"
         >
-          戻る
+←
         </button>
       }
     >
@@ -102,7 +102,7 @@ export default function PairCalendarScreen({
         />
       </div>
 
-      <SectionCard title="今月の達成カレンダー">
+      <SectionCard title="今月">
         <div className="grid grid-cols-7 gap-2">
           {monthDays.map((date) => {
             const bothPosted =
@@ -121,16 +121,13 @@ export default function PairCalendarScreen({
           })}
         </div>
 
-        <p className="mt-4 text-xs font-bold text-[#9b6b2f]">
-          ⭐は2人とも投稿した日です
-        </p>
       </SectionCard>
 
-      <SectionCard className="mt-5" title={`現在 ${streakCount}日連続`}>
+      <SectionCard className="mt-5" title={`${streakCount}日連続`}>
 
         <div className="mt-3 space-y-2 text-sm font-bold text-[#9b6b2f]">
-          <p>🎁 50日連続：限定バッジ</p>
-          <p>🎁 100日連続：限定フレーム</p>
+          <p>50日：バッジ</p>
+          <p>100日：フレーム</p>
         </div>
       </SectionCard>
     </ScreenShell>

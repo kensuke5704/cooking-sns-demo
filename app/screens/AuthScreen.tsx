@@ -101,9 +101,6 @@ export default function AuthPage({
             <br />
             友だちと共有
           </h1>
-          <p className="mt-3 max-w-xs text-[13px] font-bold leading-relaxed text-[#6b2f13]/65">
-            IDだけでログインして、毎日の料理を投稿できます。
-          </p>
         </header>
 
         <div className="rounded-[28px] border border-white/75 bg-white/95 p-6 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">

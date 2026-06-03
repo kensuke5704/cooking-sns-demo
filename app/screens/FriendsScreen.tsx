@@ -7,9 +7,6 @@ export default function FriendsPage() {
         <h1 className="text-2xl font-black text-[#6b2f13]">
           友だち機能
         </h1>
-        <p className="mt-3 text-sm font-bold text-[#6b2f13]/70">
-          友だちの追加・削除はプロフィール画面から行えます。
-        </p>
       </div>
     </div>
   );

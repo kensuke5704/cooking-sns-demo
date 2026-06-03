@@ -301,7 +301,7 @@ export default function Home() {
         <ScreenShell
           label="HOME"
           title="ホーム"
-          subtitle="友だちの投稿をまとめて確認できます。"
+
           action={
             <NotificationButton
               unreadCount={unreadCount}
@@ -316,12 +316,11 @@ export default function Home() {
             className="mt-5"
             label="TODAY'S POSTS"
             title="今日の投稿"
-            description="投稿から24時間以内の料理が表示されます。"
+
           >
             {visiblePosts.length === 0 ? (
               <EmptyState
-                title="まだ今日の投稿はありません"
-                message="今日の料理を投稿すると、ここに24時間表示されます。"
+                title="投稿はありません"
                 actionLabel="投稿する"
                 onAction={() => setCurrentTab("カメラ")}
               />

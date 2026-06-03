@@ -31,7 +31,7 @@ export type CodeEntry = {
 
 export type CalendarPopupState = {
   title: string;
-  message: string;
+  message?: string;
   confirmLabel?: string;
   cancelLabel?: string;
   danger?: boolean;

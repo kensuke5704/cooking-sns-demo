@@ -61,16 +61,15 @@ export default function NotificationScreen({
     <ScreenShell
       label="NOTIFICATIONS"
       title="通知"
-      subtitle="友だち追加、コメント、いいねを新しい順で確認できます。"
+
     >
       <SectionCard
-        title={notifications.length === 0 ? "まだ通知はありません" : `${notifications.length}件の通知`}
-        description={unreadCount > 0 ? `${unreadCount}件の未読があります。` : undefined}
+        title={notifications.length === 0 ? "通知はありません" : `${notifications.length}件`}
+        description={unreadCount > 0 ? `未読 ${unreadCount}` : undefined}
       >
         {notifications.length === 0 ? (
           <EmptyState
-            title="まだ通知はありません"
-            message="いいね、コメント、友だち追加、2人カレンダーの達成通知がここに表示されます。"
+            title="通知はありません"
           />
         ) : (
           <div className="space-y-3">

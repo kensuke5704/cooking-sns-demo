@@ -31,7 +31,7 @@ export default function CalendarPage() {
   const month = calendarDate.getMonth();
   const days = getMonthDays(year, month);
 
-  function showPopup(title: string, message: string) {
+  function showPopup(title: string, message?: string) {
     setPopup({ title, message });
   }
 
@@ -142,7 +142,7 @@ export default function CalendarPage() {
     <ScreenShell
       label={isPairCalendarOpen ? "PAIR CALENDAR" : "CALENDAR"}
       title={isPairCalendarOpen ? "2人カレンダー" : "カレンダー"}
-      subtitle={isPairCalendarOpen ? "2人とも投稿した日と連続日数を確認できます。" : "投稿した日を月ごとに確認できます。"}
+
       action={
         isPairCalendarOpen && pairState.partner ? (
           <PairCalendarBackButton onClick={resetPairCalendarView} />

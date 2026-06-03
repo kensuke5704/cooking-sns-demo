@@ -1,6 +1,6 @@
 type EmptyStateProps = {
   title: string;
-  message: string;
+  message?: string;
   actionLabel?: string;
   onAction?: () => void;
 };
@@ -17,9 +17,11 @@ export default function EmptyState({
         —
       </div>
       <p className="mt-4 text-base font-black tracking-[-0.02em] text-[#6b2f13]">{title}</p>
-      <p className="mt-2 text-[13px] font-bold leading-relaxed text-[#6b2f13]/62">
-        {message}
-      </p>
+      {message && (
+        <p className="mt-2 text-[13px] font-bold leading-relaxed text-[#6b2f13]/62">
+          {message}
+        </p>
+      )}
 
       {actionLabel && onAction && (
         <button

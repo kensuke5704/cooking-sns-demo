@@ -13,9 +13,9 @@ type CalendarHeaderProps = {
 };
 
 const REWARDS = [
-  { days: 50, text: "記念バッジを表示" },
-  { days: 100, text: "特別フレームを解放" },
-  { days: 365, text: "1年記念カードを表示" },
+  { days: 50, text: "バッジ" },
+  { days: 100, text: "フレーム" },
+  { days: 365, text: "1年カード" },
 ];
 
 export default function CalendarHeader({
@@ -53,12 +53,6 @@ export default function CalendarHeader({
         </button>
       </div>
 
-      <div className="mt-4 rounded-[20px] border border-[#f1d59a]/60 bg-[#fff4d7]/70 px-4 py-3 text-[13px] font-bold text-[#6b2f13]/64">
-        {isPairCalendarOpen
-          ? "星マークの日は2人とも投稿済みです。"
-          : "色付きの日を押すと投稿を確認できます。"}
-      </div>
-
       {isPairCalendarOpen && pairState.partner && (
         <div className="mt-5 rounded-[24px] border border-[#f1d59a]/70 bg-[#fff4d7]/70 p-4">
           <div className="flex items-center gap-3">
@@ -78,7 +72,7 @@ export default function CalendarHeader({
 
             {achievedMilestone && (
               <div className="shrink-0 rounded-full bg-[#f39a00] px-3 py-2 text-xs font-black text-white shadow-[0_10px_24px_rgba(107,47,19,0.12)]">
-                {achievedMilestone}日達成
+                {achievedMilestone}日
               </div>
             )}
           </div>
@@ -90,14 +84,12 @@ export default function CalendarHeader({
               <span className="ml-1 text-base">日</span>
             </p>
             <p className="mt-2 text-xs font-bold text-[#6b2f13]/60">
-              {nextMilestone
-                ? `次の特典まであと${Math.max(nextMilestone - streakCount, 0)}日`
-                : "すべての特典を達成済みです"}
+              {nextMilestone ? `あと${Math.max(nextMilestone - streakCount, 0)}日` : "COMPLETE"}
             </p>
           </div>
 
           <div className="mt-4 rounded-[20px] border border-[#f1d59a]/50 bg-white/90 p-3">
-            <p className="text-xs font-black text-[#f39a00]">連続特典</p>
+            <p className="text-xs font-black text-[#f39a00]">REWARDS</p>
             <div className="mt-3 space-y-2 text-xs font-bold text-[#6b2f13]/75">
               {REWARDS.map((reward) => (
                 <RewardRow
@@ -131,7 +123,7 @@ function RewardRow({
       }`}
     >
       <span className="shrink-0 font-black">{days}</span>
-      <span className="text-right">{achieved ? "達成済み" : text}</span>
+      <span className="text-right">{achieved ? "DONE" : text}</span>
     </div>
   );
 }

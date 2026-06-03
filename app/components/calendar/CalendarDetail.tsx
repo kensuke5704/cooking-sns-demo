@@ -15,8 +15,7 @@ export default function CalendarDetail({ dateKey, posts }: CalendarDetailProps) 
       {posts.length === 0 ? (
         <div className="mt-4">
           <EmptyState
-            title="この日の投稿はありません"
-            message="投稿した日を選ぶと、写真やメモをここで確認できます。"
+            title="投稿はありません"
           />
         </div>
       ) : (

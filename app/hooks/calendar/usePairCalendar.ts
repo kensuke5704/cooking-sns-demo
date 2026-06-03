@@ -23,7 +23,7 @@ type UsePairCalendarParams = {
   currentUser: CurrentUser;
   loadPairPosts: (partnerUserId: string) => Promise<void>;
   clearPairPosts: () => void;
-  showPopup: (title: string, message: string) => void;
+  showPopup: (title: string, message?: string) => void;
   showConfirmPopup: (popupState: NonNullable<CalendarPopupState>) => void;
   clearSelectedDate: () => void;
 };
@@ -206,7 +206,7 @@ export function usePairCalendar({
     setCodeInput("");
     resetPairCalendarView();
     await loadPairStatus();
-    showPopup("キャンセルしました", "入力済みコードをキャンセルしました");
+    showPopup("キャンセルしました");
   }
 
   async function submitPairCode() {
@@ -238,7 +238,7 @@ export function usePairCalendar({
     await createPairConnectionIfReady(normalizedCode);
     setCodeInput("");
     await loadPairStatus();
-    showPopup("登録しました", "相手も同じコードを入力すると、2人カレンダーが作成されます");
+    showPopup("登録しました", "待機中");
   }
 
   async function validatePairCode(normalizedCode: string) {
@@ -258,7 +258,7 @@ export function usePairCalendar({
     }
 
     if (!validCode) {
-      showPopup("使用できません", "このコードは使用できません");
+      showPopup("使用できません");
       return false;
     }
 
@@ -276,7 +276,7 @@ export function usePairCalendar({
     }
 
     if (existingEntry) {
-      showPopup("入力済みです", "このコードはすでに入力済みです");
+      showPopup("入力済みです");
       return false;
     }
 
@@ -292,7 +292,7 @@ export function usePairCalendar({
     }
 
     if ((count ?? 0) >= 2) {
-      showPopup("使用済みです", "このコードはすでに2人が使用しています");
+      showPopup("使用済みです");
       return false;
     }
 

@@ -463,7 +463,7 @@ export default function ProfilePage({
     <ScreenShell
       label="PROFILE"
       title="プロフィール"
-      subtitle="アカウント、友だち、通知設定をここで管理します。"
+
     >
       <SectionCard label="ACCOUNT" title={name || currentUser?.name || "ユーザー"}>
         <div className="flex items-center gap-4">
@@ -475,9 +475,7 @@ export default function ProfilePage({
 
           <div className="min-w-0 flex-1">
             <p className="truncate text-lg font-black">@{currentUser?.userId}</p>
-            <p className="mt-1 text-xs font-bold text-[#6b2f13]/60">
-              友だちに伝えるIDです
-            </p>
+
             <label className="mt-3 inline-block rounded-full bg-[#f39a00] px-4 py-2 text-sm font-black text-white">
               画像を変更
               <input
@@ -511,7 +509,7 @@ export default function ProfilePage({
       <SectionCard
         className="mt-5"
         title="通知"
-        description={isNotificationOn ? "現在は通知を受け取る設定です。" : "現在は通知を受け取らない設定です。"}
+        description={isNotificationOn ? "ON" : "OFF"}
       >
         <div className="flex items-center justify-between rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-3">
           <span className="text-sm font-black">通知状態</span>
@@ -557,7 +555,7 @@ export default function ProfilePage({
         className="mt-5"
         label="FRIENDS"
         title="友だち追加"
-        description="相手のIDを入力して友だちに追加します。"
+        description={undefined}
       >
         <div className="flex gap-2">
           <input
@@ -586,8 +584,7 @@ export default function ProfilePage({
       <SectionCard className="mt-5" title={`友だち一覧 ${friends.length}人`}>
         {friends.length === 0 ? (
           <EmptyState
-            title="まだ友だちはいません"
-            message="友だちのIDを入力すると、投稿や2人カレンダーを一緒に楽しめます。"
+            title="友だちはいません"
           />
         ) : (
           <div className="space-y-3">

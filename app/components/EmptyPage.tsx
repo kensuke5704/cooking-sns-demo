@@ -6,7 +6,6 @@ export default function EmptyPage({ title }: { title: string }) {
     <ScreenShell
       label="COMING SOON"
       title={title}
-      subtitle="準備中のページです。公開後、ここに内容が表示されます。"
     >
       <SectionCard>
         <div className="rounded-2xl border-2 border-dashed border-[#f1d59a] bg-[#fff4d7] px-4 py-8 text-center">

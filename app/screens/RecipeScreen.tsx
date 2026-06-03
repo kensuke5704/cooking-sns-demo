@@ -13,7 +13,7 @@ export default function RecipeScreen() {
     <ScreenShell
       label="ARTICLE"
       title="記事"
-      subtitle="献立カードから、材料と作り方を確認できます。"
+
     >
       {!showDetail ? (
         <button
@@ -40,7 +40,7 @@ export default function RecipeScreen() {
 
             <div className="mt-5 flex items-center justify-between rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/80 px-4 py-3">
               <span className="text-sm font-black text-[#6b2f13]">
-                材料・作り方を見る
+見る
               </span>
               <span className="text-lg font-black text-[#f39a00]">›</span>
             </div>
@@ -61,7 +61,7 @@ export default function RecipeScreen() {
                 onClick={() => setShowDetail(false)}
                 className="mb-5 rounded-full border border-[#f1d59a]/65 bg-[#fff4d7]/80 px-4 py-2 text-sm font-black text-[#6b2f13]"
               >
-                ← 献立カードに戻る
+← 戻る
               </button>
 
               <p className="text-sm font-black text-[#f39a00]">今日の献立</p>

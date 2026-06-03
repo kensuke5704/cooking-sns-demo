@@ -27,9 +27,11 @@ export default function CalendarPopup({ popup, onClose }: CalendarPopupProps) {
       <div className="w-full max-w-sm rounded-[32px] bg-white p-6 text-[#6b2f13] shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
         <p className="text-xs font-black text-[#f39a00]">CALENDAR MESSAGE</p>
         <h2 className="mt-2 text-2xl font-black">{popup.title}</h2>
-        <p className="mt-4 whitespace-pre-line text-sm font-bold leading-6 text-[#6b2f13]/75">
-          {popup.message}
-        </p>
+        {popup.message && (
+          <p className="mt-4 whitespace-pre-line text-sm font-bold leading-6 text-[#6b2f13]/75">
+            {popup.message}
+          </p>
+        )}
 
         <div className="mt-6 flex gap-3">
           {hasConfirmAction && (
