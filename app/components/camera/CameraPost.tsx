@@ -141,7 +141,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
     const hasAnyPhoto = Boolean(photos.prep || photos.cooking || photos.finished);
 
     if (!hasAnyPhoto) {
-      setPopup({ title: "写真を追加してください" });
+      setPopup({ title: "写真を追加してください", message: "" });
       return;
     }
   
