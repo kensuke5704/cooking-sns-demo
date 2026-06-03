@@ -7,6 +7,8 @@ import { resizeImageFile } from "../../lib/image";
 import { publishPostData } from "../../lib/posts";
 import CameraCard from "./CameraCard";
 import AppPopup, { type AppPopupState } from "../common/AppPopup";
+import ScreenShell from "../common/ScreenShell";
+import SectionCard from "../common/SectionCard";
 
 
 type ShotType = "prep" | "cooking" | "finished";
@@ -285,31 +287,25 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8b72a] px-4 pt-5 pb-28 text-[#6b2f13]">
-      <div className="mx-auto w-full max-w-md">
+    <ScreenShell
+      label="TODAY'S COOKING"
+      title="今日の料理を投稿"
+      subtitle="準備・調理・完成の順に写真を残せます。"
+      action={
         <button
           type="button"
           onClick={onBack}
-          className="mb-5 rounded-full bg-white/90 px-4 py-2 text-sm font-black shadow"
+          className="rounded-full bg-white/90 px-4 py-2 text-sm font-black shadow"
         >
-          ← ホームへ戻る
+          戻る
         </button>
-  
-        <div className="mb-6 rounded-[32px] bg-white p-5 shadow-xl">
-          <p className="text-xs font-black text-[#f39a00]">TODAY'S COOKING</p>
-          <h2 className="mt-1 text-3xl font-black leading-tight">
-            今日の料理を
-            <br />
-            投稿する
-          </h2>
-          <p className="mt-3 text-sm font-bold opacity-70">
-            準備・調理・完成の3枚を撮影できます。
-          </p>
-        </div>
+      }
+    >
   
         {!isCameraOn && (
-          <div className="rounded-[32px] bg-[#6b2f13] p-4 shadow-xl">
-            <div className="grid grid-cols-3 gap-3">
+          <SectionCard label="PHOTOS" title="写真" description="各カードを押すと撮影、ライブラリからも選択できます。">
+            <div className="rounded-[28px] bg-[#6b2f13] p-4">
+              <div className="grid grid-cols-3 gap-3">
             <CameraCard
               label="準備"
               src={photos.prep}
@@ -328,8 +324,9 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                 onClick={() => startCamera("finished")}
                 onFileChange={(e) => selectPhotoFromLibrary(e, "finished")}
               />
+              </div>
             </div>
-            <div className="mt-5 rounded-[32px] bg-white p-5 shadow-xl">
+            <div className="mt-5 rounded-[28px] bg-[#fff4d7] p-4">
               <h3 className="text-xl font-black">料理メモ</h3>
 
               <label className="mt-4 block text-sm font-black">料理名</label>
@@ -386,15 +383,12 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                 {isPublishing ? "アップロード中..." : "投稿する"}
               </button>
             </div>
-          </div>
+          </SectionCard>
         )}
   
         {isCameraOn && (
-          <div className="rounded-[32px] bg-white p-4 shadow-xl">
-            <p className="mb-3 text-center text-lg font-black">
-              {selectedType ? `${shotLabels[selectedType]}を撮影中` : "撮影中"}
-            </p>
-  
+          <SectionCard title={selectedType ? `${shotLabels[selectedType]}を撮影中` : "撮影中"}>
+            <div>
             <video
               ref={videoRef}
               autoPlay
@@ -416,13 +410,12 @@ export default function CameraPost({ onBack }: CameraPostProps) {
             >
               キャンセル
             </button>
-          </div>
+            </div>
+          </SectionCard>
         )}
-  
-        <canvas ref={canvasRef} className="hidden" />
-      </div>
 
+        <canvas ref={canvasRef} className="hidden" />
       <AppPopup popup={popup} onClose={() => setPopup(null)} />
-    </div>
+    </ScreenShell>
   );
 }

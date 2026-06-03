@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import EmptyPage from "./components/EmptyPage";
 import type { Post } from "./types/post";
 import CameraPost from "./components/camera/CameraPost";
 import PostCard from "./components/post/PostCard";
@@ -13,15 +12,15 @@ import ProfilePage from "./screens/ProfileScreen";
 import NotificationScreen from "./screens/NotificationScreen";
 import { supabase } from "./lib/supabase";
 import { deletePostData, loadPostsData } from "./lib/posts";
-import { getTodayRecipe } from "./lib/todayRecipe";
 import LayoutWithNav from "./components/LayoutWithNav";
 import NotificationButton from "./components/NotificationButton";
 import ImageModal from "./components/ImageModal";
 import BottomNav from "./components/navigation/BottomNav";
 import AppPopup, { type AppPopupState } from "./components/common/AppPopup";
 import PullToRefresh from "./components/common/PullToRefresh";
+import ScreenShell from "./components/common/ScreenShell";
+import SectionCard from "./components/common/SectionCard";
 
-const todayRecipe = getTodayRecipe();
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export default function Home() {
@@ -247,7 +246,7 @@ export default function Home() {
         unreadCount={unreadCount}
         onRefresh={() => loadUnreadCount()}
       >
-        <EmptyPage title="記事" />
+        <RecipePage />
       </LayoutWithNav>
     );
   }
@@ -298,53 +297,55 @@ export default function Home() {
   return (
     <>
       <PullToRefresh onRefresh={refreshHome}>
-        <main className="min-h-screen bg-[#f8b72a] pb-28 text-[#6b2f13]">
-      <div className="px-5 pt-5">
-        <NotificationButton
-          unreadCount={unreadCount}
-          onClick={() => {
-            setCurrentTab("通知");
-            markNotificationsAsRead();
-          }}
-        />
-
-        <div className="mt-4 w-full overflow-hidden rounded-[36px] bg-white shadow-xl">
-          <div className="bg-[#f39a00] px-5 py-2 text-left">
-            <p className="text-xs font-black text-white">TODAY&apos;S RECIPE</p>
-          </div>
-
-          <div className="p-5 text-center">
-            <p className="text-sm font-black text-[#f39a00]">今日の献立</p>
-
-            <h2 className="mt-2 text-3xl font-black text-[#6b2f13]">
-              {todayRecipe.title}
-            </h2>
-
-            <p className="mt-3 text-sm font-bold text-[#6b2f13]/60">
-              {todayRecipe.description}
-            </p>
-
-            <button
-              type="button"
-              onClick={() => setCurrentTab("レシピ")}
-              className="mt-4 rounded-full bg-[#f39a00] px-6 py-3 text-sm font-black text-white shadow"
-            >
-              レシピを見る →
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-6 space-y-6">
-          {visiblePosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onImageClick={(src) => setSelectedImage(src)}
-              onDelete={deletePost}
+        <ScreenShell
+          label="HOME"
+          title="ホーム"
+          subtitle="友だちの投稿をまとめて確認できます。"
+          action={
+            <NotificationButton
+              unreadCount={unreadCount}
+              onClick={() => {
+                setCurrentTab("通知");
+                markNotificationsAsRead();
+              }}
             />
-          ))}
-        </div>
-      </div>
+          }
+        >
+          <SectionCard
+            className="mt-5"
+            label="TODAY'S POSTS"
+            title="今日の投稿"
+            description="投稿から24時間以内の料理が表示されます。"
+          >
+            {visiblePosts.length === 0 ? (
+              <div className="rounded-2xl bg-[#fff4d7] px-4 py-6 text-center">
+                <p className="text-sm font-black text-[#6b2f13]">
+                  まだ今日の投稿はありません
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setCurrentTab("カメラ")}
+                  className="mt-4 rounded-full bg-[#f39a00] px-5 py-3 text-sm font-black text-white shadow"
+                >
+                  最初に投稿する
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {visiblePosts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onImageClick={(src) => setSelectedImage(src)}
+                    onDelete={deletePost}
+                  />
+                ))}
+              </div>
+            )}
+          </SectionCard>
+
+        </ScreenShell>
+      </PullToRefresh>
 
       {selectedImage && (
         <ImageModal
@@ -353,9 +354,7 @@ export default function Home() {
         />
       )}
 
-        <AppPopup popup={popup} onClose={() => setPopup(null)} />
-        </main>
-      </PullToRefresh>
+      <AppPopup popup={popup} onClose={() => setPopup(null)} />
 
       <BottomNav
         currentTab={currentTab}

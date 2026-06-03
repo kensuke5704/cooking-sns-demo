@@ -1,12 +1,20 @@
+import ScreenShell from "./common/ScreenShell";
+import SectionCard from "./common/SectionCard";
+
 export default function EmptyPage({ title }: { title: string }) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-6">
-        <div className="w-full max-w-sm bg-white/40 border-2 border-dashed border-white/70 rounded-[32px] p-8 text-center">
-          <h1 className="text-3xl font-black text-[#6b2f13]">{title}</h1>
-          <p className="mt-3 text-sm font-bold text-[#6b2f13]/70">
+  return (
+    <ScreenShell
+      label="COMING SOON"
+      title={title}
+      subtitle="準備中のページです。公開後、ここに内容が表示されます。"
+    >
+      <SectionCard>
+        <div className="rounded-2xl border-2 border-dashed border-[#f1d59a] bg-[#fff4d7] px-4 py-8 text-center">
+          <p className="text-sm font-black text-[#6b2f13]">
             まだコンテンツはありません
           </p>
         </div>
-      </div>
-    );
-  }
+      </SectionCard>
+    </ScreenShell>
+  );
+}

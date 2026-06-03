@@ -92,15 +92,21 @@ export default function AuthPage({
   };
 
   return (
-    <main className="min-h-screen bg-[#f8b72a] px-5 pt-20 text-[#6b2f13]">
-      <div className="rounded-[36px] bg-white p-7 shadow-xl">
-        <p className="text-sm font-black text-[#f39a00]">Cooking SNS Demo</p>
+    <main className="min-h-screen bg-[#f8b72a] px-5 pt-14 text-[#6b2f13]">
+      <div className="mx-auto max-w-md">
+        <header className="mb-6">
+          <p className="text-xs font-black tracking-wide text-white/90">COOKING SNS</p>
+          <h1 className="mt-2 text-4xl font-black leading-tight">
+            今日の料理を
+            <br />
+            友だちと共有
+          </h1>
+          <p className="mt-3 text-sm font-bold text-[#6b2f13]/70">
+            IDだけでログインして、毎日の料理を投稿できます。
+          </p>
+        </header>
 
-        <h1 className="mt-2 text-4xl font-black leading-tight">
-          今日の料理を
-          <br />
-          友だちと共有
-        </h1>
+        <div className="rounded-[36px] bg-white p-6 shadow-xl">
 
         <div className="mt-6 grid grid-cols-2 rounded-full bg-[#fff4d7] p-1">
           <button
@@ -162,6 +168,7 @@ export default function AuthPage({
         >
           {mode === "login" ? "ログイン" : "新規登録"}
         </button>
+        </div>
       </div>
     </main>
   );

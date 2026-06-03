@@ -11,6 +11,8 @@ import { supabase } from "../lib/supabase";
 import { resizeImageFile } from "../lib/image";
 import { sendPushNotification } from "../lib/sendPush";
 import AppPopup, { type AppPopupState } from "../components/common/AppPopup";
+import ScreenShell from "../components/common/ScreenShell";
+import SectionCard from "../components/common/SectionCard";
 
 export default function ProfilePage({
   onProfileChange,
@@ -457,176 +459,173 @@ export default function ProfilePage({
   };
 
   return (
-    <main className="min-h-screen bg-[#f8b72a] px-5 pt-6 pb-28 text-[#6b2f13]">
-      <div className="mx-auto max-w-md">
-        <h1 className="mb-5 text-3xl font-black">プロフィール</h1>
+    <ScreenShell
+      label="PROFILE"
+      title="プロフィール"
+      subtitle="アカウント、友だち、通知設定をここで管理します。"
+    >
+      <SectionCard label="ACCOUNT" title={name || currentUser?.name || "ユーザー"}>
+        <div className="flex items-center gap-4">
+          <img
+            src={iconUrl}
+            alt="プロフィール画像"
+            className="h-24 w-24 rounded-full border-4 border-[#f8b72a] object-cover"
+          />
 
-        <section className="rounded-[32px] bg-white p-5 shadow-xl">
-          <div className="flex items-center gap-4">
-            <img
-              src={iconUrl}
-              alt="プロフィール画像"
-              className="h-24 w-24 rounded-full border-4 border-[#f8b72a] object-cover"
-            />
-
-            <div>
-              <p className="text-sm font-bold opacity-60">プロフィール画像</p>
-              <label className="mt-2 inline-block rounded-full bg-[#f39a00] px-4 py-2 text-sm font-black text-white">
-                画像を変更
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleIconChange}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <label className="text-sm font-black">ユーザー名</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-2 w-full rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
-            />
-
-            <button
-              onClick={handleSaveName}
-              className="mt-3 w-full rounded-full bg-[#6b2f13] py-3 font-black text-white"
-            >
-              ユーザー名を保存
-            </button>
-            <div className="mt-4 rounded-2xl bg-[#fff4d7] px-4 py-3">
-              <p className="text-xs font-black opacity-60">
-                あなたのID
-              </p>
-
-              <p className="mt-1 text-lg font-black">
-                @{currentUser?.userId}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                logoutUser();
-                onProfileChange();
-              }}
-              className="mt-4 w-full rounded-full bg-red-500 py-3 font-black text-white"
-            >
-              ログアウト
-            </button>
-          </div>
-        </section>
-
-        <section className="mt-5 rounded-[32px] bg-white p-5 shadow-xl">
-          <h2 className="text-xl font-black">友だち追加</h2>
-
-          <div className="mt-3 flex gap-2">
-            <input
-              value={friendId}
-              onChange={(e) => setFriendId(e.target.value)}
-              placeholder="友だちのIDを入力"
-              className="min-w-0 flex-1 rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
-            />
-
-            <button
-              onClick={handleAddFriend}
-              className="rounded-2xl bg-[#f39a00] px-4 font-black text-white"
-            >
-              追加
-            </button>
-          </div>
-
-          {message && (
-            <p className="mt-3 text-sm font-black text-[#f39a00]">
-              {message}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-lg font-black">@{currentUser?.userId}</p>
+            <p className="mt-1 text-xs font-bold text-[#6b2f13]/60">
+              友だちに伝えるIDです
             </p>
-          )}
-        </section>
-
-        <section className="mt-5 rounded-[32px] bg-white p-5 shadow-xl">
-          <h2 className="text-xl font-black">友だち一覧</h2>
-
-          {friends.length === 0 ? (
-            <p className="mt-3 text-sm font-bold opacity-60">
-              まだ友だちはいません
-            </p>
-          ) : (
-            <div className="mt-4 space-y-3">
-              {friends.map((friend) => (
-                <div
-                  key={friend.id}
-                  className="flex items-center justify-between rounded-2xl bg-[#fff4d7] px-4 py-3"
-                >
-                  <div>
-                    <p className="font-black">{friend.name}</p>
-                    <p className="text-sm font-bold opacity-60">
-                      @{friend.userId}
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteFriend(friend.userId)}
-                    className="rounded-full bg-red-500 px-3 py-1 text-xs font-black text-white"
-                  >
-                    削除
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="mt-5 rounded-[32px] bg-white p-5 shadow-xl">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-black">通知</h2>
-
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-black ${
-                isNotificationOn
-                  ? "bg-green-100 text-green-700"
-                  : "bg-[#fff4d7] text-[#6b2f13]/60"
-              }`}
-            >
-              {isNotificationOn ? "ON" : "OFF"}
-            </span>
+            <label className="mt-3 inline-block rounded-full bg-[#f39a00] px-4 py-2 text-sm font-black text-white">
+              画像を変更
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleIconChange}
+                className="hidden"
+              />
+            </label>
           </div>
+        </div>
 
-          <p className="mt-2 text-sm font-bold opacity-60">
-            現在の通知設定：{isNotificationOn ? "通知を受け取る" : "通知を受け取らない"}
+        <div className="mt-6">
+          <label className="text-sm font-black">ユーザー名</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="mt-2 w-full rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+          />
+
+          <button
+            type="button"
+            onClick={handleSaveName}
+            className="mt-3 w-full rounded-full bg-[#6b2f13] py-3 font-black text-white"
+          >
+            保存する
+          </button>
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        className="mt-5"
+        title="通知"
+        description={isNotificationOn ? "現在は通知を受け取る設定です。" : "現在は通知を受け取らない設定です。"}
+      >
+        <div className="flex items-center justify-between rounded-2xl bg-[#fff4d7] px-4 py-3">
+          <span className="text-sm font-black">通知状態</span>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-black ${
+              isNotificationOn
+                ? "bg-green-100 text-green-700"
+                : "bg-white text-[#6b2f13]/60"
+            }`}
+          >
+            {isNotificationOn ? "ON" : "OFF"}
+          </span>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={handleEnableNotifications}
+            disabled={isNotificationOn}
+            className={`rounded-2xl px-4 py-3 font-black text-white ${
+              isNotificationOn ? "bg-gray-300" : "bg-[#f39a00]"
+            }`}
+          >
+            有効化
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDisableNotifications}
+            disabled={!isNotificationOn}
+            className={`rounded-2xl px-4 py-3 font-black ${
+              isNotificationOn
+                ? "bg-[#fff4d7] text-[#6b2f13]"
+                : "bg-gray-200 text-gray-400"
+            }`}
+          >
+            無効化
+          </button>
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        className="mt-5"
+        label="FRIENDS"
+        title="友だち追加"
+        description="相手のIDを入力して友だちに追加します。"
+      >
+        <div className="flex gap-2">
+          <input
+            value={friendId}
+            onChange={(e) => setFriendId(e.target.value)}
+            placeholder="友だちのID"
+            className="min-w-0 flex-1 rounded-2xl border-2 border-[#f1d59a] px-4 py-3 font-bold outline-none"
+          />
+
+          <button
+            type="button"
+            onClick={handleAddFriend}
+            className="rounded-2xl bg-[#f39a00] px-4 font-black text-white"
+          >
+            追加
+          </button>
+        </div>
+
+        {message && (
+          <p className="mt-3 rounded-2xl bg-[#fff4d7] px-4 py-3 text-sm font-black text-[#f39a00]">
+            {message}
           </p>
+        )}
+      </SectionCard>
 
-          <div className="mt-4 space-y-3">
-            <button
-              type="button"
-              onClick={handleEnableNotifications}
-              disabled={isNotificationOn}
-              className={`w-full rounded-2xl px-4 py-3 font-black text-white ${
-                isNotificationOn ? "bg-gray-300" : "bg-[#f39a00]"
-              }`}
-            >
-              通知を有効化
-            </button>
+      <SectionCard className="mt-5" title={`友だち一覧 ${friends.length}人`}>
+        {friends.length === 0 ? (
+          <p className="rounded-2xl bg-[#fff4d7] px-4 py-5 text-center text-sm font-bold text-[#6b2f13]/60">
+            まだ友だちはいません
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {friends.map((friend) => (
+              <div
+                key={friend.id}
+                className="flex items-center justify-between gap-3 rounded-2xl bg-[#fff4d7] px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-black">{friend.name}</p>
+                  <p className="text-sm font-bold opacity-60">@{friend.userId}</p>
+                </div>
 
-            <button
-              type="button"
-              onClick={handleDisableNotifications}
-              disabled={!isNotificationOn}
-              className={`w-full rounded-2xl px-4 py-3 font-black ${
-                isNotificationOn
-                  ? "bg-[#fff4d7] text-[#6b2f13]"
-                  : "bg-gray-200 text-gray-400"
-              }`}
-            >
-              通知を無効化
-            </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteFriend(friend.userId)}
+                  className="shrink-0 rounded-full bg-red-500 px-3 py-1 text-xs font-black text-white"
+                >
+                  削除
+                </button>
+              </div>
+            ))}
           </div>
-        </section>
-      </div>
+        )}
+      </SectionCard>
+
+      <SectionCard className="mt-5" title="アカウント">
+        <button
+          type="button"
+          onClick={() => {
+            logoutUser();
+            onProfileChange();
+          }}
+          className="w-full rounded-full bg-red-500 py-3 font-black text-white"
+        >
+          ログアウト
+        </button>
+      </SectionCard>
 
       <AppPopup popup={popup} onClose={() => setPopup(null)} />
-    </main>
+    </ScreenShell>
   );
 }

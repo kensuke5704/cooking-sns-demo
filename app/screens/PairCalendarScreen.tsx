@@ -1,3 +1,6 @@
+import ScreenShell from "../components/common/ScreenShell";
+import SectionCard from "../components/common/SectionCard";
+
 type PairPost = {
   id: string;
   user_id: string;
@@ -69,18 +72,21 @@ export default function PairCalendarScreen({
   );
 
   return (
-    <main className="min-h-screen bg-[#f8b72a] p-5 text-[#6b2f13]">
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-4 rounded-full bg-white px-4 py-2 font-black shadow"
-      >
-        ← 戻る
-      </button>
-
-      <h1 className="mb-2 text-xl font-black">ふたりのカレンダー</h1>
-
-      <div className="mb-6 flex items-center gap-4">
+    <ScreenShell
+      label="PAIR CALENDAR"
+      title="ふたりのカレンダー"
+      subtitle="2人とも投稿した日と連続日数を確認できます。"
+      action={
+        <button
+          type="button"
+          onClick={onBack}
+          className="rounded-full bg-white px-4 py-2 text-sm font-black shadow"
+        >
+          戻る
+        </button>
+      }
+    >
+      <div className="mb-5 flex items-center justify-center gap-4 rounded-[32px] bg-white p-5 shadow-xl">
         <img
           src={currentUser.iconUrl ?? "/images/default-icon.png"}
           alt={currentUser.name ?? "自分"}
@@ -96,9 +102,7 @@ export default function PairCalendarScreen({
         />
       </div>
 
-      <div className="rounded-3xl bg-white p-5 shadow">
-        <p className="mb-4 font-black">今月の達成カレンダー</p>
-
+      <SectionCard title="今月の達成カレンダー">
         <div className="grid grid-cols-7 gap-2">
           {monthDays.map((date) => {
             const bothPosted =
@@ -120,16 +124,15 @@ export default function PairCalendarScreen({
         <p className="mt-4 text-xs font-bold text-[#9b6b2f]">
           ⭐は2人とも投稿した日です
         </p>
-      </div>
+      </SectionCard>
 
-      <div className="mt-6 rounded-3xl bg-white p-5 shadow">
-        <p className="font-black">現在 {streakCount}日連続</p>
+      <SectionCard className="mt-5" title={`現在 ${streakCount}日連続`}>
 
         <div className="mt-3 space-y-2 text-sm font-bold text-[#9b6b2f]">
           <p>🎁 50日連続：限定バッジ</p>
           <p>🎁 100日連続：限定フレーム</p>
         </div>
-      </div>
-    </main>
+      </SectionCard>
+    </ScreenShell>
   );
 }

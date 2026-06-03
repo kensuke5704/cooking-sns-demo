@@ -20,12 +20,8 @@ export default function CalendarHeader({
   onNextMonth,
 }: CalendarHeaderProps) {
   return (
-    <section className="rounded-[36px] bg-white p-6 shadow-xl">
-      <p className="text-xs font-black text-[#f39a00]">
-        {isPairCalendarOpen ? "PAIR CALENDAR" : "COOKING CALENDAR"}
-      </p>
-
-      <div className="mt-1 flex items-center justify-between gap-3">
+    <section className="rounded-[36px] bg-white p-5 shadow-xl">
+      <div className="flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={onPrevMonth}
@@ -34,9 +30,9 @@ export default function CalendarHeader({
           ←
         </button>
 
-        <h1 className="text-3xl font-black">
+        <h2 className="text-2xl font-black">
           {year}年 {month + 1}月
-        </h1>
+        </h2>
 
         <button
           type="button"
@@ -47,11 +43,11 @@ export default function CalendarHeader({
         </button>
       </div>
 
-      <p className="mt-3 text-sm font-bold text-[#6b2f13]/60">
+      <div className="mt-4 rounded-2xl bg-[#fff4d7] px-4 py-3 text-sm font-bold text-[#6b2f13]/70">
         {isPairCalendarOpen
-          ? "2人とも投稿した日は星マークが付きます。"
-          : "投稿した日は色付きで表示されます。"}
-      </p>
+          ? "星マークの日は2人とも投稿済みです。"
+          : "色付きの日を押すと投稿を確認できます。"}
+      </div>
 
       {isPairCalendarOpen && pairState.partner && (
         <div className="mt-5 rounded-[28px] bg-[#fff4d7] p-4">

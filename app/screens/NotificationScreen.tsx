@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getCurrentUser } from "../lib/auth";
+import ScreenShell from "../components/common/ScreenShell";
+import SectionCard from "../components/common/SectionCard";
 import { supabase } from "../lib/supabase";
 
 type Notification = {
@@ -52,37 +54,52 @@ export default function NotificationScreen({
     }
   }
 
-  return (
-    <div className="px-5 pt-6">
-      <div className="mx-auto max-w-md">
-        <h1 className="mb-5 text-3xl font-black">通知</h1>
+  const unreadCount = notifications.filter((notification) => !notification.read).length;
 
-        <section className="rounded-[32px] bg-white p-5 shadow-xl">
-          {notifications.length === 0 ? (
-            <p className="text-sm font-bold opacity-60">
-              通知はまだありません
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`rounded-2xl px-4 py-3 ${
-                    notification.read ? "bg-[#fff4d7]" : "bg-[#f39a00]/20"
-                  }`}
-                >
-                  <p className="text-sm font-black">
-                    {notification.message}
-                  </p>
-                  <p className="mt-1 text-xs font-bold opacity-50">
-                    {new Date(notification.created_at).toLocaleString()}
-                  </p>
+  return (
+    <ScreenShell
+      label="NOTIFICATIONS"
+      title="通知"
+      subtitle="友だち追加、コメント、いいねを新しい順で確認できます。"
+    >
+      <SectionCard
+        title={notifications.length === 0 ? "まだ通知はありません" : `${notifications.length}件の通知`}
+        description={unreadCount > 0 ? `${unreadCount}件の未読があります。` : undefined}
+      >
+        {notifications.length === 0 ? (
+          <p className="rounded-2xl bg-[#fff4d7] px-4 py-5 text-center text-sm font-bold text-[#6b2f13]/60">
+            新しい通知が届くとここに表示されます。
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`rounded-2xl px-4 py-3 ${
+                  notification.read ? "bg-[#fff4d7]" : "bg-[#f39a00]/20"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#f39a00]" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-black leading-relaxed">
+                      {notification.message}
+                    </p>
+                    <p className="mt-1 text-xs font-bold opacity-50">
+                      {new Date(notification.created_at).toLocaleString("ja-JP", {
+                        month: "numeric",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
-    </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+    </ScreenShell>
   );
 }

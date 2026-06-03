@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import ScreenShell from "../components/common/ScreenShell";
 import CalendarDetail from "../components/calendar/CalendarDetail";
 import CalendarGrid from "../components/calendar/CalendarGrid";
 import CalendarHeader from "../components/calendar/CalendarHeader";
@@ -104,12 +105,16 @@ export default function CalendarPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8b72a] px-5 pt-6 pb-28 text-[#6b2f13]">
-      <div className="mx-auto max-w-md">
-        {isPairCalendarOpen && pairState.partner && (
+    <ScreenShell
+      label={isPairCalendarOpen ? "PAIR CALENDAR" : "CALENDAR"}
+      title={isPairCalendarOpen ? "2人カレンダー" : "カレンダー"}
+      subtitle={isPairCalendarOpen ? "2人とも投稿した日と連続日数を確認できます。" : "投稿した日を月ごとに確認できます。"}
+      action={
+        isPairCalendarOpen && pairState.partner ? (
           <PairCalendarBackButton onClick={resetPairCalendarView} />
-        )}
-
+        ) : undefined
+      }
+    >
         <CalendarHeader
           year={year}
           month={month}
@@ -145,9 +150,8 @@ export default function CalendarPage() {
             onCancelPendingCode={cancelPendingCode}
           />
         )}
-      </div>
 
       <CalendarPopup popup={popup} onClose={() => setPopup(null)} />
-    </main>
+    </ScreenShell>
   );
 }

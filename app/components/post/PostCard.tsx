@@ -27,7 +27,8 @@ export default function PostCard({
   const [commentText, setCommentText] = useState("");
   const [showComments, setShowComments] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0); 
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteCommentId, setDeleteCommentId] = useState<string | number | null>(
     null
@@ -96,104 +97,123 @@ export default function PostCard({
 
   async function loadLikes() {
     const currentUser = getCurrentUser();
-  
-    const { data, error } = await supabase
+
+    const countQuery = supabase
       .from("likes")
-      .select("*")
+      .select("id", { count: "exact", head: true })
       .eq("post_id", post.id);
-  
-    if (error) {
-      console.error(error);
+
+    const ownLikeQuery = currentUser
+      ? supabase
+          .from("likes")
+          .select("id")
+          .eq("post_id", post.id)
+          .eq("user_id", currentUser.userId)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null });
+
+    const [countResult, ownLikeResult] = await Promise.all([
+      countQuery,
+      ownLikeQuery,
+    ]);
+
+    if (countResult.error) {
+      console.error(countResult.error);
       return;
     }
-  
-    setLikeCount(data?.length || 0);
-  
-    if (currentUser) {
-      setLiked(data?.some((like) => like.user_id === currentUser.userId) || false);
+
+    if (ownLikeResult.error) {
+      console.error(ownLikeResult.error);
     }
+
+    setLikeCount(countResult.count || 0);
+    setLiked(Boolean(ownLikeResult.data));
   }
 
   const toggleLike = async () => {
     const currentUser = getCurrentUser();
-    if (!currentUser) return;
-  
-    if (liked) {
-      const { error } = await supabase
-        .from("likes")
-        .delete()
-        .eq("post_id", post.id)
-        .eq("user_id", currentUser.userId);
-  
-      if (error) {
-        console.error(error);
+    if (!currentUser || isLikeLoading) return;
+
+    setIsLikeLoading(true);
+
+    try {
+      if (liked) {
+        const { error } = await supabase
+          .from("likes")
+          .delete()
+          .eq("post_id", post.id)
+          .eq("user_id", currentUser.userId);
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        await loadLikes();
         return;
       }
-  
-      setLiked(false);
-      setLikeCount((v) => Math.max(0, v - 1));
-      return;
-    }
-  
-    const { error } = await supabase.from("likes").insert({
-      post_id: post.id,
-      user_id: currentUser.userId,
-    });
-  
-    if (error) {
-      if (error.code === "23505") {
-        console.log("すでにいいね済みです");
-      } else {
-        console.error(error);
-        return;
-      }
-    }
 
-    if (post.userId !== currentUser.userId) {
-      const { data: existingNotification, error: checkNotificationError } =
-  await supabase
-    .from("notifications")
-    .select("id")
-    .eq("post_id", post.id)
-    .eq("from_user_id", currentUser.userId)
-    .eq("to_user_id", post.userId)
-    .eq("type", "like")
-    .maybeSingle();
-
-if (checkNotificationError) {
-  console.error("通知確認エラー:", checkNotificationError);
-  return;
-}
-
-if (!existingNotification) {
-  const { error: notificationError } = await supabase
-    .from("notifications")
-    .insert({
-      post_id: post.id,
-      from_user_id: currentUser.userId,
-      from_user_name: currentUser.name,
-      to_user_id: post.userId,
-      type: "like",
-      message: `${currentUser.name}さんがあなたの投稿に「おいしそう」しました`,
-      read: false,
-    });
-
-    if (post.userId) {
-      await sendPushNotification({
-        toUserId: post.userId,
-        title: "おいしそう",
-        body: `${currentUser.name}さんがあなたの投稿に「おいしそう」しました`,
+      const { error } = await supabase.from("likes").insert({
+        post_id: post.id,
+        user_id: currentUser.userId,
       });
-    }
 
-  if (notificationError) {
-    console.error("通知作成エラー:", notificationError);
-  }
-}
+      if (error) {
+        if (error.code !== "23505") {
+          console.error(error);
+          return;
+        }
+
+        await loadLikes();
+        return;
+      }
+
+      if (post.userId !== currentUser.userId) {
+        const { data: existingNotification, error: checkNotificationError } =
+          await supabase
+            .from("notifications")
+            .select("id")
+            .eq("post_id", post.id)
+            .eq("from_user_id", currentUser.userId)
+            .eq("to_user_id", post.userId)
+            .eq("type", "like")
+            .maybeSingle();
+
+        if (checkNotificationError) {
+          console.error("通知確認エラー:", checkNotificationError);
+        }
+
+        if (!checkNotificationError && !existingNotification) {
+          const { error: notificationError } = await supabase
+            .from("notifications")
+            .insert({
+              post_id: post.id,
+              from_user_id: currentUser.userId,
+              from_user_name: currentUser.name,
+              to_user_id: post.userId,
+              type: "like",
+              message: `${currentUser.name}さんがあなたの投稿に「おいしそう」しました`,
+              read: false,
+            });
+
+          if (notificationError) {
+            console.error("通知作成エラー:", notificationError);
+          }
+        }
+
+        if (post.userId) {
+          await sendPushNotification({
+            toUserId: post.userId,
+            title: "おいしそう",
+            body: `${currentUser.name}さんがあなたの投稿に「おいしそう」しました`,
+          });
+        }
+      }
+
+      await loadLikes();
+    } finally {
+      setIsLikeLoading(false);
     }
-  
-    setLiked(true);
-    setLikeCount((v) => v + 1);
   };
 
   const addComment = async () => {
@@ -320,7 +340,8 @@ if (!existingNotification) {
           <button
             type="button"
             onClick={toggleLike}
-            className="flex h-10 w-10 items-center justify-center"
+            disabled={isLikeLoading}
+            className="flex h-10 w-10 items-center justify-center disabled:opacity-50"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

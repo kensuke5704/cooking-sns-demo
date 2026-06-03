@@ -1,68 +1,105 @@
 "use client";
 
+import { useState } from "react";
+import SectionCard from "../components/common/SectionCard";
+import ScreenShell from "../components/common/ScreenShell";
 import { getTodayRecipe } from "../lib/todayRecipe";
 
 export default function RecipeScreen() {
   const recipe = getTodayRecipe();
+  const [showDetail, setShowDetail] = useState(false);
 
   return (
-    <main className="min-h-screen bg-[#f8b72a] px-5 pt-6 pb-28 text-[#6b2f13]">
-      <div className="mx-auto max-w-md">
-        <section className="overflow-hidden rounded-[36px] bg-white shadow-xl">
+    <ScreenShell
+      label="ARTICLE"
+      title="記事"
+      subtitle="献立カードから、材料と作り方を確認できます。"
+    >
+      {!showDetail ? (
+        <button
+          type="button"
+          onClick={() => setShowDetail(true)}
+          className="w-full overflow-hidden rounded-[36px] bg-white text-left shadow-xl transition active:scale-[0.99]"
+        >
           <div className="bg-[#f39a00] px-5 py-2">
-            <p className="text-xs font-black text-white">TODAY'S RECIPE</p>
+            <p className="text-xs font-black tracking-wide text-white">
+              TODAY'S MENU
+            </p>
           </div>
 
-          <div className="p-6 text-center">
+          <div className="p-6">
             <p className="text-sm font-black text-[#f39a00]">今日の献立</p>
 
-            <h1 className="mt-2 text-3xl font-black leading-tight">
+            <h1 className="mt-2 text-3xl font-black leading-tight text-[#6b2f13]">
               {recipe.title}
             </h1>
 
-            <p className="mt-4 text-sm font-bold text-[#6b2f13]/60">
+            <p className="mt-4 text-sm font-bold leading-relaxed text-[#6b2f13]/60">
               {recipe.description}
             </p>
+
+            <div className="mt-5 flex items-center justify-between rounded-2xl bg-[#fff4d7] px-4 py-3">
+              <span className="text-sm font-black text-[#6b2f13]">
+                材料・作り方を見る
+              </span>
+              <span className="text-lg font-black text-[#f39a00]">›</span>
+            </div>
           </div>
-        </section>
+        </button>
+      ) : (
+        <>
+          <section className="overflow-hidden rounded-[36px] bg-white shadow-xl">
+            <div className="bg-[#f39a00] px-5 py-2">
+              <p className="text-xs font-black tracking-wide text-white">
+                MENU DETAIL
+              </p>
+            </div>
 
-        <section className="mt-5 rounded-[36px] bg-white p-5 shadow-xl">
-          <h2 className="text-xl font-black">材料</h2>
+            <div className="p-6">
+              <button
+                type="button"
+                onClick={() => setShowDetail(false)}
+                className="mb-5 rounded-full bg-[#fff4d7] px-4 py-2 text-sm font-black text-[#6b2f13]"
+              >
+                ← 献立カードに戻る
+              </button>
 
-          <div className="mt-4 space-y-3">
-            {recipe.ingredients.map(([name, amount]) => (
-              <RecipeItem
-                key={name}
-                name={name}
-                amount={amount}
-              />
-            ))}
-          </div>
-        </section>
+              <p className="text-sm font-black text-[#f39a00]">今日の献立</p>
 
-        <section className="mt-5 rounded-[36px] bg-white p-5 shadow-xl">
-          <h2 className="text-xl font-black">作り方</h2>
+              <h1 className="mt-2 text-3xl font-black leading-tight text-[#6b2f13]">
+                {recipe.title}
+              </h1>
 
-          <div className="mt-4 space-y-4">
-            {recipe.steps.map((text, index) => (
-              <Step
-                key={index}
-                number={String(index + 1)}
-                text={text}
-              />
-            ))}
-          </div>
-        </section>
+              <p className="mt-4 text-sm font-bold leading-relaxed text-[#6b2f13]/60">
+                {recipe.description}
+              </p>
+            </div>
+          </section>
 
-        <section className="mt-5 rounded-[36px] bg-white p-5 shadow-xl">
-          <h2 className="text-xl font-black">ポイント</h2>
+          <SectionCard className="mt-5" title="材料">
+            <div className="space-y-3">
+              {recipe.ingredients.map(([name, amount]) => (
+                <RecipeItem key={name} name={name} amount={amount} />
+              ))}
+            </div>
+          </SectionCard>
 
-          <p className="mt-3 rounded-2xl bg-[#fff4d7] px-4 py-3 text-sm font-bold">
-            {recipe.point}
-          </p>
-        </section>
-      </div>
-    </main>
+          <SectionCard className="mt-5" title="作り方">
+            <div className="space-y-4">
+              {recipe.steps.map((text, index) => (
+                <Step key={index} number={String(index + 1)} text={text} />
+              ))}
+            </div>
+          </SectionCard>
+
+          <SectionCard className="mt-5" title="ポイント">
+            <p className="rounded-2xl bg-[#fff4d7] px-4 py-3 text-sm font-bold leading-relaxed text-[#6b2f13]">
+              {recipe.point}
+            </p>
+          </SectionCard>
+        </>
+      )}
+    </ScreenShell>
   );
 }
 
@@ -75,10 +112,8 @@ function RecipeItem({
 }) {
   return (
     <div className="flex items-center justify-between rounded-2xl bg-[#fff4d7] px-4 py-3">
-      <span className="font-black">{name}</span>
-      <span className="text-sm font-bold text-[#6b2f13]/60">
-        {amount}
-      </span>
+      <span className="font-black text-[#6b2f13]">{name}</span>
+      <span className="text-sm font-bold text-[#6b2f13]/60">{amount}</span>
     </div>
   );
 }
@@ -96,7 +131,7 @@ function Step({
         {number}
       </div>
 
-      <p className="pt-1 text-sm font-bold leading-relaxed">
+      <p className="pt-1 text-sm font-bold leading-relaxed text-[#6b2f13]">
         {text}
       </p>
     </div>
