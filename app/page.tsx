@@ -19,6 +19,7 @@ import NotificationButton from "./components/NotificationButton";
 import ImageModal from "./components/ImageModal";
 import BottomNav from "./components/navigation/BottomNav";
 import AppPopup, { type AppPopupState } from "./components/common/AppPopup";
+import PullToRefresh from "./components/common/PullToRefresh";
 
 const todayRecipe = getTodayRecipe();
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -36,6 +37,9 @@ export default function Home() {
   const [currentUser, setCurrentUser] =
     useState<ReturnType<typeof getCurrentUser>>(null);
   const [popup, setPopup] = useState<AppPopupState | null>(null);
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
+  const [notificationRefreshKey, setNotificationRefreshKey] = useState(0);
+  const [profileRefreshKey, setProfileRefreshKey] = useState(0);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -132,6 +136,15 @@ export default function Home() {
     }
   }
 
+  async function refreshHome() {
+    await Promise.all([loadPosts(), loadUnreadCount()]);
+  }
+
+  async function refreshCurrentScreen(refresh: () => void) {
+    refresh();
+    await loadUnreadCount();
+  }
+
   async function deletePost(postId: string | number) {
     setPopup({
       title: "投稿を削除しますか？",
@@ -204,6 +217,7 @@ export default function Home() {
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         unreadCount={unreadCount}
+        onRefresh={() => loadUnreadCount()}
       >
         <RecipePage />
       </LayoutWithNav>
@@ -216,8 +230,11 @@ export default function Home() {
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         unreadCount={unreadCount}
+        onRefresh={() =>
+          refreshCurrentScreen(() => setCalendarRefreshKey((v) => v + 1))
+        }
       >
-        <CalendarPage />
+        <CalendarPage key={calendarRefreshKey} />
       </LayoutWithNav>
     );
   }
@@ -228,6 +245,7 @@ export default function Home() {
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         unreadCount={unreadCount}
+        onRefresh={() => loadUnreadCount()}
       >
         <EmptyPage title="記事" />
       </LayoutWithNav>
@@ -240,8 +258,14 @@ export default function Home() {
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         unreadCount={unreadCount}
+        onRefresh={() =>
+          refreshCurrentScreen(() => setNotificationRefreshKey((v) => v + 1))
+        }
       >
-        <NotificationScreen onReadChange={loadUnreadCount} />
+        <NotificationScreen
+          key={notificationRefreshKey}
+          onReadChange={loadUnreadCount}
+        />
       </LayoutWithNav>
     );
   }
@@ -252,8 +276,12 @@ export default function Home() {
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         unreadCount={unreadCount}
+        onRefresh={() =>
+          refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))
+        }
       >
         <ProfilePage
+          key={profileRefreshKey}
           onProfileChange={() => {
             setAuthVersion((v) => v + 1);
           }}
@@ -268,7 +296,8 @@ export default function Home() {
   });
 
   return (
-    <main className="min-h-screen bg-[#f8b72a] pb-28 text-[#6b2f13]">
+    <PullToRefresh onRefresh={refreshHome}>
+      <main className="min-h-screen bg-[#f8b72a] pb-28 text-[#6b2f13]">
       <div className="px-5 pt-5">
         <NotificationButton
           unreadCount={unreadCount}
@@ -329,7 +358,8 @@ export default function Home() {
         unreadCount={unreadCount}
       />
 
-      <AppPopup popup={popup} onClose={() => setPopup(null)} />
-    </main>
+        <AppPopup popup={popup} onClose={() => setPopup(null)} />
+      </main>
+    </PullToRefresh>
   );
 }

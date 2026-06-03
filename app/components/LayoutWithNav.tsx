@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import PullToRefresh from "./common/PullToRefresh";
 import BottomNav from "./navigation/BottomNav";
 
 type LayoutWithNavProps = {
@@ -6,6 +7,7 @@ type LayoutWithNavProps = {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
   unreadCount: number;
+  onRefresh?: () => Promise<void> | void;
 };
 
 export default function LayoutWithNav({
@@ -13,8 +15,9 @@ export default function LayoutWithNav({
   currentTab,
   setCurrentTab,
   unreadCount,
+  onRefresh,
 }: LayoutWithNavProps) {
-  return (
+  const content = (
     <>
       {children}
 
@@ -25,4 +28,8 @@ export default function LayoutWithNav({
       />
     </>
   );
+
+  if (!onRefresh) return content;
+
+  return <PullToRefresh onRefresh={onRefresh}>{content}</PullToRefresh>;
 }
