@@ -47,29 +47,3 @@ button:disabled {
 img {
   max-width: 100%;
 }
-
-.home-wood-bg {
-  position: relative;
-  overflow: hidden;
-  background:
-    linear-gradient(rgba(255, 247, 232, 0.90), rgba(255, 247, 232, 0.92)),
-    url("/images/wood-bg.png");
-  background-size: auto, 320px 320px;
-  background-repeat: repeat;
-}
-
-.home-wood-bg::before {
-  content: "";
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.45), transparent 22rem),
-    radial-gradient(circle at 100% 16%, rgba(248, 183, 42, 0.12), transparent 20rem);
-}
-
-.home-wood-bg > * {
-  position: relative;
-  z-index: 1;
-}

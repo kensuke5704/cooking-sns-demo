@@ -314,7 +314,6 @@ export default function Home() {
     <>
       <PullToRefresh onRefresh={refreshHome}>
         <ScreenShell
-          className="home-wood-bg"
           label="HOME"
           title="ホーム"
 
