@@ -17,9 +17,13 @@ export default function LayoutWithNav({
   unreadCount,
   onRefresh,
 }: LayoutWithNavProps) {
-  const content = (
+  return (
     <>
-      {children}
+      {onRefresh ? (
+        <PullToRefresh onRefresh={onRefresh}>{children}</PullToRefresh>
+      ) : (
+        children
+      )}
 
       <BottomNav
         currentTab={currentTab}
@@ -28,8 +32,4 @@ export default function LayoutWithNav({
       />
     </>
   );
-
-  if (!onRefresh) return content;
-
-  return <PullToRefresh onRefresh={onRefresh}>{content}</PullToRefresh>;
 }

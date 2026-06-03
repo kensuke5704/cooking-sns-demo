@@ -296,8 +296,9 @@ export default function Home() {
   });
 
   return (
-    <PullToRefresh onRefresh={refreshHome}>
-      <main className="min-h-screen bg-[#f8b72a] pb-28 text-[#6b2f13]">
+    <>
+      <PullToRefresh onRefresh={refreshHome}>
+        <main className="min-h-screen bg-[#f8b72a] pb-28 text-[#6b2f13]">
       <div className="px-5 pt-5">
         <NotificationButton
           unreadCount={unreadCount}
@@ -352,14 +353,15 @@ export default function Home() {
         />
       )}
 
+        <AppPopup popup={popup} onClose={() => setPopup(null)} />
+        </main>
+      </PullToRefresh>
+
       <BottomNav
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         unreadCount={unreadCount}
       />
-
-        <AppPopup popup={popup} onClose={() => setPopup(null)} />
-      </main>
-    </PullToRefresh>
+    </>
   );
 }
