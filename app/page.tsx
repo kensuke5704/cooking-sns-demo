@@ -19,7 +19,6 @@ import BottomNav from "./components/navigation/BottomNav";
 import AppPopup, { type AppPopupState } from "./components/common/AppPopup";
 import PullToRefresh from "./components/common/PullToRefresh";
 import ScreenShell from "./components/common/ScreenShell";
-import SectionCard from "./components/common/SectionCard";
 import EmptyState from "./components/common/EmptyState";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -328,20 +327,26 @@ export default function Home() {
             />
           }
         >
-          <SectionCard
-            className="mt-5"
-            label="TODAY'S POSTS"
-            title="今日の投稿"
+          <section className="mt-5">
+            <div className="mb-4 px-1">
+              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white/80">
+                TODAY'S POSTS
+              </p>
+              <h2 className="mt-1 text-[20px] font-black leading-tight tracking-[-0.03em] text-[#6b2f13]">
+                今日の投稿
+              </h2>
+            </div>
 
-          >
             {visiblePosts.length === 0 ? (
-              <EmptyState
-                title="投稿はありません"
-                actionLabel="投稿する"
-                onAction={() => setCurrentTab("カメラ")}
-              />
+              <div className="rounded-[28px] bg-white/80 p-5 shadow-[0_12px_32px_rgba(107,47,19,0.1)]">
+                <EmptyState
+                  title="投稿はありません"
+                  actionLabel="投稿する"
+                  onAction={() => setCurrentTab("カメラ")}
+                />
+              </div>
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {visiblePosts.map((post) => (
                   <PostCard
                     key={post.id}
@@ -352,7 +357,7 @@ export default function Home() {
                 ))}
               </div>
             )}
-          </SectionCard>
+          </section>
 
         </ScreenShell>
       </PullToRefresh>
