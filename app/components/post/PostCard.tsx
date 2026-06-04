@@ -31,9 +31,9 @@ function DeleteConfirmPopup({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 px-6">
       <div className="w-full max-w-sm rounded-[32px] bg-white p-6 text-center text-[#6b2f13] shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
-        <p className="text-xs font-black text-[#f39a00]">CONFIRM</p>
-        <h2 className="mt-2 text-xl font-black">{title}</h2>
-        <p className="mt-3 text-sm font-bold leading-6 text-[#6b2f13]/60">
+        <p className="text-xs font-black text-[#f39a00]">MESSAGE</p>
+        <h2 className="mt-2 text-2xl font-black">{title}</h2>
+        <p className="mt-3 text-sm font-bold leading-6 opacity-70">
           削除すると元に戻せません。
         </p>
 
@@ -65,10 +65,12 @@ export default function PostCard({
   post,
   onImageClick,
   onDelete,
+  highlight = false,
 }: {
   post: Post;
   onImageClick: (src: string) => void;
   onDelete?: (postId: string | number) => void;
+  highlight?: boolean;
 }) {
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [commentText, setCommentText] = useState("");
@@ -443,7 +445,13 @@ export default function PostCard({
         </div>
       )}
 
-      <article className="overflow-hidden rounded-[28px] border border-white/75 bg-white/95 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
+      <article
+        className={`overflow-hidden rounded-[28px] border bg-white/95 shadow-[0_16px_44px_rgba(107,47,19,0.13)] transition-all duration-300 ${
+          highlight
+            ? "border-[#f39a00] ring-4 ring-[#f39a00]/30"
+            : "border-white/75"
+        }`}
+      >
         <div className="flex items-center justify-between px-5 pt-5">
           <div className="flex items-center gap-3">
             <img
