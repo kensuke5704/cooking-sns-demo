@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import type { Post } from "../../types/post";
 import StackedPhotos from "./StackedPhotos";
-import ViewportPortal from "../common/ViewportPortal";
 import { supabase } from "../../lib/supabase";
 import { getCurrentUser } from "../../lib/auth";
 import { sendPushNotification } from "../../lib/sendPush";
@@ -12,10 +11,12 @@ export default function PostCard({
   post,
   onImageClick,
   onDelete,
+  isHighlighted = false,
 }: {
   post: Post;
   onImageClick: (src: string) => void;
   onDelete?: (postId: string | number) => void;
+  isHighlighted?: boolean;
 }) {
   const [comments, setComments] = useState<
     {
@@ -26,6 +27,11 @@ export default function PostCard({
     }[]
   >([]);
   const [commentText, setCommentText] = useState("");
+  const [replyTarget, setReplyTarget] = useState<{
+    id: string | number;
+    userId: string;
+    userName: string;
+  } | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -224,13 +230,18 @@ export default function PostCard({
   
     if (!currentUser) return;
   
-    if (!commentText.trim()) return;
+    const trimmedText = commentText.trim();
+    if (!trimmedText) return;
+
+    const savedText = replyTarget
+      ? `@${replyTarget.userName} ${trimmedText}`
+      : trimmedText;
   
     const { error } = await supabase.from("comments").insert({
       post_id: post.id,
       user_id: currentUser.userId,
       user_name: currentUser.name,
-      text: commentText.trim(),
+      text: savedText,
     });
   
     if (error) {
@@ -239,35 +250,50 @@ export default function PostCard({
       return;
     }
 
-    if (post.userId !== currentUser.userId) {
+    const notificationTarget = replyTarget
+      ? {
+          userId: replyTarget.userId,
+          type: "reply",
+          title: "返信",
+          message: `${currentUser.name}さんがあなたのコメントに返信しました`,
+        }
+      : post.userId !== currentUser.userId
+      ? {
+          userId: post.userId,
+          type: "comment",
+          title: "コメント",
+          message: `${currentUser.name}さんがあなたの投稿にコメントしました`,
+        }
+      : null;
+
+    if (notificationTarget && notificationTarget.userId !== currentUser.userId) {
       const { error: notificationError } = await supabase
         .from("notifications")
         .insert({
           post_id: post.id,
           from_user_id: currentUser.userId,
           from_user_name: currentUser.name,
-          to_user_id: post.userId,
-          type: "comment",
-          message: `${currentUser.name}さんがあなたの投稿にコメントしました`,
+          to_user_id: notificationTarget.userId,
+          type: notificationTarget.type,
+          message: notificationTarget.message,
           read: false,
         });
 
-      if (post.userId) {
-        await sendPushNotification({
-          toUserId: post.userId,
-          title: "コメント",
-          body: `${currentUser.name}さんがあなたの投稿にコメントしました`,
-        });
-      }
-    
       if (notificationError) {
         console.error("コメント通知作成エラー:", notificationError);
       }
+
+      await sendPushNotification({
+        toUserId: notificationTarget.userId,
+        title: notificationTarget.title,
+        body: notificationTarget.message,
+      });
     }
   
     setCommentText("");
+    setReplyTarget(null);
     await loadComments();
-    showToast("コメントを投稿しました");
+    showToast(replyTarget ? "返信しました" : "コメントを投稿しました");
   };
 
   const deleteComment = async (commentId: string | number) => {
@@ -312,7 +338,14 @@ export default function PostCard({
           {toastMessage}
         </div>
       )}
-    <article className="rounded-[28px] border border-white/75 bg-white/95 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
+    <article
+      id={`post-${post.id}`}
+      className={`rounded-[28px] border bg-white/95 shadow-[0_16px_44px_rgba(107,47,19,0.13)] transition ${
+        isHighlighted
+          ? "border-[#f39a00] ring-4 ring-[#f39a00]/25"
+          : "border-white/75"
+      }`}
+    >
       <div className="flex items-center justify-between px-5 pt-5">
         <div className="flex items-center gap-3">
           <img
@@ -445,25 +478,55 @@ export default function PostCard({
                       {comment.text}
                     </p>
 
-                    {canDeleteComment && (
+                    <div className="flex shrink-0 items-center gap-1">
                       <button
                         type="button"
-                        onClick={() => setDeleteCommentId(comment.id)}
-                        className="shrink-0 rounded-full bg-red-500 px-2 py-1 text-[10px] font-black text-white"
+                        onClick={() => {
+                          setReplyTarget({
+                            id: comment.id,
+                            userId: comment.userId,
+                            userName: comment.userName,
+                          });
+                          setShowComments(true);
+                        }}
+                        className="rounded-full bg-white/80 px-2 py-1 text-[10px] font-black text-[#6b2f13]"
                       >
-                        削除
+                        返信
                       </button>
-                    )}
+
+                      {canDeleteComment && (
+                        <button
+                          type="button"
+                          onClick={() => setDeleteCommentId(comment.id)}
+                          className="rounded-full bg-red-500 px-2 py-1 text-[10px] font-black text-white"
+                        >
+                          削除
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
               </div>
 
+              {replyTarget && (
+                <div className="mt-3 flex items-center justify-between rounded-full bg-[#fff4d7] px-4 py-2 text-xs font-black text-[#6b2f13]">
+                  <span>@{replyTarget.userName} に返信</span>
+                  <button
+                    type="button"
+                    onClick={() => setReplyTarget(null)}
+                    className="text-[#6b2f13]/50"
+                  >
+                    解除
+                  </button>
+                </div>
+              )}
+
               <div className="mt-3 flex gap-2">
                 <input
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="コメントを追加"
+                  placeholder={replyTarget ? "返信を追加" : "コメントを追加"}
                   className="min-w-0 flex-1 rounded-full border-2 border-[#f1d59a] px-4 py-2 text-sm font-bold outline-none"
                 />
 
@@ -480,8 +543,7 @@ export default function PostCard({
         </div>
       </div>
       {deleteCommentId !== null && (
-        <ViewportPortal>
-          <div className="fixed inset-0 z-[1000] flex min-h-[100dvh] items-center justify-center bg-black/40 px-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-6">
           <div className="w-full max-w-sm rounded-[28px] bg-white p-6 text-center shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
             <p className="text-lg font-black text-[#6b2f13]">
               コメントを削除しますか？
@@ -510,8 +572,7 @@ export default function PostCard({
               </button>
             </div>
           </div>
-          </div>
-        </ViewportPortal>
+        </div>
       )}
     </article>
   </>

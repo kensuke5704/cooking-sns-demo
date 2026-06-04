@@ -9,8 +9,11 @@ import { supabase } from "../lib/supabase";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
+const OPENABLE_NOTIFICATION_TYPES = ["like", "comment", "reply"];
+
 type Notification = {
   id: string;
+  post_id: string | number | null;
   message: string;
   type: string;
   read: boolean;
@@ -19,8 +22,10 @@ type Notification = {
 
 export default function NotificationScreen({
   onReadChange,
+  onOpenPost,
 }: {
   onReadChange: () => void;
+  onOpenPost?: (postId: string | number) => void;
 }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
@@ -34,20 +39,31 @@ export default function NotificationScreen({
 
     const cutoff = new Date(Date.now() - ONE_DAY_MS).toISOString();
 
-    const { error: deleteError } = await supabase
+    const { error: oldDeleteError } = await supabase
       .from("notifications")
       .delete()
       .eq("to_user_id", currentUser.userId)
       .lt("created_at", cutoff);
 
-    if (deleteError) {
-      console.error("古い通知削除エラー:", deleteError);
+    if (oldDeleteError) {
+      console.error("古い通知削除エラー:", oldDeleteError);
+    }
+
+    const { error: postDeleteError } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("to_user_id", currentUser.userId)
+      .eq("type", "post");
+
+    if (postDeleteError) {
+      console.error("投稿通知削除エラー:", postDeleteError);
     }
 
     const { data, error } = await supabase
       .from("notifications")
       .select("*")
       .eq("to_user_id", currentUser.userId)
+      .neq("type", "post")
       .gte("created_at", cutoff)
       .order("created_at", { ascending: false });
 
@@ -70,6 +86,29 @@ export default function NotificationScreen({
     }
   }
 
+  async function openNotification(notification: Notification) {
+    const canOpen =
+      notification.post_id &&
+      OPENABLE_NOTIFICATION_TYPES.includes(notification.type);
+
+    if (!canOpen) return;
+
+    if (!notification.read) {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("id", notification.id);
+
+      if (error) {
+        console.error("通知既読エラー:", error);
+      } else {
+        onReadChange();
+      }
+    }
+
+    onOpenPost?.(notification.post_id as string | number);
+  }
+
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
   return (
@@ -88,31 +127,40 @@ export default function NotificationScreen({
           />
         ) : (
           <div className="space-y-3">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`rounded-[20px] border border-[#f1d59a]/55 px-4 py-3 ${
-                  notification.read ? "bg-[#fff4d7]/75" : "bg-[#f39a00]/15"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#f39a00]" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-black leading-relaxed">
-                      {notification.message}
-                    </p>
-                    <p className="mt-1 text-xs font-bold opacity-50">
-                      {new Date(notification.created_at).toLocaleString("ja-JP", {
-                        month: "numeric",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+            {notifications.map((notification) => {
+              const canOpen =
+                notification.post_id &&
+                OPENABLE_NOTIFICATION_TYPES.includes(notification.type);
+
+              return (
+                <button
+                  key={notification.id}
+                  type="button"
+                  onClick={() => openNotification(notification)}
+                  disabled={!canOpen}
+                  className={`w-full rounded-[20px] border border-[#f1d59a]/55 px-4 py-3 text-left transition ${
+                    notification.read ? "bg-[#fff4d7]/75" : "bg-[#f39a00]/15"
+                  } ${canOpen ? "active:scale-[0.99]" : "cursor-default"}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#f39a00]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-black leading-relaxed">
+                        {notification.message}
+                      </p>
+                      <p className="mt-1 text-xs font-bold opacity-50">
+                        {new Date(notification.created_at).toLocaleString("ja-JP", {
+                          month: "numeric",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                </button>
+              );
+            })}
           </div>
         )}
       </SectionCard>

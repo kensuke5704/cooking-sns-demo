@@ -229,36 +229,19 @@ export async function publishPostData({
       if (friendsError) {
         console.error("投稿通知用の友だち取得エラー:", friendsError);
       } else {
-        const notifications =
-          friendsData?.map((friend) => ({
-            post_id: data.id,
-            from_user_id: userId,
-            from_user_name: userName,
-            to_user_id: friend.friend_user_id,
-            type: "post",
-            message: `${userName}さんが新しい料理を投稿しました`,
-            read: false,
-          })) || [];
-    
-          if (notifications.length > 0) {
-            const { error: notificationError } = await supabase
-              .from("notifications")
-              .insert(notifications);
-          
-            if (notificationError) {
-              console.error("投稿通知作成エラー:", notificationError);
-            }
-          
-            await Promise.all(
-              notifications.map((notification) =>
-                sendPushNotification({
-                  toUserId: notification.to_user_id,
-                  title: "ごはんなにかな",
-                  body: notification.message,
-                })
-              )
-            );
-          }
+        const pushTargets = friendsData || [];
+
+        if (pushTargets.length > 0) {
+          await Promise.all(
+            pushTargets.map((friend) =>
+              sendPushNotification({
+                toUserId: friend.friend_user_id,
+                title: "ごはんなにかな",
+                body: `${userName}さんが新しい料理を投稿しました`,
+              })
+            )
+          );
+        }
       }
     }
     

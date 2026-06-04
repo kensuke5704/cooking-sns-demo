@@ -39,6 +39,7 @@ export default function Home() {
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
   const [notificationRefreshKey, setNotificationRefreshKey] = useState(0);
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
+  const [targetPostId, setTargetPostId] = useState<string | number | null>(null);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -81,6 +82,21 @@ export default function Home() {
     localStorage.setItem("current-tab", currentTab);
   }, [currentTab]);
 
+  useEffect(() => {
+    if (currentTab !== "ホーム" || targetPostId === null) return;
+
+    const timer = window.setTimeout(() => {
+      const target = document.getElementById(`post-${targetPostId}`);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+      window.setTimeout(() => {
+        setTargetPostId(null);
+      }, 1800);
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [currentTab, targetPostId, posts]);
+
   async function loadUnreadCount() {
     const currentUser = getCurrentUser();
 
@@ -98,6 +114,16 @@ export default function Home() {
       console.error(deleteError);
     }
 
+    const { error: postDeleteError } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("to_user_id", currentUser.userId)
+      .eq("type", "post");
+
+    if (postDeleteError) {
+      console.error(postDeleteError);
+    }
+
     const { count, error } = await supabase
       .from("notifications")
       .select("*", {
@@ -106,6 +132,7 @@ export default function Home() {
       })
       .eq("to_user_id", currentUser.userId)
       .eq("read", false)
+      .neq("type", "post")
       .gte("created_at", cutoff);
 
     if (error) {
@@ -128,6 +155,7 @@ export default function Home() {
       .update({ read: true })
       .eq("to_user_id", currentUser.userId)
       .eq("read", false)
+      .neq("type", "post")
       .gte("created_at", cutoff);
 
     if (error) {
@@ -205,6 +233,13 @@ export default function Home() {
     localStorage.removeItem(`daily-cooking-photos-${currentUser.userId}-${today}`);
   }
 
+  async function openPostFromNotification(postId: string | number) {
+    setTargetPostId(postId);
+    setCurrentTab("ホーム");
+    await loadPosts();
+    await loadUnreadCount();
+  }
+
   if (!currentUser) {
     return (
       <AuthPage
@@ -280,6 +315,7 @@ export default function Home() {
         <NotificationScreen
           key={notificationRefreshKey}
           onReadChange={loadUnreadCount}
+          onOpenPost={openPostFromNotification}
         />
       </LayoutWithNav>
     );
@@ -353,6 +389,7 @@ export default function Home() {
                     post={post}
                     onImageClick={(src) => setSelectedImage(src)}
                     onDelete={deletePost}
+                    isHighlighted={String(targetPostId) === String(post.id)}
                   />
                 ))}
               </div>
