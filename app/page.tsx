@@ -308,94 +308,114 @@ export default function Home() {
     );
   }
 
+  const popupElement = <AppPopup popup={popup} onClose={() => setPopup(null)} />;
+
   if (currentTab === "カメラ") {
     return (
-      <CameraPost
-        onBack={() => {
-          setCurrentTab("ホーム");
-          loadPosts();
-        }}
-      />
+      <>
+        <CameraPost
+          onBack={() => {
+            setCurrentTab("ホーム");
+            loadPosts();
+          }}
+        />
+        {popupElement}
+      </>
     );
   }
 
   if (currentTab === "レシピ") {
     return (
-      <LayoutWithNav
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        unreadCount={unreadCount}
-        onRefresh={() => loadUnreadCount()}
-      >
-        <RecipePage />
-      </LayoutWithNav>
+      <>
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() => loadUnreadCount()}
+        >
+          <RecipePage />
+        </LayoutWithNav>
+        {popupElement}
+      </>
     );
   }
 
   if (currentTab === "カレンダー") {
     return (
-      <LayoutWithNav
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        unreadCount={unreadCount}
-        onRefresh={() =>
-          refreshCurrentScreen(() => setCalendarRefreshKey((v) => v + 1))
-        }
-      >
-        <CalendarPage key={calendarRefreshKey} />
-      </LayoutWithNav>
+      <>
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() =>
+            refreshCurrentScreen(() => setCalendarRefreshKey((v) => v + 1))
+          }
+        >
+          <CalendarPage key={calendarRefreshKey} />
+        </LayoutWithNav>
+        {popupElement}
+      </>
     );
   }
 
   if (currentTab === "記事") {
     return (
-      <LayoutWithNav
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        unreadCount={unreadCount}
-        onRefresh={() => loadUnreadCount()}
-      >
-        <RecipePage />
-      </LayoutWithNav>
+      <>
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() => loadUnreadCount()}
+        >
+          <RecipePage />
+        </LayoutWithNav>
+        {popupElement}
+      </>
     );
   }
 
   if (currentTab === "通知") {
     return (
-      <LayoutWithNav
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        unreadCount={unreadCount}
-        onRefresh={() =>
-          refreshCurrentScreen(() => setNotificationRefreshKey((v) => v + 1))
-        }
-      >
-        <NotificationScreen
-          key={notificationRefreshKey}
-          onReadChange={loadUnreadCount}
-          onOpenPost={openPostFromNotification}
-        />
-      </LayoutWithNav>
+      <>
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() =>
+            refreshCurrentScreen(() => setNotificationRefreshKey((v) => v + 1))
+          }
+        >
+          <NotificationScreen
+            key={notificationRefreshKey}
+            onReadChange={loadUnreadCount}
+            onOpenPost={openPostFromNotification}
+          />
+        </LayoutWithNav>
+        {popupElement}
+      </>
     );
   }
 
   if (currentTab === "プロフィール") {
     return (
-      <LayoutWithNav
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        unreadCount={unreadCount}
-        onRefresh={() =>
-          refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))
-        }
-      >
-        <ProfilePage
-          key={profileRefreshKey}
-          onProfileChange={() => {
-            setAuthVersion((v) => v + 1);
-          }}
-        />
-      </LayoutWithNav>
+      <>
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() =>
+            refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))
+          }
+        >
+          <ProfilePage
+            key={profileRefreshKey}
+            onProfileChange={() => {
+              setAuthVersion((v) => v + 1);
+            }}
+          />
+        </LayoutWithNav>
+        {popupElement}
+      </>
     );
   }
 
@@ -465,7 +485,7 @@ export default function Home() {
         />
       )}
 
-      <AppPopup popup={popup} onClose={() => setPopup(null)} />
+      {popupElement}
 
       <BottomNav
         currentTab={currentTab}
