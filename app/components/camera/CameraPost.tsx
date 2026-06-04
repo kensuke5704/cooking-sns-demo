@@ -74,6 +74,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   const [dishName, setDishName] = useState("");
   const [memo, setMemo] = useState("");
   const [titleSuffix, setTitleSuffix] = useState<TitleSuffix>("作りました");
+  const [isSuffixOpen, setIsSuffixOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [popup, setPopup] = useState<AppPopupState | null>(null);
 
@@ -116,6 +117,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
         setDishName("");
         setMemo("");
         setTitleSuffix("作りました");
+        setIsSuffixOpen(false);
         setSelectedType(null);
         setIsCameraOn(false);
       },
@@ -353,22 +355,37 @@ export default function CameraPost({ onBack }: CameraPostProps) {
              />
 
 
-              <label className="mt-4 block text-sm font-black">タイトル末尾</label>
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                {(["作りました", "食べました", "なし"] as TitleSuffix[]).map((suffix) => (
-                  <button
-                    key={suffix}
-                    type="button"
-                    onClick={() => setTitleSuffix(suffix)}
-                    className={`rounded-full border px-3 py-2 text-xs font-black ${
-                      titleSuffix === suffix
-                        ? "border-[#f39a00] bg-[#f39a00] text-white"
-                        : "border-[#f1d59a] bg-white text-[#6b2f13]"
-                    }`}
-                  >
-                    {suffix}
-                  </button>
-                ))}
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setIsSuffixOpen((v) => !v)}
+                  className="flex w-full items-center justify-between rounded-[18px] border border-[#f1d59a] bg-white px-4 py-3 text-sm font-black text-[#6b2f13]"
+                >
+                  <span>{titleSuffix === "なし" ? "末尾なし" : titleSuffix}</span>
+                  <span className="text-[#f39a00]">{isSuffixOpen ? "▲" : "▼"}</span>
+                </button>
+
+                {isSuffixOpen && (
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {(["作りました", "食べました", "なし"] as TitleSuffix[]).map((suffix) => (
+                      <button
+                        key={suffix}
+                        type="button"
+                        onClick={() => {
+                          setTitleSuffix(suffix);
+                          setIsSuffixOpen(false);
+                        }}
+                        className={`rounded-full border px-3 py-2 text-xs font-black ${
+                          titleSuffix === suffix
+                            ? "border-[#f39a00] bg-[#f39a00] text-white"
+                            : "border-[#f1d59a] bg-white text-[#6b2f13]"
+                        }`}
+                      >
+                        {suffix === "なし" ? "なし" : suffix}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
              <label className="mt-4 block text-sm font-black">コメント</label>

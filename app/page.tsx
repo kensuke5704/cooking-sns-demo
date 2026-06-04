@@ -82,6 +82,19 @@ export default function Home() {
     localStorage.setItem("current-tab", currentTab);
   }, [currentTab]);
 
+
+  useEffect(() => {
+    if (currentTab !== "ホーム" || highlightedPostId === null) return;
+
+    const timer = window.setTimeout(() => {
+      document
+        .getElementById(`post-${highlightedPostId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, [currentTab, highlightedPostId, posts]);
+
   async function loadUnreadCount() {
     const currentUser = getCurrentUser();
 
@@ -154,13 +167,15 @@ export default function Home() {
   async function loadPosts() {
     const currentUser = getCurrentUser();
 
-    if (!currentUser) return;
+    if (!currentUser) return [];
 
     try {
       const loadedPosts = await loadPostsData(currentUser.userId);
       setPosts(loadedPosts);
+      return loadedPosts;
     } catch (error) {
       console.error("投稿取得エラー:", error);
+      return [];
     }
   }
 
@@ -174,6 +189,8 @@ export default function Home() {
   }
 
   async function openPostFromNotification(postId: string | number) {
+    const normalizedPostId = String(postId);
+
     const { data, error } = await supabase
       .from("posts")
       .select("id")
@@ -197,11 +214,29 @@ export default function Home() {
       return;
     }
 
-    await loadPosts();
+    const loadedPosts = await loadPosts();
+    const targetPost = loadedPosts.find(
+      (post) => String(post.id) === normalizedPostId
+    );
+
+    if (!targetPost) {
+      setPopup({
+        title: "投稿を表示できません",
+        message: "この投稿は表示対象外です。",
+      });
+      return;
+    }
+
     setHighlightedPostId(postId);
     setCurrentTab("ホーム");
 
-    setTimeout(() => {
+    window.setTimeout(() => {
+      document
+        .getElementById(`post-${normalizedPostId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 180);
+
+    window.setTimeout(() => {
       setHighlightedPostId(null);
     }, 3500);
   }
@@ -354,7 +389,10 @@ export default function Home() {
 
   const visiblePosts = posts.filter((post) => {
     const created = new Date(post.createdAt).getTime();
-    return Date.now() - created <= ONE_DAY_MS;
+    const isRecent = Date.now() - created <= ONE_DAY_MS;
+    const isHighlighted = String(post.id) === String(highlightedPostId);
+
+    return isRecent || isHighlighted;
   });
 
   return (
@@ -395,13 +433,14 @@ export default function Home() {
             ) : (
               <div className="space-y-4">
                 {visiblePosts.map((post) => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    onImageClick={(src) => setSelectedImage(src)}
-                    onDelete={deletePost}
-                    highlight={String(highlightedPostId) === String(post.id)}
-                  />
+                  <div key={post.id} id={`post-${post.id}`}>
+                    <PostCard
+                      post={post}
+                      onImageClick={(src) => setSelectedImage(src)}
+                      onDelete={deletePost}
+                      highlight={String(highlightedPostId) === String(post.id)}
+                    />
+                  </div>
                 ))}
               </div>
             )}
