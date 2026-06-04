@@ -357,15 +357,6 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                 className="mt-2 w-full rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
              />
 
-             <label className="mt-4 block text-sm font-black">コメント</label>
-             <textarea
-               value={memo}
-               onChange={(e) => setMemo(e.target.value)}
-               placeholder="メモを書く"
-               rows={3}
-               className="mt-2 w-full resize-none rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
-             />
-
               <div className="mt-4">
                 <button
                   type="button"
@@ -377,7 +368,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                 </button>
 
                 {isTitleSuffixOpen && (
-                  <div className="mt-2 grid grid-cols-3 gap-1.5 rounded-[18px] bg-white/80 p-1.5">
+                  <div className="mt-2 grid grid-cols-3 gap-1 rounded-[18px] bg-white/80 p-1">
                     {titleSuffixOptions.map((option) => {
                       const active = titleSuffix === option;
 
@@ -389,7 +380,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                             setTitleSuffix(option);
                             setIsTitleSuffixOpen(false);
                           }}
-                          className={`min-w-0 rounded-[14px] px-1.5 py-2 text-[10px] font-black leading-none sm:text-[11px] ${
+                          className={`min-w-0 whitespace-nowrap rounded-[13px] px-0 py-2 text-[9px] font-black leading-none tracking-[-0.08em] sm:text-[10px] ${
                             active
                               ? "bg-[#6b2f13] text-white"
                               : "bg-[#fff4d7] text-[#6b2f13]"
@@ -402,6 +393,15 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                   </div>
                 )}
               </div>
+
+             <label className="mt-4 block text-sm font-black">コメント</label>
+             <textarea
+               value={memo}
+               onChange={(e) => setMemo(e.target.value)}
+               placeholder="コメント"
+               rows={3}
+               className="mt-2 w-full resize-none rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
+             />
 
               <button
                 type="button"
