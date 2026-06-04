@@ -1,6 +1,4 @@
-"use client";
-
-import ViewportPortal from "./ViewportPortal";
+import { createPortal } from "react-dom";
 
 export type AppPopupState = {
   title: string;
@@ -19,6 +17,9 @@ export default function AppPopup({
 }) {
   if (!popup) return null;
 
+  const portalRoot = typeof document === "undefined" ? null : document.body;
+  if (!portalRoot) return null;
+
   const handleConfirm = async () => {
     const confirmAction = popup.onConfirm;
 
@@ -29,15 +30,16 @@ export default function AppPopup({
     }
   };
 
-  return (
-    <ViewportPortal>
-      <div className="fixed inset-0 z-[1000] flex min-h-[100dvh] items-center justify-center bg-black/40 px-5">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 px-5">
       <div className="w-full max-w-sm rounded-[32px] bg-white p-6 text-center text-[#6b2f13] shadow-[0_24px_60px_rgba(107,47,19,0.22)]">
         <p className="text-xs font-black text-[#f39a00]">MESSAGE</p>
         <h2 className="mt-2 text-2xl font-black">{popup.title}</h2>
-        <p className="mt-3 whitespace-pre-line text-sm font-bold leading-6 opacity-70">
-          {popup.message}
-        </p>
+        {popup.message && (
+          <p className="mt-3 whitespace-pre-line text-sm font-bold leading-6 opacity-70">
+            {popup.message}
+          </p>
+        )}
 
         <div className="mt-6 flex gap-3">
           {popup.onConfirm && (
@@ -59,7 +61,7 @@ export default function AppPopup({
           </button>
         </div>
       </div>
-      </div>
-    </ViewportPortal>
+    </div>,
+    portalRoot
   );
 }
