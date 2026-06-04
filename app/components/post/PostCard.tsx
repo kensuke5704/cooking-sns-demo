@@ -266,14 +266,16 @@ export default function PostCard({
         }
       : null;
 
-    if (notificationTarget && notificationTarget.userId !== currentUser.userId) {
+    const notificationTargetUserId = notificationTarget?.userId;
+
+    if (notificationTarget && notificationTargetUserId && notificationTargetUserId !== currentUser.userId) {
       const { error: notificationError } = await supabase
         .from("notifications")
         .insert({
           post_id: post.id,
           from_user_id: currentUser.userId,
           from_user_name: currentUser.name,
-          to_user_id: notificationTarget.userId,
+          to_user_id: notificationTargetUserId,
           type: notificationTarget.type,
           message: notificationTarget.message,
           read: false,
@@ -284,7 +286,7 @@ export default function PostCard({
       }
 
       await sendPushNotification({
-        toUserId: notificationTarget.userId,
+        toUserId: notificationTargetUserId,
         title: notificationTarget.title,
         body: notificationTarget.message,
       });
