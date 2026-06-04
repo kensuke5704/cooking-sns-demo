@@ -65,6 +65,47 @@ function clearDraftId(userId?: string) {
   localStorage.removeItem(getDraftIdKey(userId));
 }
 
+function getPostErrorMessage(error: unknown) {
+  if (!error) return "時間を置いてもう一度お試しください。";
+
+  if (typeof error === "string") return error;
+
+  if (error instanceof Error) {
+    return error.message || "時間を置いてもう一度お試しください。";
+  }
+
+  if (typeof error === "object") {
+    const record = error as {
+      message?: unknown;
+      details?: unknown;
+      hint?: unknown;
+      code?: unknown;
+    };
+
+    const rawMessage =
+      typeof record.message === "string" ? record.message : "";
+    const details = typeof record.details === "string" ? record.details : "";
+    const hint = typeof record.hint === "string" ? record.hint : "";
+    const code = typeof record.code === "string" ? record.code : "";
+    const joined = `${rawMessage} ${details} ${hint} ${code}`.toLowerCase();
+
+    if (joined.includes("title_suffix")) {
+      return "投稿タイトルの保存設定を更新しました。もう一度投稿してください。";
+    }
+
+    if (joined.includes("duplicate") || code === "23505") {
+      return "同じ投稿がすでに保存されています。画面を更新して確認してください。";
+    }
+
+    if (joined.includes("row-level security") || code === "42501") {
+      return "投稿する権限がありません。ログイン状態を確認してください。";
+    }
+
+    if (rawMessage) return rawMessage;
+  }
+
+  return "投稿に失敗しました。時間を置いてもう一度お試しください。";
+}
 
 export default function CameraPost({ onBack }: CameraPostProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -194,12 +235,11 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       });
   
       onBack();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("投稿エラー:", error);
       setPopup({
         title: "投稿に失敗しました",
-        message: `型: ${typeof error}
-内容: ${String(error)}`,
+        message: getPostErrorMessage(error),
       });
     } finally {
       setIsPublishing(false);

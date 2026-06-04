@@ -129,6 +129,48 @@ export async function deletePostData(postId: string | number, targetPost?: Post)
   }
 }
 
+function isMissingTitleSuffixColumnError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+
+  const record = error as { message?: unknown; details?: unknown; hint?: unknown; code?: unknown };
+  const text = [record.message, record.details, record.hint, record.code]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ")
+    .toLowerCase();
+
+  return text.includes("title_suffix");
+}
+
+async function upsertPostWithOptionalTitleSuffix(
+  postData: Record<string, unknown>,
+  fallbackPostData: Record<string, unknown>
+) {
+  const result = await supabase
+    .from("posts")
+    .upsert(postData, {
+      onConflict: "user_id,draft_id",
+    })
+    .select()
+    .single();
+
+  if (!result.error || !isMissingTitleSuffixColumnError(result.error)) {
+    return result;
+  }
+
+  console.warn(
+    "posts.title_suffix が未作成のため、タイトル末尾なしで投稿します。必要に応じて supabase/add-post-title-suffix.sql を実行してください。",
+    result.error
+  );
+
+  return supabase
+    .from("posts")
+    .upsert(fallbackPostData, {
+      onConflict: "user_id,draft_id",
+    })
+    .select()
+    .single();
+}
+
 export async function publishPostData({
   userId,
   userName,
@@ -185,7 +227,7 @@ export async function publishPostData({
     .eq("draft_id", draftId)
     .maybeSingle();
 
-  const nextPostData = {
+  const basePostData = {
     user_id: userId,
     user_name: userName,
     post_date: today,
@@ -195,16 +237,17 @@ export async function publishPostData({
     finished_photo: finishedPhotoUrl ?? existingPost?.finished_photo ?? null,
     dish_name: dishName || existingPost?.dish_name || null,
     memo: memo || existingPost?.memo || null,
+  };
+
+  const nextPostData = {
+    ...basePostData,
     title_suffix: titleSuffix || existingPost?.title_suffix || "作りました",
   };
 
-  const { data, error } = await supabase
-    .from("posts")
-    .upsert(nextPostData, {
-      onConflict: "user_id,draft_id",
-    })
-    .select()
-    .single();
+  const { data, error } = await upsertPostWithOptionalTitleSuffix(
+    nextPostData,
+    basePostData
+  );
 
     if (error) {
       throw error;
