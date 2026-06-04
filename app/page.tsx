@@ -207,6 +207,12 @@ export default function Home() {
     }
 
     if (!data) {
+      setPosts((prev) =>
+        prev.filter((post) => String(post.id) !== normalizedPostId)
+      );
+      setHighlightedPostId((current) =>
+        String(current) === normalizedPostId ? null : current
+      );
       setPopup({
         title: "削除された投稿です",
         message: "",

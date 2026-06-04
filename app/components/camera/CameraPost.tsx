@@ -350,7 +350,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
               <input
                value={dishName}
                onChange={(e) => setDishName(e.target.value)}
-                placeholder="例：アスパラベーコン"
+                placeholder=""
                 className="mt-2 w-full rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
              />
 
@@ -359,7 +359,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                 <button
                   type="button"
                   onClick={() => setIsSuffixOpen((v) => !v)}
-                  className="flex w-full items-center justify-between rounded-[18px] border border-[#f1d59a] bg-white px-4 py-3 text-sm font-black text-[#6b2f13]"
+                  className="flex w-full items-center justify-between rounded-[18px] border border-[#f1d59a] bg-white px-4 py-3 text-xs font-black text-[#6b2f13]"
                 >
                   <span>{titleSuffix === "なし" ? "末尾なし" : titleSuffix}</span>
                   <span className="text-[#f39a00]">{isSuffixOpen ? "▲" : "▼"}</span>
@@ -375,7 +375,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                           setTitleSuffix(suffix);
                           setIsSuffixOpen(false);
                         }}
-                        className={`rounded-full border px-3 py-2 text-xs font-black ${
+                        className={`rounded-full border px-3 py-2 text-[11px] font-black ${
                           titleSuffix === suffix
                             ? "border-[#f39a00] bg-[#f39a00] text-white"
                             : "border-[#f1d59a] bg-white text-[#6b2f13]"
@@ -392,7 +392,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
              <textarea
                value={memo}
                onChange={(e) => setMemo(e.target.value)}
-               placeholder="例：少し焦げたけどおいしくできた"
+               placeholder=""
                rows={3}
                className="mt-2 w-full resize-none rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
              />

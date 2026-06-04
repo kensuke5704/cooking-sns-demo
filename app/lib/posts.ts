@@ -112,8 +112,7 @@ export async function deletePostData(postId: string | number, targetPost?: Post)
     supabase
       .from("notifications")
       .delete()
-      .eq("post_id", postIdValue)
-      .eq("type", "post"),
+      .eq("post_id", postIdValue),
   ];
 
   const relatedResults = await Promise.all(relatedDeletes);
