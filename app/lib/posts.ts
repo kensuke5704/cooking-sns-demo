@@ -109,7 +109,11 @@ export async function deletePostData(postId: string | number, targetPost?: Post)
   const relatedDeletes = [
     supabase.from("comments").delete().eq("post_id", postIdValue),
     supabase.from("likes").delete().eq("post_id", postIdValue),
-    supabase.from("notifications").delete().eq("post_id", postIdValue),
+    supabase
+      .from("notifications")
+      .delete()
+      .eq("post_id", postIdValue)
+      .eq("type", "post"),
   ];
 
   const relatedResults = await Promise.all(relatedDeletes);
@@ -147,6 +151,7 @@ export async function publishPostData({
   userName,
   dishName,
   memo,
+  titleSuffix,
   photos,
   draftId,
 }: {
@@ -154,6 +159,7 @@ export async function publishPostData({
   userName: string;
   dishName: string;
   memo: string;
+  titleSuffix?: "作りました" | "食べました" | "なし";
   photos: {
     prep?: string;
     cooking?: string;
@@ -196,6 +202,12 @@ export async function publishPostData({
     .eq("draft_id", draftId)
     .maybeSingle();
 
+  const baseDishName = dishName.trim() || "今日の料理";
+  const nextDishName =
+    titleSuffix && titleSuffix !== "なし"
+      ? `${baseDishName}を${titleSuffix}`
+      : baseDishName;
+
   const nextPostData = {
     user_id: userId,
     user_name: userName,
@@ -204,7 +216,7 @@ export async function publishPostData({
     prep_photo: prepPhotoUrl ?? existingPost?.prep_photo ?? null,
     cooking_photo: cookingPhotoUrl ?? existingPost?.cooking_photo ?? null,
     finished_photo: finishedPhotoUrl ?? existingPost?.finished_photo ?? null,
-    dish_name: dishName || existingPost?.dish_name || null,
+    dish_name: nextDishName || existingPost?.dish_name || null,
     memo: memo || existingPost?.memo || null,
   };
 
@@ -229,19 +241,17 @@ export async function publishPostData({
       if (friendsError) {
         console.error("投稿通知用の友だち取得エラー:", friendsError);
       } else {
-        const pushTargets = friendsData || [];
+        const friends = friendsData || [];
 
-        if (pushTargets.length > 0) {
-          await Promise.all(
-            pushTargets.map((friend) =>
-              sendPushNotification({
-                toUserId: friend.friend_user_id,
-                title: "ごはんなにかな",
-                body: `${userName}さんが新しい料理を投稿しました`,
-              })
-            )
-          );
-        }
+        await Promise.all(
+          friends.map((friend) =>
+            sendPushNotification({
+              toUserId: friend.friend_user_id,
+              title: "ごはんなにかな",
+              body: `${userName}さんが新しい料理を投稿しました`,
+            })
+          )
+        );
       }
     }
     

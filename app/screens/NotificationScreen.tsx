@@ -9,15 +9,13 @@ import { supabase } from "../lib/supabase";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-const OPENABLE_NOTIFICATION_TYPES = ["like", "comment", "reply"];
-
 type Notification = {
   id: string;
-  post_id: string | number | null;
   message: string;
   type: string;
   read: boolean;
   created_at: string;
+  post_id?: string | number | null;
 };
 
 export default function NotificationScreen({
@@ -25,7 +23,7 @@ export default function NotificationScreen({
   onOpenPost,
 }: {
   onReadChange: () => void;
-  onOpenPost?: (postId: string | number) => void;
+  onOpenPost?: (postId: string | number) => Promise<void> | void;
 }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
@@ -39,24 +37,24 @@ export default function NotificationScreen({
 
     const cutoff = new Date(Date.now() - ONE_DAY_MS).toISOString();
 
-    const { error: oldDeleteError } = await supabase
+    const { error: deleteOldError } = await supabase
       .from("notifications")
       .delete()
       .eq("to_user_id", currentUser.userId)
       .lt("created_at", cutoff);
 
-    if (oldDeleteError) {
-      console.error("古い通知削除エラー:", oldDeleteError);
+    if (deleteOldError) {
+      console.error("古い通知削除エラー:", deleteOldError);
     }
 
-    const { error: postDeleteError } = await supabase
+    const { error: deletePostNotificationError } = await supabase
       .from("notifications")
       .delete()
       .eq("to_user_id", currentUser.userId)
       .eq("type", "post");
 
-    if (postDeleteError) {
-      console.error("投稿通知削除エラー:", postDeleteError);
+    if (deletePostNotificationError) {
+      console.error("投稿通知削除エラー:", deletePostNotificationError);
     }
 
     const { data, error } = await supabase
@@ -86,61 +84,38 @@ export default function NotificationScreen({
     }
   }
 
-  async function openNotification(notification: Notification) {
-    const canOpen =
-      notification.post_id &&
-      OPENABLE_NOTIFICATION_TYPES.includes(notification.type);
-
-    if (!canOpen) return;
-
-    if (!notification.read) {
-      const { error } = await supabase
-        .from("notifications")
-        .update({ read: true })
-        .eq("id", notification.id);
-
-      if (error) {
-        console.error("通知既読エラー:", error);
-      } else {
-        onReadChange();
-      }
-    }
-
-    onOpenPost?.(notification.post_id as string | number);
+  function canOpenPost(notification: Notification) {
+    return ["like", "comment", "reply"].includes(notification.type) && notification.post_id;
   }
 
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
   return (
-    <ScreenShell
-      label="NOTIFICATIONS"
-      title="通知"
-
-    >
+    <ScreenShell label="NOTIFICATIONS" title="通知">
       <SectionCard
         title={notifications.length === 0 ? "通知はありません" : `${notifications.length}件`}
         description={unreadCount > 0 ? `未読 ${unreadCount}` : undefined}
       >
         {notifications.length === 0 ? (
-          <EmptyState
-            title="通知はありません"
-          />
+          <EmptyState title="通知はありません" />
         ) : (
           <div className="space-y-3">
             {notifications.map((notification) => {
-              const canOpen =
-                notification.post_id &&
-                OPENABLE_NOTIFICATION_TYPES.includes(notification.type);
+              const isPostLink = canOpenPost(notification);
 
               return (
                 <button
                   key={notification.id}
                   type="button"
-                  onClick={() => openNotification(notification)}
-                  disabled={!canOpen}
-                  className={`w-full rounded-[20px] border border-[#f1d59a]/55 px-4 py-3 text-left transition ${
+                  disabled={!isPostLink}
+                  onClick={() => {
+                    if (notification.post_id) {
+                      onOpenPost?.(notification.post_id);
+                    }
+                  }}
+                  className={`w-full rounded-[20px] border border-[#f1d59a]/55 px-4 py-3 text-left ${
                     notification.read ? "bg-[#fff4d7]/75" : "bg-[#f39a00]/15"
-                  } ${canOpen ? "active:scale-[0.99]" : "cursor-default"}`}
+                  } ${isPostLink ? "active:scale-[0.99]" : "cursor-default"}`}
                 >
                   <div className="flex items-start gap-3">
                     <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#f39a00]" />

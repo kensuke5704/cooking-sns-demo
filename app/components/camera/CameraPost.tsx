@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getCurrentUser } from "../../lib/auth";
-import { supabase } from "../../lib/supabase";
 import { resizeImageFile } from "../../lib/image";
 import { publishPostData } from "../../lib/posts";
 import CameraCard from "./CameraCard";
@@ -13,12 +12,15 @@ import SectionCard from "../common/SectionCard";
 
 type ShotType = "prep" | "cooking" | "finished";
 
+type TitleSuffix = "作りました" | "食べました" | "なし";
+
 type DailyPhotos = {
   prep?: string;
   cooking?: string;
   finished?: string;
   dishName?: string;
   memo?: string;
+  titleSuffix?: TitleSuffix;
 };
 
 type CameraPostProps = {
@@ -71,6 +73,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [dishName, setDishName] = useState("");
   const [memo, setMemo] = useState("");
+  const [titleSuffix, setTitleSuffix] = useState<TitleSuffix>("作りました");
   const [isPublishing, setIsPublishing] = useState(false);
   const [popup, setPopup] = useState<AppPopupState | null>(null);
 
@@ -83,6 +86,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       setPhotos(parsed);
       setDishName(parsed.dishName || "");
       setMemo(parsed.memo || "");
+      setTitleSuffix(parsed.titleSuffix || "作りました");
     }
   }, []);
 
@@ -111,6 +115,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
         setPhotos({});
         setDishName("");
         setMemo("");
+        setTitleSuffix("作りました");
         setSelectedType(null);
         setIsCameraOn(false);
       },
@@ -122,6 +127,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       ...photos,
       dishName,
       memo,
+      titleSuffix,
     };
   
     savePhotos(nextPhotos);
@@ -155,6 +161,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
         userName: currentUser.name,
         dishName,
         memo,
+        titleSuffix,
         photos,
         draftId,
       });
@@ -171,6 +178,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
         setPhotos({});
         setDishName("");
         setMemo("");
+        setTitleSuffix("作りました");
       }
   
       setPopup({
@@ -343,6 +351,25 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                 placeholder="例：アスパラベーコン"
                 className="mt-2 w-full rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
              />
+
+
+              <label className="mt-4 block text-sm font-black">タイトル末尾</label>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                {(["作りました", "食べました", "なし"] as TitleSuffix[]).map((suffix) => (
+                  <button
+                    key={suffix}
+                    type="button"
+                    onClick={() => setTitleSuffix(suffix)}
+                    className={`rounded-full border px-3 py-2 text-xs font-black ${
+                      titleSuffix === suffix
+                        ? "border-[#f39a00] bg-[#f39a00] text-white"
+                        : "border-[#f1d59a] bg-white text-[#6b2f13]"
+                    }`}
+                  >
+                    {suffix}
+                  </button>
+                ))}
+              </div>
 
              <label className="mt-4 block text-sm font-black">コメント</label>
              <textarea

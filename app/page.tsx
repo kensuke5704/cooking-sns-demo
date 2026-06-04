@@ -39,7 +39,7 @@ export default function Home() {
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
   const [notificationRefreshKey, setNotificationRefreshKey] = useState(0);
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
-  const [targetPostId, setTargetPostId] = useState<string | number | null>(null);
+  const [highlightedPostId, setHighlightedPostId] = useState<string | number | null>(null);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -82,21 +82,6 @@ export default function Home() {
     localStorage.setItem("current-tab", currentTab);
   }, [currentTab]);
 
-  useEffect(() => {
-    if (currentTab !== "ホーム" || targetPostId === null) return;
-
-    const timer = window.setTimeout(() => {
-      const target = document.getElementById(`post-${targetPostId}`);
-      target?.scrollIntoView({ behavior: "smooth", block: "center" });
-
-      window.setTimeout(() => {
-        setTargetPostId(null);
-      }, 1800);
-    }, 120);
-
-    return () => window.clearTimeout(timer);
-  }, [currentTab, targetPostId, posts]);
-
   async function loadUnreadCount() {
     const currentUser = getCurrentUser();
 
@@ -114,14 +99,14 @@ export default function Home() {
       console.error(deleteError);
     }
 
-    const { error: postDeleteError } = await supabase
+    const { error: deletePostNotificationError } = await supabase
       .from("notifications")
       .delete()
       .eq("to_user_id", currentUser.userId)
       .eq("type", "post");
 
-    if (postDeleteError) {
-      console.error(postDeleteError);
+    if (deletePostNotificationError) {
+      console.error(deletePostNotificationError);
     }
 
     const { count, error } = await supabase
@@ -188,6 +173,39 @@ export default function Home() {
     await loadUnreadCount();
   }
 
+  async function openPostFromNotification(postId: string | number) {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("id")
+      .eq("id", postId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("通知先投稿確認エラー:", error);
+      setPopup({
+        title: "投稿を確認できません",
+        message: "時間をおいてもう一度試してください。",
+      });
+      return;
+    }
+
+    if (!data) {
+      setPopup({
+        title: "削除された投稿です",
+        message: "",
+      });
+      return;
+    }
+
+    await loadPosts();
+    setHighlightedPostId(postId);
+    setCurrentTab("ホーム");
+
+    setTimeout(() => {
+      setHighlightedPostId(null);
+    }, 3500);
+  }
+
   async function deletePost(postId: string | number) {
     setPopup({
       title: "投稿を削除しますか？",
@@ -231,13 +249,6 @@ export default function Home() {
     if (!isOwnPost || !isTodayPost) return;
 
     localStorage.removeItem(`daily-cooking-photos-${currentUser.userId}-${today}`);
-  }
-
-  async function openPostFromNotification(postId: string | number) {
-    setTargetPostId(postId);
-    setCurrentTab("ホーム");
-    await loadPosts();
-    await loadUnreadCount();
   }
 
   if (!currentUser) {
@@ -389,7 +400,7 @@ export default function Home() {
                     post={post}
                     onImageClick={(src) => setSelectedImage(src)}
                     onDelete={deletePost}
-                    isHighlighted={String(targetPostId) === String(post.id)}
+                    highlight={String(highlightedPostId) === String(post.id)}
                   />
                 ))}
               </div>
