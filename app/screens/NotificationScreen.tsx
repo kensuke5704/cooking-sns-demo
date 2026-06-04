@@ -7,24 +7,26 @@ import SectionCard from "../components/common/SectionCard";
 import EmptyState from "../components/common/EmptyState";
 import { supabase } from "../lib/supabase";
 
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
 type Notification = {
   id: string;
+  post_id?: string | null;
   message: string;
   type: string;
   read: boolean;
   created_at: string;
-  post_id?: string | number | null;
 };
+
+type NotificationScreenProps = {
+  onReadChange: () => void;
+  onOpenPost?: (postId: string) => void;
+};
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export default function NotificationScreen({
   onReadChange,
   onOpenPost,
-}: {
-  onReadChange: () => void;
-  onOpenPost?: (postId: string | number) => Promise<void> | void;
-}) {
+}: NotificationScreenProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
@@ -35,34 +37,20 @@ export default function NotificationScreen({
     const currentUser = getCurrentUser();
     if (!currentUser) return;
 
-    const cutoff = new Date(Date.now() - ONE_DAY_MS).toISOString();
+    const expiredAt = new Date(Date.now() - ONE_DAY_MS).toISOString();
 
-    const { error: deleteOldError } = await supabase
+    await supabase
       .from("notifications")
       .delete()
       .eq("to_user_id", currentUser.userId)
-      .lt("created_at", cutoff);
-
-    if (deleteOldError) {
-      console.error("古い通知削除エラー:", deleteOldError);
-    }
-
-    const { error: deletePostNotificationError } = await supabase
-      .from("notifications")
-      .delete()
-      .eq("to_user_id", currentUser.userId)
-      .eq("type", "post");
-
-    if (deletePostNotificationError) {
-      console.error("投稿通知削除エラー:", deletePostNotificationError);
-    }
+      .lt("created_at", expiredAt);
 
     const { data, error } = await supabase
       .from("notifications")
       .select("*")
       .eq("to_user_id", currentUser.userId)
       .neq("type", "post")
-      .gte("created_at", cutoff)
+      .gte("created_at", expiredAt)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -75,17 +63,16 @@ export default function NotificationScreen({
     const unreadIds = data?.filter((n) => !n.read).map((n) => n.id) || [];
 
     if (unreadIds.length > 0) {
-      await supabase
-        .from("notifications")
-        .update({ read: true })
-        .in("id", unreadIds);
-
+      await supabase.from("notifications").update({ read: true }).in("id", unreadIds);
       onReadChange();
     }
   }
 
-  function canOpenPost(notification: Notification) {
-    return ["like", "comment", "reply"].includes(notification.type) && notification.post_id;
+  function handleNotificationClick(notification: Notification) {
+    if (!notification.post_id) return;
+    if (!["like", "comment", "reply"].includes(notification.type)) return;
+
+    onOpenPost?.(notification.post_id);
   }
 
   const unreadCount = notifications.filter((notification) => !notification.read).length;
@@ -93,29 +80,27 @@ export default function NotificationScreen({
   return (
     <ScreenShell label="NOTIFICATIONS" title="通知">
       <SectionCard
-        title={notifications.length === 0 ? "通知はありません" : `${notifications.length}件`}
-        description={unreadCount > 0 ? `未読 ${unreadCount}` : undefined}
+        title={notifications.length === 0 ? "通知はありません" : `${notifications.length}件の通知`}
+        description={unreadCount > 0 ? `${unreadCount}件の未読` : undefined}
       >
         {notifications.length === 0 ? (
           <EmptyState title="通知はありません" />
         ) : (
           <div className="space-y-3">
             {notifications.map((notification) => {
-              const isPostLink = canOpenPost(notification);
+              const clickable = Boolean(
+                notification.post_id && ["like", "comment", "reply"].includes(notification.type)
+              );
 
               return (
                 <button
                   key={notification.id}
                   type="button"
-                  disabled={!isPostLink}
-                  onClick={() => {
-                    if (notification.post_id) {
-                      onOpenPost?.(notification.post_id);
-                    }
-                  }}
-                  className={`w-full rounded-[20px] border border-[#f1d59a]/55 px-4 py-3 text-left ${
+                  onClick={() => handleNotificationClick(notification)}
+                  disabled={!clickable}
+                  className={`w-full rounded-[20px] border border-[#f1d59a]/55 px-4 py-3 text-left transition ${
                     notification.read ? "bg-[#fff4d7]/75" : "bg-[#f39a00]/15"
-                  } ${isPostLink ? "active:scale-[0.99]" : "cursor-default"}`}
+                  } ${clickable ? "active:scale-[0.99]" : "cursor-default"}`}
                 >
                   <div className="flex items-start gap-3">
                     <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#f39a00]" />

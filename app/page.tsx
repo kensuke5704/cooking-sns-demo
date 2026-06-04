@@ -19,6 +19,7 @@ import BottomNav from "./components/navigation/BottomNav";
 import AppPopup, { type AppPopupState } from "./components/common/AppPopup";
 import PullToRefresh from "./components/common/PullToRefresh";
 import ScreenShell from "./components/common/ScreenShell";
+import SectionCard from "./components/common/SectionCard";
 import EmptyState from "./components/common/EmptyState";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -39,7 +40,6 @@ export default function Home() {
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
   const [notificationRefreshKey, setNotificationRefreshKey] = useState(0);
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
-  const [highlightedPostId, setHighlightedPostId] = useState<string | number | null>(null);
 
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -82,45 +82,44 @@ export default function Home() {
     localStorage.setItem("current-tab", currentTab);
   }, [currentTab]);
 
+  function isPostVisible(post: Post) {
+    const created = new Date(post.createdAt).getTime();
+    return Date.now() - created <= ONE_DAY_MS;
+  }
 
-  useEffect(() => {
-    if (currentTab !== "ホーム" || highlightedPostId === null) return;
+  async function openPostFromNotification(postId: string) {
+    const currentUser = getCurrentUser();
 
-    const timer = window.setTimeout(() => {
-      document
-        .getElementById(`post-${highlightedPostId}`)
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 120);
+    if (!currentUser) return;
 
-    return () => window.clearTimeout(timer);
-  }, [currentTab, highlightedPostId, posts]);
+    try {
+      const latestPosts = await loadPostsData(currentUser.userId);
+      setPosts(latestPosts);
+
+      const targetPost = latestPosts.find((post) => String(post.id) === String(postId));
+
+      if (!targetPost || !isPostVisible(targetPost)) {
+        setPopup({ title: "削除された投稿です", message: "" });
+        return;
+      }
+
+      setCurrentTab("ホーム");
+
+      window.setTimeout(() => {
+        document
+          .getElementById(`post-${postId}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 120);
+    } catch (error) {
+      console.error("通知遷移エラー:", error);
+      setPopup({ title: "削除された投稿です", message: "" });
+    }
+  }
 
   async function loadUnreadCount() {
     const currentUser = getCurrentUser();
 
     if (!currentUser) return;
-
-    const cutoff = new Date(Date.now() - ONE_DAY_MS).toISOString();
-
-    const { error: deleteError } = await supabase
-      .from("notifications")
-      .delete()
-      .eq("to_user_id", currentUser.userId)
-      .lt("created_at", cutoff);
-
-    if (deleteError) {
-      console.error(deleteError);
-    }
-
-    const { error: deletePostNotificationError } = await supabase
-      .from("notifications")
-      .delete()
-      .eq("to_user_id", currentUser.userId)
-      .eq("type", "post");
-
-    if (deletePostNotificationError) {
-      console.error(deletePostNotificationError);
-    }
 
     const { count, error } = await supabase
       .from("notifications")
@@ -131,7 +130,7 @@ export default function Home() {
       .eq("to_user_id", currentUser.userId)
       .eq("read", false)
       .neq("type", "post")
-      .gte("created_at", cutoff);
+      .gte("created_at", new Date(Date.now() - ONE_DAY_MS).toISOString());
 
     if (error) {
       console.error(error);
@@ -146,15 +145,13 @@ export default function Home() {
 
     if (!currentUser) return;
 
-    const cutoff = new Date(Date.now() - ONE_DAY_MS).toISOString();
-
     const { error } = await supabase
       .from("notifications")
       .update({ read: true })
       .eq("to_user_id", currentUser.userId)
       .eq("read", false)
       .neq("type", "post")
-      .gte("created_at", cutoff);
+      .gte("created_at", new Date(Date.now() - ONE_DAY_MS).toISOString());
 
     if (error) {
       console.error(error);
@@ -167,15 +164,13 @@ export default function Home() {
   async function loadPosts() {
     const currentUser = getCurrentUser();
 
-    if (!currentUser) return [];
+    if (!currentUser) return;
 
     try {
       const loadedPosts = await loadPostsData(currentUser.userId);
       setPosts(loadedPosts);
-      return loadedPosts;
     } catch (error) {
       console.error("投稿取得エラー:", error);
-      return [];
     }
   }
 
@@ -186,65 +181,6 @@ export default function Home() {
   async function refreshCurrentScreen(refresh: () => void) {
     refresh();
     await loadUnreadCount();
-  }
-
-  async function openPostFromNotification(postId: string | number) {
-    const normalizedPostId = String(postId);
-
-    const { data, error } = await supabase
-      .from("posts")
-      .select("id")
-      .eq("id", postId)
-      .maybeSingle();
-
-    if (error) {
-      console.error("通知先投稿確認エラー:", error);
-      setPopup({
-        title: "投稿を確認できません",
-        message: "時間をおいてもう一度試してください。",
-      });
-      return;
-    }
-
-    if (!data) {
-      setPosts((prev) =>
-        prev.filter((post) => String(post.id) !== normalizedPostId)
-      );
-      setHighlightedPostId((current) =>
-        String(current) === normalizedPostId ? null : current
-      );
-      setPopup({
-        title: "削除された投稿です",
-        message: "",
-      });
-      return;
-    }
-
-    const loadedPosts = await loadPosts();
-    const targetPost = loadedPosts.find(
-      (post) => String(post.id) === normalizedPostId
-    );
-
-    if (!targetPost) {
-      setPopup({
-        title: "投稿を表示できません",
-        message: "この投稿は表示対象外です。",
-      });
-      return;
-    }
-
-    setHighlightedPostId(postId);
-    setCurrentTab("ホーム");
-
-    window.setTimeout(() => {
-      document
-        .getElementById(`post-${normalizedPostId}`)
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 180);
-
-    window.setTimeout(() => {
-      setHighlightedPostId(null);
-    }, 3500);
   }
 
   async function deletePost(postId: string | number) {
@@ -356,20 +292,23 @@ export default function Home() {
 
   if (currentTab === "通知") {
     return (
-      <LayoutWithNav
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        unreadCount={unreadCount}
-        onRefresh={() =>
-          refreshCurrentScreen(() => setNotificationRefreshKey((v) => v + 1))
-        }
-      >
-        <NotificationScreen
-          key={notificationRefreshKey}
-          onReadChange={loadUnreadCount}
-          onOpenPost={openPostFromNotification}
-        />
-      </LayoutWithNav>
+      <>
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() =>
+            refreshCurrentScreen(() => setNotificationRefreshKey((v) => v + 1))
+          }
+        >
+          <NotificationScreen
+            key={notificationRefreshKey}
+            onReadChange={loadUnreadCount}
+            onOpenPost={openPostFromNotification}
+          />
+        </LayoutWithNav>
+        <AppPopup popup={popup} onClose={() => setPopup(null)} />
+      </>
     );
   }
 
@@ -393,13 +332,7 @@ export default function Home() {
     );
   }
 
-  const visiblePosts = posts.filter((post) => {
-    const created = new Date(post.createdAt).getTime();
-    const isRecent = Date.now() - created <= ONE_DAY_MS;
-    const isHighlighted = String(post.id) === String(highlightedPostId);
-
-    return isRecent || isHighlighted;
-  });
+  const visiblePosts = posts.filter(isPostVisible);
 
   return (
     <>
@@ -407,7 +340,7 @@ export default function Home() {
         <ScreenShell
           label="HOME"
           title="ホーム"
-
+          subtitle="友だちの投稿をまとめて確認できます。"
           action={
             <NotificationButton
               unreadCount={unreadCount}
@@ -418,39 +351,32 @@ export default function Home() {
             />
           }
         >
-          <section className="mt-5">
-            <div className="mb-4 px-1">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white/80">
-                TODAY'S POSTS
-              </p>
-              <h2 className="mt-1 text-[20px] font-black leading-tight tracking-[-0.03em] text-[#6b2f13]">
-                今日の投稿
-              </h2>
-            </div>
-
+          <SectionCard
+            className="mt-5"
+            label="TODAY'S POSTS"
+            title="今日の投稿"
+            description="投稿から24時間以内の料理が表示されます。"
+          >
             {visiblePosts.length === 0 ? (
-              <div className="rounded-[28px] bg-white/80 p-5 shadow-[0_12px_32px_rgba(107,47,19,0.1)]">
-                <EmptyState
-                  title="投稿はありません"
-                  actionLabel="投稿する"
-                  onAction={() => setCurrentTab("カメラ")}
-                />
-              </div>
+              <EmptyState
+                title="まだ今日の投稿はありません"
+                message="今日の料理を投稿すると、ここに24時間表示されます。"
+                actionLabel="投稿する"
+                onAction={() => setCurrentTab("カメラ")}
+              />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {visiblePosts.map((post) => (
-                  <div key={post.id} id={`post-${post.id}`}>
-                    <PostCard
-                      post={post}
-                      onImageClick={(src) => setSelectedImage(src)}
-                      onDelete={deletePost}
-                      highlight={String(highlightedPostId) === String(post.id)}
-                    />
-                  </div>
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onImageClick={(src) => setSelectedImage(src)}
+                    onDelete={deletePost}
+                  />
                 ))}
               </div>
             )}
-          </section>
+          </SectionCard>
 
         </ScreenShell>
       </PullToRefresh>

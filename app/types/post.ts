@@ -8,6 +8,7 @@ export type Post = {
     finishedPhoto?: string;
     dishName?: string;
     memo?: string;
+    titleSuffix?: "作りました" | "食べました" | "なし";
     userId?: string;
     postDate?: string;
   };

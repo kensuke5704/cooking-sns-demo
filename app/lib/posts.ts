@@ -17,6 +17,7 @@ type PostRow = {
   finished_photo: string;
   dish_name: string;
   memo: string;
+  title_suffix?: "作りました" | "食べました" | "なし" | null;
 };
 
 type ProfileRow = {
@@ -86,6 +87,7 @@ export async function loadPostsData(userId: string): Promise<Post[]> {
         finishedPhoto: post.finished_photo,
         dishName: post.dish_name,
         memo: post.memo,
+        titleSuffix: post.title_suffix || "作りました",
       };
     }) || [];
 
@@ -104,30 +106,6 @@ export function getStoragePathFromUrl(url?: string | null) {
 }
 
 export async function deletePostData(postId: string | number, targetPost?: Post) {
-  const postIdValue = String(postId);
-
-  const relatedDeletes = [
-    supabase.from("comments").delete().eq("post_id", postIdValue),
-    supabase.from("likes").delete().eq("post_id", postIdValue),
-    supabase
-      .from("notifications")
-      .delete()
-      .eq("post_id", postIdValue),
-  ];
-
-  const relatedResults = await Promise.all(relatedDeletes);
-
-  const relatedError = relatedResults.find((result) => result.error)?.error;
-  if (relatedError) {
-    throw relatedError;
-  }
-
-  const { error } = await supabase.from("posts").delete().eq("id", postIdValue);
-
-  if (error) {
-    throw error;
-  }
-
   const imagePaths = [
     getStoragePathFromUrl(targetPost?.prepPhoto),
     getStoragePathFromUrl(targetPost?.cookingPhoto),
@@ -140,8 +118,14 @@ export async function deletePostData(postId: string | number, targetPost?: Post)
       .remove(imagePaths);
 
     if (storageError) {
-      console.error("投稿画像削除エラー:", storageError);
+      throw storageError;
     }
+  }
+
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+
+  if (error) {
+    throw error;
   }
 }
 
@@ -158,7 +142,7 @@ export async function publishPostData({
   userName: string;
   dishName: string;
   memo: string;
-  titleSuffix?: "作りました" | "食べました" | "なし";
+  titleSuffix: "作りました" | "食べました" | "なし";
   photos: {
     prep?: string;
     cooking?: string;
@@ -201,12 +185,6 @@ export async function publishPostData({
     .eq("draft_id", draftId)
     .maybeSingle();
 
-  const baseDishName = dishName.trim() || "今日の料理";
-  const nextDishName =
-    titleSuffix && titleSuffix !== "なし"
-      ? `${baseDishName}を${titleSuffix}`
-      : baseDishName;
-
   const nextPostData = {
     user_id: userId,
     user_name: userName,
@@ -215,8 +193,9 @@ export async function publishPostData({
     prep_photo: prepPhotoUrl ?? existingPost?.prep_photo ?? null,
     cooking_photo: cookingPhotoUrl ?? existingPost?.cooking_photo ?? null,
     finished_photo: finishedPhotoUrl ?? existingPost?.finished_photo ?? null,
-    dish_name: nextDishName || existingPost?.dish_name || null,
+    dish_name: dishName || existingPost?.dish_name || null,
     memo: memo || existingPost?.memo || null,
+    title_suffix: titleSuffix || existingPost?.title_suffix || "作りました",
   };
 
   const { data, error } = await supabase
@@ -240,17 +219,19 @@ export async function publishPostData({
       if (friendsError) {
         console.error("投稿通知用の友だち取得エラー:", friendsError);
       } else {
-        const friends = friendsData || [];
+        const pushTargets = friendsData || [];
 
-        await Promise.all(
-          friends.map((friend) =>
-            sendPushNotification({
-              toUserId: friend.friend_user_id,
-              title: "ごはんなにかな",
-              body: `${userName}さんが新しい料理を投稿しました`,
-            })
-          )
-        );
+        if (pushTargets.length > 0) {
+          await Promise.all(
+            pushTargets.map((friend) =>
+              sendPushNotification({
+                toUserId: friend.friend_user_id,
+                title: "ごはんなにかな",
+                body: `${userName}さんが新しい料理を投稿しました`,
+              })
+            )
+          );
+        }
       }
     }
     

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getCurrentUser } from "../../lib/auth";
+import { supabase } from "../../lib/supabase";
 import { resizeImageFile } from "../../lib/image";
 import { publishPostData } from "../../lib/posts";
 import CameraCard from "./CameraCard";
@@ -11,7 +12,6 @@ import SectionCard from "../common/SectionCard";
 
 
 type ShotType = "prep" | "cooking" | "finished";
-
 type TitleSuffix = "作りました" | "食べました" | "なし";
 
 type DailyPhotos = {
@@ -32,6 +32,8 @@ const shotLabels: Record<ShotType, string> = {
   cooking: "調理",
   finished: "完成",
 };
+
+const titleSuffixOptions: TitleSuffix[] = ["作りました", "食べました", "なし"];
 
 
 function getTodayKey(userId?: string) {
@@ -74,7 +76,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
   const [dishName, setDishName] = useState("");
   const [memo, setMemo] = useState("");
   const [titleSuffix, setTitleSuffix] = useState<TitleSuffix>("作りました");
-  const [isSuffixOpen, setIsSuffixOpen] = useState(false);
+  const [isTitleSuffixOpen, setIsTitleSuffixOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [popup, setPopup] = useState<AppPopupState | null>(null);
 
@@ -117,7 +119,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
         setDishName("");
         setMemo("");
         setTitleSuffix("作りました");
-        setIsSuffixOpen(false);
+        setIsTitleSuffixOpen(false);
         setSelectedType(null);
         setIsCameraOn(false);
       },
@@ -146,9 +148,9 @@ export default function CameraPost({ onBack }: CameraPostProps) {
       return;
     }
 
-    const hasAnyPhoto = Boolean(photos.prep || photos.cooking || photos.finished);
+    const hasPhoto = Boolean(photos.prep || photos.cooking || photos.finished);
 
-    if (!hasAnyPhoto) {
+    if (!hasPhoto) {
       setPopup({ title: "写真を追加してください", message: "" });
       return;
     }
@@ -181,6 +183,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
         setDishName("");
         setMemo("");
         setTitleSuffix("作りました");
+        setIsTitleSuffixOpen(false);
       }
   
       setPopup({
@@ -350,52 +353,55 @@ export default function CameraPost({ onBack }: CameraPostProps) {
               <input
                value={dishName}
                onChange={(e) => setDishName(e.target.value)}
-                placeholder=""
+                placeholder="料理名"
                 className="mt-2 w-full rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
              />
-
-
-              <div className="mt-3">
-                <button
-                  type="button"
-                  onClick={() => setIsSuffixOpen((v) => !v)}
-                  className="flex w-full items-center justify-between rounded-[18px] border border-[#f1d59a] bg-white px-4 py-3 text-xs font-black text-[#6b2f13]"
-                >
-                  <span>{titleSuffix === "なし" ? "末尾なし" : titleSuffix}</span>
-                  <span className="text-[#f39a00]">{isSuffixOpen ? "▲" : "▼"}</span>
-                </button>
-
-                {isSuffixOpen && (
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    {(["作りました", "食べました", "なし"] as TitleSuffix[]).map((suffix) => (
-                      <button
-                        key={suffix}
-                        type="button"
-                        onClick={() => {
-                          setTitleSuffix(suffix);
-                          setIsSuffixOpen(false);
-                        }}
-                        className={`rounded-full border px-3 py-2 text-[11px] font-black ${
-                          titleSuffix === suffix
-                            ? "border-[#f39a00] bg-[#f39a00] text-white"
-                            : "border-[#f1d59a] bg-white text-[#6b2f13]"
-                        }`}
-                      >
-                        {suffix === "なし" ? "なし" : suffix}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
 
              <label className="mt-4 block text-sm font-black">コメント</label>
              <textarea
                value={memo}
                onChange={(e) => setMemo(e.target.value)}
-               placeholder=""
+               placeholder="メモを書く"
                rows={3}
                className="mt-2 w-full resize-none rounded-[18px] border border-[#f1d59a] px-4 py-3 font-bold outline-none"
              />
+
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsTitleSuffixOpen((v) => !v)}
+                  className="flex w-full items-center justify-between rounded-[18px] border border-[#f1d59a] bg-white px-4 py-3 text-left text-sm font-black text-[#6b2f13]"
+                >
+                  <span>{titleSuffix}</span>
+                  <span className="text-xs opacity-50">{isTitleSuffixOpen ? "閉じる" : "選択"}</span>
+                </button>
+
+                {isTitleSuffixOpen && (
+                  <div className="mt-2 grid grid-cols-3 gap-1.5 rounded-[18px] bg-white/80 p-1.5">
+                    {titleSuffixOptions.map((option) => {
+                      const active = titleSuffix === option;
+
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            setTitleSuffix(option);
+                            setIsTitleSuffixOpen(false);
+                          }}
+                          className={`min-w-0 rounded-[14px] px-1.5 py-2 text-[10px] font-black leading-none sm:text-[11px] ${
+                            active
+                              ? "bg-[#6b2f13] text-white"
+                              : "bg-[#fff4d7] text-[#6b2f13]"
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               <button
                 type="button"
