@@ -208,7 +208,7 @@ export default function FriendsPage() {
           <input
             value={friendId}
             onChange={(event) => setFriendId(event.target.value)}
-            placeholder="例：okaasan"
+            placeholder="家族IDを入力"
             className="min-w-0 flex-1 rounded-[18px] border border-[#dfc79d] bg-[#fffaf2] px-4 py-3 text-[15px] font-bold text-[#3f2116] outline-none"
           />
           <button
