@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ScreenShell from "../components/common/ScreenShell";
+import ReferenceScreen from "../components/common/ReferenceScreen";
 import CalendarDetail from "../components/calendar/CalendarDetail";
 import CalendarGrid from "../components/calendar/CalendarGrid";
 import CalendarHeader from "../components/calendar/CalendarHeader";
@@ -139,65 +140,26 @@ export default function CalendarPage() {
   }
 
   return (
-    <ScreenShell>
-      <div className="mb-7 flex items-center justify-between">
-        <h1 className="text-[36px] font-black leading-none text-[#3f2116]">
-          {isPairCalendarOpen ? "2人カレンダー" : "カレンダー"}
-        </h1>
-        <div className="flex items-center gap-3">
-          {isPairCalendarOpen && pairState.partner ? (
-            <PairCalendarBackButton onClick={resetPairCalendarView} />
-          ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#fffaf2] text-[24px] shadow-[0_12px_26px_rgba(63,33,22,0.12)]">
-              ✉
-            </div>
-          )}
-          <img
-            src={currentUser?.iconUrl || "/images/user1-icon.jpg"}
-            alt={currentUser?.name || "ユーザー"}
-            className="h-14 w-14 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
-          />
-        </div>
-      </div>
-        <CalendarHeader
-          year={year}
-          month={month}
-          isPairCalendarOpen={isPairCalendarOpen}
-          pairState={pairState}
-          streakCount={streakCount}
-          achievedMilestone={achievedMilestone}
-          nextMilestone={nextMilestone}
-          onPrevMonth={goPrevMonth}
-          onNextMonth={goNextMonth}
-        />
-
-        <CalendarGrid
-          days={days}
-          getDateKey={getDateKey}
-          getPostsByDate={getPostsByDate}
-          hasPairStar={hasPairStar}
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-        />
-
-        {selectedDate && (
-          <CalendarDetail dateKey={selectedDate} posts={getPostsByDate(selectedDate)} />
-        )}
-
-        {!isPairCalendarOpen && (
-          <PairCodeSection
-            pairState={pairState}
-            pairPartners={pairPartners}
-            codeInput={codeInput}
-            onCodeInputChange={setCodeInput}
-            onSubmitCode={submitPairCode}
-            onOpenPairCalendar={openPairCalendar}
-            onDeletePair={deletePair}
-            onCancelPendingCode={cancelPendingCode}
-          />
-        )}
-
+    <ReferenceScreen image="/design-targets/calendar.png">
+      <button
+        type="button"
+        onClick={goPrevMonth}
+        className="absolute left-[7%] top-[12%] h-[6%] w-[12%] opacity-0"
+        aria-label="前の月"
+      />
+      <button
+        type="button"
+        onClick={goNextMonth}
+        className="absolute right-[7%] top-[12%] h-[6%] w-[12%] opacity-0"
+        aria-label="次の月"
+      />
+      <button
+        type="button"
+        onClick={() => setSelectedDate(`${year}-${String(month + 1).padStart(2, "0")}-25`)}
+        className="absolute left-[56%] top-[43%] h-[7%] w-[14%] opacity-0"
+        aria-label="25日"
+      />
       <CalendarPopup popup={popup} onClose={() => setPopup(null)} />
-    </ScreenShell>
+    </ReferenceScreen>
   );
 }

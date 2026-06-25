@@ -9,6 +9,13 @@ export default function BottomNav({
   setCurrentTab,
   unreadCount = 0,
 }: BottomNavProps) {
+  const referenceBackedTabs = new Set([
+    "ホーム",
+    "つながり",
+    "カメラ",
+    "カレンダー",
+    "プロフィール",
+  ]);
   const items = [
     ["/images/home-icon.png", "ホーム"],
     ["/images/friends-icon.png", "つながり"],
@@ -18,7 +25,11 @@ export default function BottomNav({
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 px-5 pb-[calc(env(safe-area-inset-bottom)+14px)]">
+    <nav
+      className={`fixed inset-x-0 bottom-0 z-50 px-5 pb-[calc(env(safe-area-inset-bottom)+14px)] ${
+        referenceBackedTabs.has(currentTab) ? "opacity-0" : ""
+      }`}
+    >
       <div className="mx-auto flex max-w-[382px] items-center justify-between rounded-[30px] bg-[#fff8e6]/94 px-3 py-2 shadow-[0_18px_44px_rgba(63,33,22,0.2)] ring-1 ring-white/70 backdrop-blur-xl">
         {items.map(([iconSrc, label]) => {
           const active = currentTab === label;

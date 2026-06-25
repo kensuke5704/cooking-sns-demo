@@ -9,6 +9,7 @@ import CameraCard from "./CameraCard";
 import AppPopup, { type AppPopupState } from "../common/AppPopup";
 import ScreenShell from "../common/ScreenShell";
 import SectionCard from "../common/SectionCard";
+import ReferenceScreen, { ReferenceNavOverlay } from "../common/ReferenceScreen";
 
 
 type ShotType = "prep" | "cooking" | "finished";
@@ -25,6 +26,7 @@ type DailyPhotos = {
 
 type CameraPostProps = {
   onBack: () => void;
+  setCurrentTab?: (tab: string) => void;
 };
 
 const shotLabels: Record<ShotType, string> = {
@@ -107,7 +109,7 @@ function getPostErrorMessage(error: unknown) {
   return "投稿に失敗しました。時間を置いてもう一度お試しください。";
 }
 
-export default function CameraPost({ onBack }: CameraPostProps) {
+export default function CameraPost({ onBack, setCurrentTab }: CameraPostProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -345,6 +347,91 @@ export default function CameraPost({ onBack }: CameraPostProps) {
         setPopup({ title: "画像の読み込みに失敗しました", message: "別の画像で試してください。" });
       });
   };
+
+  if (!isCameraOn) {
+    return (
+      <ReferenceScreen image="/design-targets/camera.png">
+        <button
+          type="button"
+          onClick={onBack}
+          className="absolute left-[4%] top-[2.8%] h-[6%] w-[10%] opacity-0"
+          aria-label="戻る"
+        />
+
+        <button
+          type="button"
+          onClick={() => startCamera("prep")}
+          className="absolute left-[4%] top-[23%] h-[13%] w-[88%] opacity-0"
+          aria-label="準備を撮影"
+        />
+        <label className="absolute left-[4%] top-[23%] h-[13%] w-[36%] opacity-0">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => selectPhotoFromLibrary(event, "prep")}
+          />
+        </label>
+
+        <button
+          type="button"
+          onClick={() => startCamera("cooking")}
+          className="absolute left-[4%] top-[37%] h-[13%] w-[88%] opacity-0"
+          aria-label="調理を撮影"
+        />
+        <label className="absolute left-[4%] top-[37%] h-[13%] w-[36%] opacity-0">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => selectPhotoFromLibrary(event, "cooking")}
+          />
+        </label>
+
+        <button
+          type="button"
+          onClick={() => startCamera("finished")}
+          className="absolute left-[4%] top-[51%] h-[13%] w-[88%] opacity-0"
+          aria-label="完成を撮影"
+        />
+        <label className="absolute left-[4%] top-[51%] h-[13%] w-[36%] opacity-0">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => selectPhotoFromLibrary(event, "finished")}
+          />
+        </label>
+
+        <input
+          value={dishName}
+          onChange={(event) => setDishName(event.target.value)}
+          className="absolute left-[9%] top-[68.5%] h-[5.8%] w-[82%] opacity-0"
+          aria-label="料理名"
+        />
+        <textarea
+          value={memo}
+          onChange={(event) => setMemo(event.target.value)}
+          className="absolute left-[9%] top-[79%] h-[6.5%] w-[82%] opacity-0"
+          aria-label="ひとこと"
+        />
+        <button
+          type="button"
+          onClick={publishPost}
+          disabled={isPublishing}
+          className="absolute left-[5%] top-[87.8%] h-[5.8%] w-[90%] opacity-0"
+          aria-label="投稿する"
+        />
+        <button
+          type="button"
+          onClick={savePostText}
+          disabled={isPublishing}
+          className="absolute left-[5%] top-[94%] h-[4.5%] w-[90%] opacity-0"
+          aria-label="下書き保存"
+        />
+        <canvas ref={canvasRef} className="hidden" />
+        {setCurrentTab && <ReferenceNavOverlay setCurrentTab={setCurrentTab} />}
+        <AppPopup popup={popup} onClose={() => setPopup(null)} />
+      </ReferenceScreen>
+    );
+  }
 
   return (
     <ScreenShell>
