@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8b72a;
-  --foreground: #6b2f13;
+  --background: #f4a72d;
+  --foreground: #4b2a1d;
 }
 
 @theme inline {
@@ -23,11 +23,13 @@ html {
 body {
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.28), transparent 34rem),
+    radial-gradient(circle at 16% 0%, rgba(255, 250, 242, 0.62), transparent 28rem),
+    radial-gradient(circle at 88% 8%, rgba(47, 107, 79, 0.2), transparent 20rem),
+    linear-gradient(180deg, #f7b33b 0%, #f2a22d 45%, #dc8328 100%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-noto-sans-jp), system-ui, sans-serif;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
 }
 
 button,
@@ -46,4 +48,24 @@ button:disabled {
 
 img {
   max-width: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-rise-in {
+    animation: home-rise-in 780ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+}
+
+@keyframes home-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
 }

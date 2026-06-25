@@ -18,8 +18,8 @@ export default function BottomNav({
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#f5e7c3] bg-white/95 px-4 pb-[calc(env(safe-area-inset-bottom)+26px)] pt-3 shadow-[0_-8px_24px_rgba(107,47,19,0.05)] backdrop-blur">
-      <div className="mx-auto flex max-w-md items-center justify-between">
+    <nav className="fixed inset-x-0 bottom-0 z-50 px-5 pb-[calc(env(safe-area-inset-bottom)+14px)]">
+      <div className="mx-auto flex max-w-[350px] items-center justify-between rounded-full bg-[#fff8e6]/92 px-3 py-2 shadow-[0_18px_44px_rgba(63,33,22,0.2)] ring-1 ring-white/70 backdrop-blur-xl">
         {items.map(([iconSrc, label]) => {
           const active = currentTab === label;
 
@@ -28,16 +28,16 @@ export default function BottomNav({
               key={label}
               type="button"
               onClick={() => setCurrentTab(label)}
-              className={`relative flex min-w-0 flex-1 items-center justify-center px-1 py-2 transition active:scale-[0.97] ${
-                active ? "text-[#f39a00]" : "text-[#b88748]"
+              className={`relative flex h-11 min-w-0 flex-1 items-center justify-center rounded-full px-1 transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.96] ${
+                active ? "bg-[#f4a72d]/18 text-[#f4a72d]" : "text-[#9d7140]"
               }`}
             >
               <div className="relative">
                 <img
                   src={iconSrc}
                   alt=""
-                  className={`h-7 w-7 object-contain transition ${
-                    active ? "scale-110" : "scale-100 opacity-70"
+                  className={`h-6 w-6 object-contain transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    active ? "scale-110" : "scale-100 opacity-58"
                   }`}
                 />
 
@@ -49,7 +49,7 @@ export default function BottomNav({
               </div>
 
               {active && (
-                <span className="absolute bottom-0 h-1 w-5 rounded-full bg-[#f39a00]" />
+                <span className="absolute bottom-1 h-1 w-4 rounded-full bg-[#f4a72d]" />
               )}
             </button>
           );
