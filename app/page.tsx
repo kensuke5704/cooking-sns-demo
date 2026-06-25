@@ -37,6 +37,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] =
     useState<ReturnType<typeof getCurrentUser>>(null);
   const [popup, setPopup] = useState<AppPopupState | null>(null);
+  const [activePost, setActivePost] = useState<Post | null>(null);
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
   const [notificationRefreshKey, setNotificationRefreshKey] = useState(0);
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
@@ -537,10 +538,9 @@ export default function Home() {
               <div className="space-y-4">
                 {visiblePosts.map((post) => (
                   <div key={post.id} id={`post-${post.id}`}>
-                    <PostCard
+                    <HomeFeedCard
                       post={post}
-                      onImageClick={(src) => setSelectedImage(src)}
-                      onDelete={deletePost}
+                      onOpen={() => setActivePost(post)}
                       highlight={String(highlightedPostId) === String(post.id)}
                     />
                   </div>
@@ -550,6 +550,38 @@ export default function Home() {
           </section>
         </ScreenShell>
       </PullToRefresh>
+
+      {activePost && (
+        <div className="fixed inset-0 z-[90] bg-[#3f2116]/34 px-4 py-5 backdrop-blur-sm">
+          <button
+            type="button"
+            onClick={() => setActivePost(null)}
+            className="absolute inset-0 cursor-default"
+            aria-label="投稿詳細を閉じる"
+          />
+          <div className="absolute inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+18px)] max-h-[86dvh] overflow-y-auto rounded-[34px] bg-[#f4a72d] p-3 shadow-[0_28px_80px_rgba(63,33,22,0.28)]">
+            <div className="mb-2 flex items-center justify-between px-2">
+              <p className="text-sm font-black text-[#3f2116]">投稿の操作</p>
+              <button
+                type="button"
+                onClick={() => setActivePost(null)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#fff8e6] text-lg font-black text-[#3f2116]"
+                aria-label="閉じる"
+              >
+                ×
+              </button>
+            </div>
+            <PostCard
+              post={activePost}
+              onImageClick={(src) => setSelectedImage(src)}
+              onDelete={(postId) => {
+                setActivePost(null);
+                deletePost(postId);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {selectedImage && (
         <ImageModal
@@ -566,5 +598,92 @@ export default function Home() {
         unreadCount={unreadCount}
       />
     </>
+  );
+}
+
+function HomeFeedCard({
+  post,
+  onOpen,
+  highlight = false,
+}: {
+  post: Post;
+  onOpen: () => void;
+  highlight?: boolean;
+}) {
+  const photos = [
+    { label: "準備", src: post.prepPhoto, rotate: "-rotate-[3deg]" },
+    { label: "調理", src: post.cookingPhoto, rotate: "rotate-[1deg]" },
+    { label: "完成", src: post.finishedPhoto, rotate: "rotate-[4deg]" },
+  ];
+  const title = post.dishName
+    ? post.titleSuffix === "なし"
+      ? post.dishName
+      : `${post.dishName}を${post.titleSuffix || "作りました"}`
+    : "今日の料理を記録しました";
+
+  return (
+    <article
+      className={`rounded-[18px] bg-[#fffaf2] p-3 shadow-[0_12px_28px_rgba(63,33,22,0.12)] ring-1 ring-white/70 ${
+        highlight ? "ring-4 ring-[#2f6b4f]/35" : ""
+      }`}
+    >
+      <button type="button" onClick={onOpen} className="block w-full text-left">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#dcebc9] text-[16px] font-black text-[#2f6b4f] ring-2 ring-[#fff8e6]">
+              {(post.userName || "家").slice(0, 1)}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-black leading-tight text-[#3f2116]">
+                {post.userName}
+              </p>
+              <p className="mt-0.5 text-[10px] font-bold leading-none text-[#3f2116]/48">
+                今日の投稿
+              </p>
+            </div>
+          </div>
+          <span className="text-[18px] font-black leading-none text-[#3f2116]/42">…</span>
+        </div>
+
+        <h3 className="mt-2 truncate text-[14px] font-black leading-tight text-[#3f2116]">
+          {title}
+        </h3>
+
+        <div className="mt-2 grid grid-cols-3 gap-1.5">
+          {photos.map((photo) => (
+            <div
+              key={photo.label}
+              className={`relative rounded-[5px] bg-[#fffaf2] p-1 pb-5 shadow-[0_8px_16px_rgba(63,33,22,0.13)] ring-1 ring-[#ead8b6] ${photo.rotate}`}
+            >
+              {photo.src ? (
+                <img
+                  src={photo.src}
+                  alt={photo.label}
+                  draggable={false}
+                  className="aspect-[4/3] w-full rounded-[4px] object-cover"
+                />
+              ) : (
+                <div className="flex aspect-[4/3] w-full items-center justify-center rounded-[4px] bg-[#f4a72d]/12 text-[10px] font-black text-[#2f6b4f]">
+                  {photo.label}
+                </div>
+              )}
+              <p className="absolute inset-x-0 bottom-1 text-center text-[10px] font-black leading-none text-[#3f2116]">
+                {photo.label}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {post.memo && (
+          <p className="mt-2 truncate text-[11px] font-bold text-[#3f2116]/58">
+            {post.memo}
+          </p>
+        )}
+      </button>
+      <div className="mt-2 flex gap-4 text-[11px] font-black text-[#3f2116]/60">
+        <span>♡ いいね</span>
+        <span>□ コメント</span>
+      </div>
+    </article>
   );
 }
