@@ -21,7 +21,6 @@ import AppPopup, { type AppPopupState } from "./components/common/AppPopup";
 import PullToRefresh from "./components/common/PullToRefresh";
 import ScreenShell from "./components/common/ScreenShell";
 import EmptyState from "./components/common/EmptyState";
-import ReferenceScreen, { ReferenceNavOverlay } from "./components/common/ReferenceScreen";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -316,7 +315,6 @@ export default function Home() {
     return (
       <>
         <CameraPost
-          setCurrentTab={setCurrentTab}
           onBack={() => {
             setCurrentTab("ホーム");
             loadPosts();
@@ -445,36 +443,113 @@ export default function Home() {
 
   return (
     <>
-      <ReferenceScreen image="/design-targets/home.png">
-        <button
-          type="button"
-          onClick={() => {
-            setCurrentTab("通知");
-            markNotificationsAsRead();
-          }}
-          className="absolute right-[16%] top-[3.7%] h-[6%] w-[12%] opacity-0"
-          aria-label="通知"
-        />
-        <button
-          type="button"
-          onClick={() => setCurrentTab("カメラ")}
-          className="absolute left-[7%] top-[20%] h-[5.7%] w-[28%] opacity-0"
-          aria-label="撮る"
-        />
-        <button
-          type="button"
-          onClick={() => setCurrentTab("カレンダー")}
-          className="absolute left-[40%] top-[20%] h-[5.7%] w-[28%] opacity-0"
-          aria-label="カレンダー"
-        />
-        <button
-          type="button"
-          onClick={() => setCurrentTab("カレンダー")}
-          className="absolute right-[7%] top-[30.5%] h-[4.5%] w-[24%] opacity-0"
-          aria-label="すべて見る"
-        />
-        <ReferenceNavOverlay setCurrentTab={setCurrentTab} />
-      </ReferenceScreen>
+      <PullToRefresh onRefresh={refreshHome}>
+        <ScreenShell>
+          <section className="home-rise-in">
+            <div className="flex items-center justify-between">
+              <div className="text-[26px] font-black text-[#3f2116]">
+                ごはんなにかな
+              </div>
+
+              <div className="flex items-center gap-2">
+                <NotificationButton
+                  unreadCount={unreadCount}
+                  onClick={() => {
+                    setCurrentTab("通知");
+                    markNotificationsAsRead();
+                  }}
+                />
+                <img
+                  src={currentUser.iconUrl || "/images/user1-icon.jpg"}
+                  alt={currentUser.name}
+                  className="h-12 w-12 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-[28px] bg-[#fff8e6] p-6 shadow-[0_18px_40px_rgba(63,33,22,0.13)] ring-1 ring-white/60">
+              <div className="grid grid-cols-[1fr_118px] gap-4">
+                <div className="min-w-0">
+                  <h1 className="text-[28px] font-black leading-[1.12] text-[#3f2116]">
+                    今日のごはん、
+                    <br />
+                    届いてるよ
+                  </h1>
+                  <p className="mt-3 text-[14px] font-bold leading-relaxed text-[#3f2116]/68">
+                    準備、調理、完成まで。家族の料理がそっと残ります。
+                  </p>
+                </div>
+
+                <div className="relative min-h-[116px]" aria-hidden="true">
+                  <div className="absolute right-2 top-2 h-20 w-24 rounded-[26px] bg-[#f4a72d]/28" />
+                  <div className="absolute right-1 top-8 h-16 w-20 rounded-b-[28px] rounded-t-[18px] bg-[#f4a72d] ring-2 ring-[#d8942a]/25" />
+                  <div className="absolute right-5 top-14 h-5 w-10 rounded-full bg-[#fff8e6]/70" />
+                  <div className="absolute right-0 top-10 h-9 w-3 rounded-r-full border-2 border-[#d8942a]/45" />
+                  <div className="absolute right-20 top-9 h-9 w-3 rounded-l-full border-2 border-[#d8942a]/45" />
+                  <div className="absolute right-7 top-0 h-5 w-12 rounded-full border-2 border-[#d8942a]/45" />
+                </div>
+              </div>
+
+              <div className="mt-5 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCurrentTab("カメラ")}
+                  className="flex h-12 flex-1 items-center justify-center rounded-full bg-[#2f6b4f] px-5 py-3 text-[16px] font-black text-[#fff8e6] shadow-[0_12px_24px_rgba(47,107,79,0.2)] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]"
+                >
+                  撮る
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentTab("カレンダー")}
+                  className="flex h-12 flex-1 items-center justify-center rounded-full bg-[#fff8e6] px-5 py-3 text-[15px] font-black text-[#3f2116] shadow-[inset_0_0_0_1px_rgba(122,67,40,0.16)] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]"
+                >
+                  カレンダー
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-7 home-rise-in [animation-delay:120ms]">
+            <div className="mb-3 flex items-center justify-between px-1">
+              <h2 className="text-[24px] font-black leading-tight text-[#3f2116]">
+                家族の食卓
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => setCurrentTab("カレンダー")}
+                className="rounded-full bg-[#2f6b4f] px-4 py-2 text-[13px] font-black text-[#fff8e6] shadow-[0_12px_24px_rgba(47,107,79,0.2)] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]"
+              >
+                すべて見る
+              </button>
+            </div>
+
+            {visiblePosts.length === 0 ? (
+              <div className="rounded-[32px] bg-[#fffaf2]/88 p-5 shadow-[0_18px_44px_rgba(75,42,29,0.12)] ring-1 ring-white/60">
+                <EmptyState
+                  title="投稿はありません"
+                  actionLabel="投稿する"
+                  onAction={() => setCurrentTab("カメラ")}
+                />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {visiblePosts.map((post) => (
+                  <div key={post.id} id={`post-${post.id}`}>
+                    <PostCard
+                      post={post}
+                      onImageClick={(src) => setSelectedImage(src)}
+                      onDelete={deletePost}
+                      highlight={String(highlightedPostId) === String(post.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </ScreenShell>
+      </PullToRefresh>
 
       {selectedImage && (
         <ImageModal
