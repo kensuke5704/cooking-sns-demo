@@ -6,6 +6,7 @@ import CameraPost from "./components/camera/CameraPost";
 import PostCard from "./components/post/PostCard";
 import RecipePage from "./screens/RecipeScreen";
 import CalendarPage from "./screens/CalendarScreen";
+import FriendsPage from "./screens/FriendsScreen";
 import AuthPage from "./screens/AuthScreen";
 import { getCurrentUser } from "./lib/auth";
 import ProfilePage from "./screens/ProfileScreen";
@@ -334,6 +335,22 @@ export default function Home() {
           onRefresh={() => loadUnreadCount()}
         >
           <RecipePage />
+        </LayoutWithNav>
+        {popupElement}
+      </>
+    );
+  }
+
+  if (currentTab === "つながり") {
+    return (
+      <>
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() => refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))}
+        >
+          <FriendsPage key={profileRefreshKey} />
         </LayoutWithNav>
         {popupElement}
       </>

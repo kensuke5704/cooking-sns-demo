@@ -37,6 +37,8 @@ Fail the release if the total reproduction score is below 98%, even when the app
 ## Required Verification Before Release
 
 - Capture the home screen at 390px width and compare it against `outputs/home-cheki-dynamic-layout-9x16.png`.
+- Capture camera, calendar, connections, and my page at 390px width and compare them against `outputs/page-camera-cheki-9x16.png`, `outputs/page-calendar-cheki-9x16.png`, `outputs/page-connections-cheki-9x16.png`, and `outputs/page-mypage-cheki-9x16.png`.
 - Check that at least one post with three photos renders as Cheki frames using existing post data.
 - Inspect long user names, long dish names, and long memos for wrapping or truncation.
 - Run static checks and record any pre-existing failures separately from this UI change.
+- If a decorative illustration cannot be expressed without risking app functionality, prefer a static generated asset inside a non-interactive illustration area. Do not replace functional forms, photos, lists, or navigation with flat screenshots.

@@ -1,5 +1,6 @@
 import EmptyState from "../common/EmptyState";
 import type { Post } from "../../types/post";
+import MiniChekiTriplet from "../post/MiniChekiTriplet";
 
 type CalendarDetailProps = {
   dateKey: string;
@@ -8,9 +9,17 @@ type CalendarDetailProps = {
 
 export default function CalendarDetail({ dateKey, posts }: CalendarDetailProps) {
   return (
-    <section className="mt-5 rounded-[28px] border border-white/75 bg-white/95 p-5 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
-      <p className="text-xs font-black text-[#f39a00]">SELECTED DAY</p>
-      <h2 className="mt-1 text-2xl font-black">{dateKey}</h2>
+    <section className="mt-5 rounded-[30px] bg-[#fffaf2]/94 p-5 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-[24px] font-black text-[#3f2116]">
+            {formatDateLabel(dateKey)}の食卓
+          </h2>
+        </div>
+        <button className="shrink-0 rounded-full bg-[#fff8e6] px-4 py-2 text-sm font-black text-[#3f2116] ring-1 ring-[#dfc79d]/70">
+          編集
+        </button>
+      </div>
 
       {posts.length === 0 ? (
         <div className="mt-4">
@@ -31,7 +40,7 @@ export default function CalendarDetail({ dateKey, posts }: CalendarDetailProps) 
 
 function CalendarPost({ post }: { post: Post }) {
   return (
-    <div className="rounded-[24px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 p-4">
+    <div className="rounded-[24px] border border-[#dfc79d]/65 bg-[#fff8e6]/62 p-4">
       <div className="flex items-center gap-3">
         <img
           src={post.userIcon || "/images/user1-icon.jpg"}
@@ -49,36 +58,23 @@ function CalendarPost({ post }: { post: Post }) {
         </div>
       </div>
 
+      <h3 className="mt-4 break-words text-[21px] font-black text-[#3f2116]">
+        {post.dishName || "今日の料理"}
+      </h3>
+      <MiniChekiTriplet post={post} className="mt-4" />
       {post.memo && (
-        <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-sm font-bold">
+        <p className="mt-5 rounded-[20px] bg-[#fffaf2] px-4 py-3 text-sm font-bold leading-relaxed text-[#3f2116]">
           {post.memo}
         </p>
       )}
-
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        <CalendarPhoto label="準備" src={post.prepPhoto} />
-        <CalendarPhoto label="調理" src={post.cookingPhoto} />
-        <CalendarPhoto label="完成" src={post.finishedPhoto} />
-      </div>
     </div>
   );
 }
 
-function CalendarPhoto({ label, src }: { label: string; src?: string | null }) {
-  if (!src) {
-    return (
-      <div className="flex aspect-[3/4] items-center justify-center rounded-2xl border-2 border-dashed border-[#f1d59a] bg-white/60 text-sm font-black text-[#6b2f13]/40">
-        {label}
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white p-2 pb-6 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
-      <img src={src} alt={label} className="aspect-[3/4] w-full object-cover" />
-      <p className="mt-1 text-center text-[11px] font-black text-[#6b2f13]">
-        {label}
-      </p>
-    </div>
-  );
+function formatDateLabel(dateKey: string) {
+  const date = new Date(`${dateKey}T00:00:00`);
+  return date.toLocaleDateString("ja-JP", {
+    month: "numeric",
+    day: "numeric",
+  });
 }

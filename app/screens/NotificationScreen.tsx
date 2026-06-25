@@ -91,7 +91,12 @@ export default function NotificationScreen({
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
   return (
-    <ScreenShell label="NOTIFICATIONS" title="通知">
+    <ScreenShell>
+      <div className="mb-7 flex items-center justify-between">
+        <h1 className="text-[36px] font-black leading-none text-[#3f2116]">
+          通知
+        </h1>
+      </div>
       <SectionCard
         title={notifications.length === 0 ? "通知はありません" : `${notifications.length}件`}
         description={unreadCount > 0 ? `未読 ${unreadCount}` : undefined}

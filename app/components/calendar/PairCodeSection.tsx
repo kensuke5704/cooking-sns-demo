@@ -26,12 +26,11 @@ export default function PairCodeSection({
   const canInputCode = pairState.status === "none" || pairState.status === "paired";
 
   return (
-    <section className="mt-5 rounded-[28px] border border-white/75 bg-white/95 p-5 shadow-[0_16px_44px_rgba(107,47,19,0.13)]">
-      <p className="text-xs font-black text-[#f39a00]">GIFT CONNECTION</p>
-      <h2 className="mt-1 text-2xl font-black">2人カレンダー</h2>
+    <section className="mt-5 rounded-[30px] bg-[#fffaf2]/94 p-5 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+      <h2 className="text-[22px] font-black text-[#3f2116]">今月のつながり</h2>
 
       {pairState.status === "loading" && (
-        <p className="mt-4 rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-4 text-sm font-bold text-[#6b2f13]/70">
+        <p className="mt-4 rounded-[20px] border border-[#dfc79d]/65 bg-[#fff8e6]/75 px-4 py-4 text-sm font-bold text-[#3f2116]/70">
           確認中です
         </p>
       )}
@@ -60,9 +59,9 @@ export default function PairCodeSection({
       )}
 
       {hasPendingCode && (
-        <div className="mt-4 rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-4">
+        <div className="mt-4 rounded-[20px] border border-[#dfc79d]/65 bg-[#fff8e6]/75 px-4 py-4">
           <p className="text-sm font-black">入力済みコード：{pairState.code}</p>
-          <p className="mt-2 text-sm font-bold text-[#6b2f13]/70">
+          <p className="mt-2 text-sm font-bold text-[#3f2116]/70">
             相手が入力すると2人カレンダーが作成されます。キャンセルすると、新しいコードを入力できます。
           </p>
           <button
@@ -77,19 +76,19 @@ export default function PairCodeSection({
 
       {canInputCode && (
         <div className="mt-5 space-y-3">
-          <p className="text-sm font-bold text-[#6b2f13]/70">
+          <p className="text-sm font-bold text-[#3f2116]/70">
             新しい2人カレンダーを追加する場合は、有効なコードを入力してください。
           </p>
           <input
             value={codeInput}
             onChange={(e) => onCodeInputChange(e.target.value)}
             placeholder="コードを入力"
-            className="w-full rounded-[20px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 px-4 py-4 text-sm font-black outline-none"
+            className="w-full rounded-[20px] border border-[#dfc79d]/65 bg-[#fffaf2] px-4 py-4 text-sm font-black text-[#3f2116] outline-none"
           />
           <button
             type="button"
             onClick={onSubmitCode}
-            className="w-full rounded-full bg-[#f39a00] py-3 text-sm font-black text-white shadow-[0_10px_24px_rgba(107,47,19,0.12)]"
+            className="w-full rounded-full bg-[#0f6a47] py-3 text-sm font-black text-[#fff8e6] shadow-[0_10px_24px_rgba(15,106,71,0.16)]"
           >
             コードを登録する
           </button>
@@ -109,7 +108,7 @@ function PairPartnerCard({
   onDeletePair: (code: string) => void;
 }) {
   return (
-    <div className="flex w-full items-center gap-3 rounded-[24px] border border-[#f1d59a]/65 bg-[#fff4d7]/75 p-4">
+    <div className="flex w-full items-center gap-3 rounded-[24px] border border-[#dfc79d]/65 bg-[#fff8e6]/75 p-4">
       <button
         type="button"
         onClick={() => onOpenPairCalendar(pair)}
@@ -123,8 +122,8 @@ function PairPartnerCard({
         />
 
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-black text-[#f39a00]">{pair.code}</p>
-          <p className="truncate font-black text-[#6b2f13]">
+          <p className="text-xs font-black text-[#0f6a47]">{pair.code}</p>
+          <p className="truncate font-black text-[#3f2116]">
             {pair.partner.name || pair.partner.user_id}
           </p>
         </div>
