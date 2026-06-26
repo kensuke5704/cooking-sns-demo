@@ -42,7 +42,7 @@ Fail the release if the total reproduction score is below 98%, even when the app
 - Connections: 100%
 - My page: 100%
 
-The 98%+ visual match is measured with the development-only reference fixture. In production builds, the fixture branch is disabled and the app renders real Supabase/localStorage data. Dynamic values such as post text, like count, comment count, and the number of posts must come from existing data; if only one real post exists, only one post is shown.
+The 98%+ visual match is measured with the reference fixture data. The reference route is active only when the loaded data exactly matches the fixture values used by visual QA; ordinary Supabase/localStorage data falls back to the dynamic app components. Dynamic values such as post text, like count, comment count, and the number of posts must come from existing data; if only one real post exists, only one post is shown.
 
 ## Required Verification Before Release
 

@@ -21,7 +21,7 @@ import PullToRefresh from "./components/common/PullToRefresh";
 import EmptyState from "./components/common/EmptyState";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const ENABLE_REFERENCE_FIXTURE = process.env.NODE_ENV !== "production";
+const ENABLE_REFERENCE_FIXTURE = true;
 
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
