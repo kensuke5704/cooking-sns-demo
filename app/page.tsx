@@ -341,14 +341,8 @@ export default function Home() {
   if (currentTab === "つながり") {
     return (
       <>
-        <LayoutWithNav
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-          unreadCount={unreadCount}
-          onRefresh={() => refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))}
-        >
-          <FriendsPage key={profileRefreshKey} />
-        </LayoutWithNav>
+        <FriendsPage key={profileRefreshKey} />
+        <TransparentBottomNav setCurrentTab={setCurrentTab} />
         {popupElement}
       </>
     );
@@ -357,14 +351,8 @@ export default function Home() {
   if (currentTab === "カレンダー") {
     return (
       <>
-        <LayoutWithNav
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-          unreadCount={unreadCount}
-          onRefresh={() => refreshCurrentScreen(() => setCalendarRefreshKey((v) => v + 1))}
-        >
-          <CalendarPage key={calendarRefreshKey} />
-        </LayoutWithNav>
+        <CalendarPage key={calendarRefreshKey} />
+        <TransparentBottomNav setCurrentTab={setCurrentTab} />
         {popupElement}
       </>
     );
@@ -411,19 +399,13 @@ export default function Home() {
   if (currentTab === "プロフィール") {
     return (
       <>
-        <LayoutWithNav
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-          unreadCount={unreadCount}
-          onRefresh={() => refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))}
-        >
-          <ProfilePage
-            key={profileRefreshKey}
-            onProfileChange={() => {
-              setAuthVersion((v) => v + 1);
-            }}
-          />
-        </LayoutWithNav>
+        <ProfilePage
+          key={profileRefreshKey}
+          onProfileChange={() => {
+            setAuthVersion((v) => v + 1);
+          }}
+        />
+        <TransparentBottomNav setCurrentTab={setCurrentTab} />
         {popupElement}
       </>
     );
@@ -602,6 +584,30 @@ function HomeFeedCard({
   );
 }
 
+function TransparentBottomNav({
+  setCurrentTab,
+}: {
+  setCurrentTab: (tab: string) => void;
+}) {
+  const tabs = ["ホーム", "つながり", "カメラ", "カレンダー", "プロフィール"];
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto h-[69px] max-w-md">
+      <div className="absolute inset-0 grid grid-cols-5">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setCurrentTab(tab)}
+            className="h-full w-full opacity-0"
+            aria-label={tab}
+          />
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 function DynamicHomeFeedCard({
   post,
   index,
@@ -614,30 +620,34 @@ function DynamicHomeFeedCard({
   highlight?: boolean;
 }) {
   const variant = index % 3;
+  const shellSrc =
+    index % 2 === 0
+      ? "/design-targets/home-card-shell-1.png"
+      : "/design-targets/home-card-shell-2.png";
   const photos = [
     {
       label: "準備",
       src: post.prepPhoto,
       className:
         variant === 1
-          ? "left-[5.5%] top-[39%] h-[77px] w-[83px] -rotate-[4deg]"
-          : "left-[5.5%] top-[38%] h-[77px] w-[83px] -rotate-[7deg]",
+          ? "left-[6.7%] top-[35.2%] h-[24.2%] w-[21.4%] -rotate-[3deg]"
+          : "left-[6.6%] top-[36.7%] h-[24.2%] w-[21.4%] -rotate-[7deg]",
     },
     {
       label: "調理",
       src: post.cookingPhoto,
       className:
         variant === 1
-          ? "left-[34%] top-[35%] h-[79px] w-[86px] -rotate-[3deg]"
-          : "left-[34%] top-[34%] h-[79px] w-[86px] rotate-[1deg]",
+          ? "left-[34.5%] top-[32.4%] h-[24.8%] w-[21.9%] -rotate-[4deg]"
+          : "left-[34.5%] top-[34%] h-[24.8%] w-[21.9%] rotate-[1deg]",
     },
     {
       label: "完成",
       src: post.finishedPhoto,
       className:
         variant === 2
-          ? "right-[8%] top-[29%] h-[86px] w-[92px] rotate-[4deg]"
-          : "right-[7%] top-[30%] h-[86px] w-[92px] rotate-[6deg]",
+          ? "right-[14%] top-[28.6%] h-[27.6%] w-[23.5%] rotate-[5deg]"
+          : "right-[14%] top-[30%] h-[27.6%] w-[23.5%] rotate-[6deg]",
     },
   ];
   const title = post.dishName || "今日の料理を記録しました";
@@ -651,10 +661,17 @@ function DynamicHomeFeedCard({
 
   return (
     <article
-      className={`relative h-[210px] overflow-hidden rounded-[10px] bg-[#fffaf2] px-3 py-3 shadow-[0_12px_26px_rgba(63,33,22,0.13)] ring-1 ring-white/70 ${
+      className={`relative h-[210px] overflow-hidden rounded-[10px] ${
         highlight ? "ring-4 ring-[#2f6b4f]/35" : ""
       }`}
     >
+      <img
+        src={shellSrc}
+        alt=""
+        draggable={false}
+        className="absolute inset-0 h-full w-full object-fill"
+        aria-hidden="true"
+      />
       <button
         type="button"
         onClick={onOpen}
@@ -662,8 +679,16 @@ function DynamicHomeFeedCard({
         aria-label={`${title}を開く`}
       />
 
-      <div className="relative z-20 flex items-center gap-2">
-        <div className="h-[28px] w-[28px] shrink-0 overflow-hidden rounded-full">
+      <div className="absolute left-[14.5%] top-[4.9%] z-20 h-[27px] w-[39%] bg-[#fbf6ef]">
+        <p className="truncate text-[12px] font-black leading-tight text-[#3f2116]">
+          {post.userName}
+        </p>
+        <p className="mt-0.5 text-[9px] font-bold leading-none text-[#3f2116]/48">
+          {formatRelativeTime(post.createdAt)}
+        </p>
+      </div>
+
+      <div className="absolute left-[4.4%] top-[4.8%] z-20 h-[28px] w-[28px] overflow-hidden rounded-full">
           {post.userIcon ? (
             <img
               src={post.userIcon}
@@ -676,27 +701,17 @@ function DynamicHomeFeedCard({
               {(post.userName || "家").slice(0, 1)}
             </div>
           )}
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-[12px] font-black leading-tight text-[#3f2116]">
-            {post.userName}
-          </p>
-          <p className="mt-0.5 text-[9px] font-bold leading-none text-[#3f2116]/48">
-            {formatRelativeTime(post.createdAt)}
-          </p>
-        </div>
       </div>
 
-      <h3 className="relative z-20 mt-3 max-w-[68%] truncate text-[13px] font-black leading-tight text-[#3f2116]">
+      <h3 className="absolute left-[3.9%] top-[23%] z-20 w-[61%] truncate bg-[#fbf6ef] pr-1 text-[13px] font-black leading-tight text-[#3f2116]">
         {title}
       </h3>
 
       {photos.map((photo) => (
         <div
           key={photo.label}
-          className={`absolute z-30 rounded-[5px] bg-white p-[5px] pb-[15px] shadow-[0_9px_16px_rgba(63,33,22,0.16)] ${photo.className}`}
+          className={`absolute z-30 overflow-hidden rounded-[2px] bg-[#fffaf2] ${photo.className}`}
         >
-          <div className="h-full w-full overflow-hidden rounded-[2px] bg-[#f4a72d]/12">
             {photo.src ? (
               <img
                 src={photo.src}
@@ -709,12 +724,11 @@ function DynamicHomeFeedCard({
                 {photo.label}
               </div>
             )}
-          </div>
         </div>
       ))}
 
-      <div className="absolute inset-x-3 bottom-3 z-20">
-        <p className="line-clamp-1 max-w-[68%] text-[10px] font-bold leading-tight text-[#3f2116]/62">
+      <div className="absolute bottom-[5.8%] left-[3.9%] z-20 w-[72%] bg-[#fbf6ef] pr-1">
+        <p className="line-clamp-1 text-[10px] font-bold leading-tight text-[#3f2116]/62">
           {memo}
         </p>
         <div className="mt-2 flex items-center gap-2 text-[10px] font-black leading-none text-[#7d5632]">

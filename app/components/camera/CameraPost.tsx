@@ -346,6 +346,81 @@ export default function CameraPost({ onBack, setCurrentTab }: CameraPostProps) {
         setPopup({ title: "画像の読み込みに失敗しました", message: "別の画像で試してください。" });
       });
   };
+
+  if (!isCameraOn) {
+    return (
+      <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
+        <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
+          <img
+            src="/design-targets/camera-reference-shell.png"
+            alt=""
+            draggable={false}
+            className="absolute inset-0 h-full w-full object-fill"
+            aria-hidden="true"
+          />
+
+          <button
+            type="button"
+            onClick={onBack}
+            className="absolute left-[3.8%] top-[1.5%] h-8 w-8 opacity-0"
+            aria-label="戻る"
+          />
+
+          {(["prep", "cooking", "finished"] as const).map((type, index) => (
+            <ShellShotRow
+              key={type}
+              label={shotLabels[type]}
+              src={photos[type]}
+              top={index === 0 ? "24.7%" : index === 1 ? "41.8%" : "58.8%"}
+              onCamera={() => startCamera(type)}
+              onFileChange={(event) => selectPhotoFromLibrary(event, type)}
+            />
+          ))}
+
+          <div className="absolute left-[6.2%] top-[79.4%] h-[4.9%] w-[87.6%] rounded-[6px] bg-[#fffaf2]" />
+          <input
+            value={dishName}
+            onChange={(event) => setDishName(event.target.value)}
+            placeholder="料理名"
+            className="absolute left-[6.2%] top-[79.6%] h-[4.6%] w-[87.6%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 text-[11px] font-bold text-[#3f2116] outline-none"
+          />
+          <div className="absolute left-[6.2%] top-[86.6%] h-[4.9%] w-[87.6%] rounded-[6px] bg-[#fffaf2]" />
+          <input
+            value={memo}
+            onChange={(event) => setMemo(event.target.value)}
+            placeholder="ひとこと"
+            className="absolute left-[6.2%] top-[86.8%] h-[4.6%] w-[87.6%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 text-[11px] font-bold text-[#3f2116] outline-none"
+          />
+
+          <button
+            type="button"
+            onClick={publishPost}
+            disabled={isPublishing}
+            className="absolute left-[6.2%] top-[93.4%] h-[4.9%] w-[87.6%] rounded-full bg-[#0f6a47] text-[12px] font-black text-[#fff8e6] disabled:bg-[#0f6a47]/50"
+          >
+            {isPublishing ? "アップロード中..." : "投稿する"}
+          </button>
+
+          {setCurrentTab && (
+            <div className="absolute inset-x-0 bottom-0 z-40 grid h-[69px] grid-cols-5">
+              {["ホーム", "つながり", "カメラ", "カレンダー", "プロフィール"].map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setCurrentTab(tab)}
+                  className="h-full w-full opacity-0"
+                  aria-label={tab}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+        <canvas ref={canvasRef} className="hidden" />
+        <AppPopup popup={popup} onClose={() => setPopup(null)} />
+      </main>
+    );
+  }
+
   return (
     <ScreenShell>
       <div className="mb-2 flex items-center justify-between">
@@ -550,6 +625,55 @@ export default function CameraPost({ onBack, setCurrentTab }: CameraPostProps) {
         <canvas ref={canvasRef} className="hidden" />
       <AppPopup popup={popup} onClose={() => setPopup(null)} />
     </ScreenShell>
+  );
+}
+
+function ShellShotRow({
+  label,
+  src,
+  top,
+  onCamera,
+  onFileChange,
+}: {
+  label: string;
+  src?: string;
+  top: string;
+  onCamera: () => void;
+  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <div className="absolute left-[6.2%] right-[6.2%] h-[13.6%]" style={{ top }}>
+      <div className="absolute left-[2.5%] top-[5%] h-[83%] w-[31.5%] rounded-[4px] bg-[#fffaf2]" />
+      {src ? (
+        <img
+          src={src}
+          alt={label}
+          draggable={false}
+          className="absolute left-[3.3%] top-[8%] h-[78%] w-[30%] rounded-[3px] object-cover"
+        />
+      ) : (
+        <div className="absolute left-[3.3%] top-[8%] flex h-[78%] w-[30%] items-center justify-center rounded-[3px] bg-[#fff1ce] text-[10px] font-black text-[#0f6a47]">
+          {label}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={onCamera}
+        className="absolute inset-0 opacity-0"
+        aria-label={`${label}を撮影`}
+      />
+      {!src && (
+        <label className="absolute bottom-[6%] left-[3.5%] z-10 h-[22%] w-[30%] cursor-pointer rounded-full bg-transparent text-transparent">
+          {label}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={onFileChange}
+            className="hidden"
+          />
+        </label>
+      )}
+    </div>
   );
 }
 

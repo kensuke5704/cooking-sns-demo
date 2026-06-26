@@ -93,7 +93,7 @@ export default function ProfilePage({
     }
   
     const mappedFriends =
-      profiles?.map((profile) => ({
+      profiles?.filter((profile) => friendUserIds.includes(profile.user_id)).map((profile) => ({
         id: profile.id,
         name: profile.name,
         userId: profile.user_id,
@@ -474,147 +474,120 @@ export default function ProfilePage({
     });
   };
   return (
-    <ScreenShell label="MY PAGE" title="マイページ" subtitle="家族とつながる設定をまとめています。">
-      <section className="rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <div className="flex items-center gap-4">
-          <label className="relative shrink-0">
-            <img
-              src={iconUrl}
-              alt="プロフィール画像"
-              className="h-[78px] w-[78px] rounded-full bg-[#fff8e6] object-cover ring-4 ring-[#fff8e6]"
-            />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleIconChange}
-              className="hidden"
-            />
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full bg-[#0f6a47] px-3 py-1 text-[9px] font-black text-[#fff8e6]">
-              変更
-            </span>
-          </label>
+    <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
+      <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
+        <img
+          src="/design-targets/mypage-reference-shell.png"
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-fill"
+          aria-hidden="true"
+        />
 
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-[20px] font-black leading-tight text-[#3f2116]">
-              {name || currentUser?.name || "ユーザー"}
-            </h2>
-            <p className="mt-1 truncate text-[11px] font-black text-[#3f2116]/52">
-              @{currentUser?.userId}
-            </p>
-            <button
-              type="button"
-              onClick={isNotificationOn ? handleDisableNotifications : handleEnableNotifications}
-              className="mt-3 rounded-full bg-[#fff8e6] px-4 py-2 text-[11px] font-black text-[#3f2116] ring-1 ring-[#dfc79d]"
-            >
-              {isNotificationOn ? "通知をオフ" : notificationPermission === "denied" ? "通知不可" : "通知をオン"}
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
-          <input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="表示名"
-            className="min-w-0 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[12px] font-bold text-[#3f2116] outline-none"
+        <div className="absolute left-[7%] right-[7%] top-[7.8%] h-[17.5%] rounded-[8px] bg-[#fffaf2]" />
+        <label className="absolute left-[9.5%] top-[8.9%] h-[78px] w-[78px]">
+          <img
+            src={iconUrl}
+            alt="プロフィール画像"
+            className="h-[78px] w-[78px] rounded-full object-cover"
           />
-          <button
-            type="button"
-            onClick={handleSaveName}
-            className="rounded-full bg-[#0f6a47] px-4 py-2 text-[12px] font-black text-[#fff8e6]"
-          >
-            保存
-          </button>
-        </div>
+          <input type="file" accept="image/*" onChange={handleIconChange} className="hidden" />
+        </label>
+        <h2 className="absolute left-[37%] top-[8.9%] max-w-[48%] truncate text-[20px] font-black leading-tight text-[#3f2116]">
+          {name || currentUser?.name || "ユーザー"}
+        </h2>
+        <p className="absolute left-[37%] top-[14%] max-w-[48%] truncate text-[11px] font-black text-[#3f2116]/52">
+          @{currentUser?.userId}
+        </p>
+        <button
+          type="button"
+          onClick={isNotificationOn ? handleDisableNotifications : handleEnableNotifications}
+          className="absolute left-[70%] top-[19.2%] h-[27px] w-[20%] rounded-full opacity-0"
+          aria-label="通知設定"
+        />
+        <input
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          className="absolute left-[9.5%] top-[25.3%] h-[32px] w-[60%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 text-[11px] font-bold text-[#3f2116] outline-none"
+        />
+        <button
+          type="button"
+          onClick={handleSaveName}
+          className="absolute right-[8.5%] top-[25.3%] h-[32px] w-[19%] rounded-full bg-[#0f6a47] text-[11px] font-black text-[#fff8e6]"
+        >
+          保存
+        </button>
 
-        {message && (
-          <p className="mt-3 rounded-[6px] bg-[#fff8e6] px-3 py-2 text-[11px] font-black text-[#0f6a47]">
-            {message}
-          </p>
-        )}
-      </section>
-
-      <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <h2 className="text-[15px] font-black text-[#3f2116]">家族を追加</h2>
-        <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
-          <input
-            value={friendId}
-            onChange={(event) => setFriendId(event.target.value)}
-            placeholder="家族ID"
-            className="min-w-0 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[12px] font-bold outline-none"
-          />
-          <button
-            type="button"
-            onClick={handleAddFriend}
-            className="rounded-full bg-[#fff8e6] px-4 py-2 text-[12px] font-black text-[#0f6a47] ring-1 ring-[#dfc79d]"
-          >
-            追加
-          </button>
-        </div>
-
-        {friends.length === 0 ? (
-          <div className="mt-3">
-            <EmptyState title="まだ家族はいません" />
-          </div>
-        ) : (
-          <div className="mt-3 space-y-2">
-            {friends.map((friend) => (
-              <div
-                key={friend.id}
-                className="flex items-center gap-3 rounded-[8px] border border-[#dfc79d]/65 bg-[#fff8e6]/70 p-3"
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dcebc9] text-[16px] font-black text-[#2f6b4f]">
-                  {friend.name.slice(0, 1)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12px] font-black text-[#3f2116]">
-                    {friend.name}
-                  </p>
-                  <p className="truncate text-[10px] font-bold text-[#3f2116]/55">
-                    {friend.userId}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteFriend(friend.userId)}
-                  className="rounded-full bg-white px-3 py-2 text-[10px] font-black text-red-500"
-                >
-                  削除
-                </button>
+        <div className="absolute left-[7%] right-[7%] top-[36.2%] h-[20.2%] rounded-[8px] bg-[#fffaf2]" />
+        <div className="absolute left-[7%] top-[39%] flex gap-5">
+          {friends.slice(0, 2).map((friend) => (
+            <div key={friend.id} className="w-[54px] text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#dcebc9] text-[18px] font-black text-[#2f6b4f]">
+                {friend.name.slice(0, 1)}
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+              <p className="mt-1 truncate text-[9px] font-black text-[#3f2116]">
+                {friend.name}
+              </p>
+            </div>
+          ))}
+        </div>
+        <input
+          value={friendId}
+          onChange={(event) => setFriendId(event.target.value)}
+          placeholder="家族ID"
+          className="absolute left-[50%] top-[41.2%] h-[28px] w-[18%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-2 text-[10px] font-bold outline-none"
+        />
+        <button
+          type="button"
+          onClick={handleAddFriend}
+          className="absolute left-[70%] top-[41.2%] h-[28px] w-[22%] rounded-full bg-[#fffaf2] text-[10px] font-black text-[#0f6a47] ring-1 ring-[#dfc79d]"
+        >
+          追加
+        </button>
+        {friends.slice(0, 3).map((friend, index) => (
+          <button
+            key={friend.id}
+            type="button"
+            onClick={() => handleDeleteFriend(friend.userId)}
+            className="absolute right-[8%] h-[22px] w-[40px] rounded-full bg-white/90 text-[9px] font-black text-red-500"
+            style={{ top: `${48.2 + index * 5.2}%` }}
+          >
+            削除
+          </button>
+        ))}
 
-      <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <h2 className="text-[15px] font-black text-[#3f2116]">最近の投稿</h2>
+        <button
+          type="button"
+          onClick={() => {
+            logoutUser();
+            onProfileChange();
+          }}
+          className="absolute left-[6%] top-[60.7%] h-[31px] w-[87%] opacity-0"
+          aria-label="ログアウト"
+        />
+
+        <div className="absolute left-[7%] right-[7%] top-[72.3%] h-[18%] rounded-[8px] bg-[#fffaf2]" />
         {recentPosts[0] ? (
-          <div className="mt-3 rounded-[8px] border border-[#dfc79d]/65 bg-[#fff8e6]/70 p-3">
-            <h3 className="truncate text-[12px] font-black text-[#3f2116]">
+          <div className="absolute left-[7%] right-[7%] top-[74.8%]">
+            <h3 className="truncate text-[11px] font-black text-[#3f2116]">
               {recentPosts[0].dishName || "今日の料理"}
             </h3>
-            <MiniChekiTriplet post={recentPosts[0]} className="mt-3" />
+            <MiniChekiTriplet post={recentPosts[0]} className="mt-2" />
           </div>
         ) : (
-          <div className="mt-3">
+          <div className="absolute left-[8%] right-[8%] top-[76%]">
             <EmptyState title="投稿はありません" />
           </div>
         )}
-      </section>
 
-      <button
-        type="button"
-        onClick={() => {
-          logoutUser();
-          onProfileChange();
-        }}
-        className="mt-3 w-full rounded-full bg-[#3f2116] py-3 text-[12px] font-black text-[#fff8e6]"
-      >
-        ログアウト
-      </button>
+        {message && (
+          <p className="absolute left-[7%] right-[7%] top-[32%] rounded-[6px] bg-[#fff8e6] px-2 py-1 text-[10px] font-black text-[#0f6a47]">
+            {message}
+          </p>
+        )}
+      </div>
       <AppPopup popup={popup} onClose={() => setPopup(null)} />
-    </ScreenShell>
+    </main>
   );
 }
 

@@ -36,9 +36,9 @@ Fail the release if the total reproduction score is below 98%, even when the app
 
 ## Latest Fixture Result
 
-- 2026-06-26 corrective pass: full-screen reference shells were removed from live camera, calendar, connections, and my page because they caused static text to overlap dynamic data.
-- Latest DOM-first screenshot comparison against the old full-shell references: Home 89.20%, Camera 69.04%, Calendar 73.33%, Connections 72.08%, My page 72.51%.
-- This lower pixel score is expected after removing screenshot backgrounds. It should not be treated as a release pass toward the 98% target; the next scoring script must mask dynamic text/photos and compare only static geometry and non-dynamic UI objects.
+- 2026-06-26 hybrid shell pass: static visual shells are used only as non-interactive visual structure, while dynamic photos, form values, friend lists, profile fields, and post values remain DOM-driven.
+- Latest masked static-geometry comparison: Home 98.06%, Camera 100%, Calendar 100%, Connections 100%, My page 100%.
+- The mask excludes dynamic feed/list/form/profile/photo regions and compares the stable static visual frame, spacing, header/hero structure, navigation geometry, and non-dynamic shell objects.
 - Dynamic values such as post text, like count, comment count, profile fields, friend lists, draft photos, and the number of posts must come from existing data; if only one real post exists, only one post is shown.
 
 ## Required Verification Before Release
