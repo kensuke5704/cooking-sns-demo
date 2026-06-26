@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ReactNode } from "react";
 import type { Post } from "./types/post";
 import CameraPost from "./components/camera/CameraPost";
 import PostCard from "./components/post/PostCard";
@@ -21,8 +20,6 @@ import PullToRefresh from "./components/common/PullToRefresh";
 import EmptyState from "./components/common/EmptyState";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const ENABLE_REFERENCE_FIXTURE = true;
-
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -310,49 +307,6 @@ export default function Home() {
   }
 
   const popupElement = <AppPopup popup={popup} onClose={() => setPopup(null)} />;
-  const qaVisiblePosts = posts.filter((post) => {
-    const created = new Date(post.createdAt).getTime();
-    return Date.now() - created <= ONE_DAY_MS;
-  });
-  const qaReferenceFixturePosts = [
-    {
-      userName: "お母さん",
-      dishName: "夏野菜のチキンプレート",
-      memo: "みんなが好きな味にできたよ",
-    },
-    {
-      userName: "そうた",
-      dishName: "ハンバーグと野菜のプレート",
-      memo: "ハンバーグ、上手に焼けたよ",
-    },
-  ];
-  const isQaReferenceFixture =
-    ENABLE_REFERENCE_FIXTURE &&
-    qaVisiblePosts.length === qaReferenceFixturePosts.length &&
-    qaVisiblePosts.every((post, index) => {
-      const fixture = qaReferenceFixturePosts[index];
-
-      return (
-        post.userName === fixture.userName &&
-        post.dishName === fixture.dishName &&
-        post.memo === fixture.memo &&
-        !post.likeCount &&
-        !post.commentCount &&
-        !post.liked
-      );
-    });
-
-  if (isQaReferenceFixture && currentTab === "カメラ") {
-    return (
-      <ReferenceShellPage
-        src="/design-targets/camera-reference-shell.png"
-        popupElement={popupElement}
-        unreadCount={unreadCount}
-        setCurrentTab={setCurrentTab}
-      />
-    );
-  }
-
   if (currentTab === "カメラ") {
     return (
       <>
@@ -385,43 +339,33 @@ export default function Home() {
   }
 
   if (currentTab === "つながり") {
-    if (isQaReferenceFixture) {
-      return (
-        <ReferenceShellPage
-          src="/design-targets/connections-reference-shell.png"
-          popupElement={popupElement}
-          unreadCount={unreadCount}
-          setCurrentTab={setCurrentTab}
-        />
-      );
-    }
-
     return (
       <>
-        <FriendsPage key={profileRefreshKey} />
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() => refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))}
+        >
+          <FriendsPage key={profileRefreshKey} />
+        </LayoutWithNav>
         {popupElement}
-        <TransparentBottomNav setCurrentTab={setCurrentTab} />
       </>
     );
   }
 
   if (currentTab === "カレンダー") {
-    if (isQaReferenceFixture) {
-      return (
-        <ReferenceShellPage
-          src="/design-targets/calendar-reference-shell.png"
-          popupElement={popupElement}
-          unreadCount={unreadCount}
-          setCurrentTab={setCurrentTab}
-        />
-      );
-    }
-
     return (
       <>
-        <CalendarPage key={calendarRefreshKey} />
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() => refreshCurrentScreen(() => setCalendarRefreshKey((v) => v + 1))}
+        >
+          <CalendarPage key={calendarRefreshKey} />
+        </LayoutWithNav>
         {popupElement}
-        <TransparentBottomNav setCurrentTab={setCurrentTab} />
       </>
     );
   }
@@ -465,27 +409,22 @@ export default function Home() {
   }
 
   if (currentTab === "プロフィール") {
-    if (isQaReferenceFixture) {
-      return (
-        <ReferenceShellPage
-          src="/design-targets/mypage-reference-shell.png"
-          popupElement={popupElement}
-          unreadCount={unreadCount}
-          setCurrentTab={setCurrentTab}
-        />
-      );
-    }
-
     return (
       <>
-        <ProfilePage
-          key={profileRefreshKey}
-          onProfileChange={() => {
-            setAuthVersion((v) => v + 1);
-          }}
-        />
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() => refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))}
+        >
+          <ProfilePage
+            key={profileRefreshKey}
+            onProfileChange={() => {
+              setAuthVersion((v) => v + 1);
+            }}
+          />
+        </LayoutWithNav>
         {popupElement}
-        <TransparentBottomNav setCurrentTab={setCurrentTab} />
       </>
     );
   }
@@ -494,129 +433,6 @@ export default function Home() {
     const created = new Date(post.createdAt).getTime();
     return Date.now() - created <= ONE_DAY_MS;
   });
-
-  const referenceFixturePosts = [
-    {
-      userName: "お母さん",
-      dishName: "夏野菜のチキンプレート",
-      memo: "みんなが好きな味にできたよ",
-    },
-    {
-      userName: "そうた",
-      dishName: "ハンバーグと野菜のプレート",
-      memo: "ハンバーグ、上手に焼けたよ",
-    },
-  ];
-  const isHomeReferenceFixture =
-    ENABLE_REFERENCE_FIXTURE &&
-    visiblePosts.length === referenceFixturePosts.length &&
-    visiblePosts.every((post, index) => {
-      const fixture = referenceFixturePosts[index];
-
-      return (
-        post.userName === fixture.userName &&
-        post.dishName === fixture.dishName &&
-        post.memo === fixture.memo &&
-        !post.likeCount &&
-        !post.commentCount &&
-        !post.liked
-      );
-    });
-
-  if (isHomeReferenceFixture) {
-    return (
-      <>
-        <PullToRefresh onRefresh={refreshHome}>
-          <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
-            <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
-              <img
-                src="/design-targets/home-reference-shell.png"
-                alt=""
-                draggable={false}
-                className="absolute inset-0 h-full w-full object-fill"
-                aria-hidden="true"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setCurrentTab("通知");
-                  markNotificationsAsRead();
-                }}
-                className="absolute right-[14%] top-[18px] h-[31px] w-[31px] opacity-0"
-                aria-label="通知"
-              />
-              <button
-                type="button"
-                onClick={() => setCurrentTab("カメラ")}
-                className="absolute left-[7%] top-[147px] h-[33px] w-[72px] opacity-0"
-                aria-label="撮る"
-              />
-              <button
-                type="button"
-                onClick={() => setCurrentTab("カレンダー")}
-                className="absolute left-[25%] top-[147px] h-[33px] w-[78px] opacity-0"
-                aria-label="記録"
-              />
-              {visiblePosts.map((post, index) => (
-                <button
-                  key={post.id}
-                  type="button"
-                  onClick={() => setActivePost(post)}
-                  className={`absolute left-[3.1%] right-[3.1%] h-[210px] opacity-0 ${
-                    index === 0 ? "top-[31.5%]" : "top-[62.5%]"
-                  }`}
-                  aria-label={`${post.dishName || "投稿"}を開く`}
-                />
-              ))}
-            </div>
-          </main>
-        </PullToRefresh>
-
-        {activePost && (
-          <div className="fixed inset-0 z-[90] bg-[#3f2116]/34 px-4 py-5 backdrop-blur-sm">
-            <button
-              type="button"
-              onClick={() => setActivePost(null)}
-              className="absolute inset-0 cursor-default"
-              aria-label="投稿詳細を閉じる"
-            />
-            <div className="absolute inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+18px)] max-h-[86dvh] overflow-y-auto rounded-[34px] bg-[#f4a72d] p-3 shadow-[0_28px_80px_rgba(63,33,22,0.28)]">
-              <div className="mb-2 flex items-center justify-between px-2">
-                <p className="text-sm font-black text-[#3f2116]">投稿の操作</p>
-                <button
-                  type="button"
-                  onClick={() => setActivePost(null)}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#fff8e6] text-lg font-black text-[#3f2116]"
-                  aria-label="閉じる"
-                >
-                  ×
-                </button>
-              </div>
-              <PostCard
-                post={activePost}
-                onImageClick={(src) => setSelectedImage(src)}
-                onDelete={(postId) => {
-                  setActivePost(null);
-                  deletePost(postId);
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {selectedImage && (
-          <ImageModal
-            src={selectedImage}
-            onClose={() => setSelectedImage(null)}
-          />
-        )}
-
-        {popupElement}
-
-        <TransparentBottomNav setCurrentTab={setCurrentTab} />
-      </>
-    );
-  }
 
   return (
     <>
@@ -765,60 +581,6 @@ export default function Home() {
   );
 }
 
-function ReferenceShellPage({
-  src,
-  popupElement,
-  unreadCount,
-  setCurrentTab,
-}: {
-  src: string;
-  popupElement: ReactNode;
-  unreadCount: number;
-  setCurrentTab: (tab: string) => void;
-}) {
-  return (
-    <>
-      <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
-        <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
-          <img
-            src={src}
-            alt=""
-            draggable={false}
-            className="absolute inset-0 h-full w-full object-fill"
-            aria-hidden="true"
-          />
-        </div>
-      </main>
-      {popupElement}
-      <TransparentBottomNav setCurrentTab={setCurrentTab} />
-    </>
-  );
-}
-
-function TransparentBottomNav({
-  setCurrentTab,
-}: {
-  setCurrentTab: (tab: string) => void;
-}) {
-  const tabs = ["ホーム", "つながり", "カメラ", "カレンダー", "プロフィール"];
-
-  return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto h-[69px] max-w-md">
-      <div className="absolute inset-0 grid grid-cols-5">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setCurrentTab(tab)}
-            className="h-full w-full opacity-0"
-            aria-label={tab}
-          />
-        ))}
-      </div>
-    </nav>
-  );
-}
-
 function HomeFeedCard({
   post,
   index,
@@ -830,164 +592,13 @@ function HomeFeedCard({
   onOpen: () => void;
   highlight?: boolean;
 }) {
-  if (!ENABLE_REFERENCE_FIXTURE) {
-    return (
-      <DynamicHomeFeedCard
-        post={post}
-        index={index}
-        onOpen={onOpen}
-        highlight={highlight}
-      />
-    );
-  }
-
-  const variant = index % 3;
-  const shellSrc =
-    index % 2 === 0
-      ? "/design-targets/home-card-shell-1.png"
-      : "/design-targets/home-card-shell-2.png";
-  const photos = [
-    {
-      label: "準備",
-      src: post.prepPhoto,
-      className: variant === 1
-        ? "left-[6.7%] top-[35.2%] h-[24.2%] w-[21.4%] -rotate-[3deg]"
-        : "left-[6.6%] top-[36.7%] h-[24.2%] w-[21.4%] -rotate-[7deg]",
-    },
-    {
-      label: "調理",
-      src: post.cookingPhoto,
-      className: variant === 1
-        ? "left-[34.5%] top-[32.4%] h-[24.8%] w-[21.9%] -rotate-[4deg]"
-        : "left-[34.5%] top-[34%] h-[24.8%] w-[21.9%] rotate-[1deg]",
-    },
-    {
-      label: "完成",
-      src: post.finishedPhoto,
-      className: variant === 2
-        ? "right-[14%] top-[28.6%] h-[27.6%] w-[23.5%] rotate-[5deg]"
-        : "right-[14%] top-[30%] h-[27.6%] w-[23.5%] rotate-[6deg]",
-    },
-  ];
-  const title = post.dishName || "今日の料理を記録しました";
-  const timeLabel = formatRelativeTime(post.createdAt);
-  const memo = post.memo || "家族に残したい食卓の記録です";
-  const referenceText =
-    index % 2 === 0
-      ? {
-          userName: "お母さん",
-          title: "夏野菜のチキンプレート",
-          memo: "みんなが好きな味にできたよ",
-        }
-      : {
-          userName: "そうた",
-          title: "ハンバーグと野菜のプレート",
-          memo: "ハンバーグ、上手に焼けたよ",
-        };
-  const shouldRenderHeaderText = post.userName !== referenceText.userName;
-  const shouldRenderTitle = title !== referenceText.title;
-  const shouldRenderMemo = memo !== referenceText.memo;
-  const shouldRenderActions =
-    Boolean(post.liked) ||
-    Boolean(post.likeCount && post.likeCount > 0) ||
-    Boolean(post.commentCount && post.commentCount > 0);
-  const likeLabel =
-    post.likeCount && post.likeCount > 0 ? `${post.likeCount} いいね` : "いいね";
-  const commentLabel =
-    post.commentCount && post.commentCount > 0
-      ? `${post.commentCount} コメント`
-      : "コメント";
-
   return (
-    <article
-      className={`relative h-[210px] overflow-hidden rounded-[10px] ${
-        highlight ? "ring-4 ring-[#2f6b4f]/35" : ""
-      }`}
-    >
-      <img
-        src={shellSrc}
-        alt=""
-        draggable={false}
-        className="absolute inset-0 h-full w-full object-fill"
-        aria-hidden="true"
-      />
-      <button
-        type="button"
-        onClick={onOpen}
-        className="absolute inset-0 z-40 block rounded-[10px]"
-        aria-label={`${title}を開く`}
-      />
-
-      <div className="absolute left-[4.4%] top-[4.8%] z-20 h-[28px] w-[28px] overflow-hidden rounded-full">
-        {post.userIcon ? (
-          <img
-            src={post.userIcon}
-            alt=""
-            draggable={false}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[#dcebc9] text-[13px] font-black text-[#2f6b4f]">
-            {(post.userName || "家").slice(0, 1)}
-        </div>
-        )}
-      </div>
-
-      {shouldRenderHeaderText && (
-      <div className="absolute left-[14.5%] top-[4.9%] z-20 h-[27px] w-[39%] bg-[#fbf6ef]">
-          <p className="truncate text-[12px] font-black leading-tight text-[#3f2116]">
-            {post.userName}
-          </p>
-          <p className="mt-0.5 text-[9px] font-bold leading-none text-[#3f2116]/48">
-            {timeLabel}
-          </p>
-      </div>
-      )}
-
-      {shouldRenderTitle && (
-      <h3 className="absolute left-[3.9%] top-[23%] z-20 w-[61%] truncate bg-[#fbf6ef] pr-1 text-[13px] font-black leading-tight text-[#3f2116]">
-          {title}
-      </h3>
-      )}
-
-      {photos.map((photo) => (
-        <div
-          key={photo.label}
-          className={`absolute z-30 overflow-hidden rounded-[2px] ${photo.className}`}
-        >
-            {photo.src ? (
-              <img
-                src={photo.src}
-                alt={photo.label}
-                draggable={false}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-[10px] font-black text-[#2f6b4f]">
-                {photo.label}
-              </div>
-            )}
-        </div>
-      ))}
-
-      {(shouldRenderMemo || shouldRenderActions) && (
-      <div className="absolute bottom-[5.8%] left-[3.9%] z-20 w-[72%] bg-[#fbf6ef] pr-1">
-        {shouldRenderMemo && (
-        <p className="line-clamp-1 text-[10px] font-bold leading-tight text-[#3f2116]/62">
-          {memo}
-        </p>
-        )}
-        {shouldRenderActions && (
-        <div className="mt-2 flex items-center gap-2 text-[10px] font-black leading-none text-[#7d5632]">
-          <span className={post.liked ? "text-[#d85a3a]" : ""}>
-            {post.liked ? "●" : "♡"} {likeLabel}
-          </span>
-          <span>○ {commentLabel}</span>
-        </div>
-        )}
-      </div>
-      )}
-    </article>
+    <DynamicHomeFeedCard
+      post={post}
+      index={index}
+      onOpen={onOpen}
+      highlight={highlight}
+    />
   );
 }
 

@@ -23,7 +23,7 @@
 
 ## Reproduction Score
 
-Use the generated references in `outputs/` as the visual target. A screen is acceptable only at 98% or higher.
+Use the generated references in `outputs/` as the visual direction, but do not pass QA by placing a full-screen screenshot behind functional UI. A screen is acceptable only at 98% or higher after excluding user-variable photos/profile images and dynamic text content from the pixel comparison. The boxes, spacing, typography, card geometry, navigation geometry, and photo frame dimensions remain counted.
 
 - 20%: common UI tokens match the reference direction: warm orange surface, rice-white cards, dark brown text, forest green actions, and soft food/family illustration accents. Deduct for visible color drift or inconsistent radius.
 - 20%: home layout hierarchy matches the reference: compact app title/header, warm greeting panel, and feed-first composition without `今日の流れ`. Deduct for section order, density, or proportions that visibly differ.
@@ -36,13 +36,10 @@ Fail the release if the total reproduction score is below 98%, even when the app
 
 ## Latest Fixture Result
 
-- Home: 99.93%
-- Camera: 100%
-- Calendar: 100%
-- Connections: 100%
-- My page: 100%
-
-The 98%+ visual match is measured with the reference fixture data. The app uses the reference visual shell as the layout base and overlays dynamic slots only when real data differs from the fixture. Dynamic values such as post text, like count, comment count, profile fields, friend lists, draft photos, and the number of posts must come from existing data; if only one real post exists, only one post is shown.
+- 2026-06-26 corrective pass: full-screen reference shells were removed from live camera, calendar, connections, and my page because they caused static text to overlap dynamic data.
+- Latest DOM-first screenshot comparison against the old full-shell references: Home 89.20%, Camera 69.04%, Calendar 73.33%, Connections 72.08%, My page 72.51%.
+- This lower pixel score is expected after removing screenshot backgrounds. It should not be treated as a release pass toward the 98% target; the next scoring script must mask dynamic text/photos and compare only static geometry and non-dynamic UI objects.
+- Dynamic values such as post text, like count, comment count, profile fields, friend lists, draft photos, and the number of posts must come from existing data; if only one real post exists, only one post is shown.
 
 ## Required Verification Before Release
 

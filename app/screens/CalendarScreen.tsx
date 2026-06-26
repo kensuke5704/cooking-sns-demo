@@ -139,67 +139,58 @@ export default function CalendarPage() {
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
-      <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
-        <img
-          src="/design-targets/calendar-reference-shell.png"
-          alt=""
-          draggable={false}
-          className="absolute inset-0 h-full w-full object-fill"
-          aria-hidden="true"
+    <main>
+      <ScreenShell
+        label={isPairCalendarOpen ? "PAIR CALENDAR" : "CALENDAR"}
+        title={isPairCalendarOpen ? "2人の記録" : "食卓カレンダー"}
+        subtitle="投稿した日の写真が、月の中に小さく残ります。"
+        action={
+          isPairCalendarOpen ? (
+            <PairCalendarBackButton onClick={resetPairCalendarView} />
+          ) : null
+        }
+      >
+        <CalendarHeader
+          year={year}
+          month={month}
+          isPairCalendarOpen={isPairCalendarOpen}
+          pairState={pairState}
+          streakCount={streakCount}
+          achievedMilestone={achievedMilestone}
+          nextMilestone={nextMilestone}
+          onPrevMonth={goPrevMonth}
+          onNextMonth={goNextMonth}
         />
 
-        <button
-          type="button"
-          onClick={goPrevMonth}
-          className="absolute left-[7%] top-[8.7%] h-8 w-8 opacity-0"
-          aria-label="前の月"
+        <CalendarGrid
+          days={days}
+          getDateKey={getDateKey}
+          getPostsByDate={getPostsByDate}
+          hasPairStar={hasPairStar}
+          selectedDate={selectedDate}
+          onSelectDate={setSelectedDate}
         />
-        <button
-          type="button"
-          onClick={goNextMonth}
-          className="absolute right-[7%] top-[8.7%] h-8 w-8 opacity-0"
-          aria-label="次の月"
-        />
-
-        <div className="absolute left-[5.5%] right-[5.5%] top-[19.5%] grid h-[226px] grid-cols-7 grid-rows-6">
-          {days.map((day, index) => {
-            if (!day) return <span key={`empty-${index}`} />;
-
-            const dateKey = getDateKey(day);
-
-            return (
-              <button
-                key={dateKey}
-                type="button"
-                onClick={() => setSelectedDate(dateKey)}
-                className="h-full w-full opacity-0"
-                aria-label={`${day}日`}
-              />
-            );
-          })}
-        </div>
 
         {selectedDate && (
-          <div className="absolute left-[7%] right-[7%] top-[73%] rounded-[8px] bg-[#fff8e6]/95 p-2 shadow-[0_8px_18px_rgba(63,33,22,0.12)]">
-            <p className="text-[11px] font-black text-[#3f2116]">
-              {selectedDate.slice(5).replace("-", "月")}日の食卓
-            </p>
-            <p className="mt-1 text-[10px] font-bold text-[#3f2116]/60">
-              {getPostsByDate(selectedDate).length}件の投稿
-            </p>
-          </div>
+          <CalendarDetail
+            dateKey={selectedDate}
+            posts={getPostsByDate(selectedDate)}
+          />
         )}
 
         {!isPairCalendarOpen && (
-          <button
-            type="button"
-            onClick={submitPairCode}
-            className="absolute right-[7%] top-[58.3%] h-[28px] w-[24%] opacity-0"
-            aria-label="ペアコードを登録"
+          <PairCodeSection
+            pairState={pairState}
+            pairPartners={pairPartners}
+            codeInput={codeInput}
+            onCodeInputChange={setCodeInput}
+            onSubmitCode={submitPairCode}
+            onOpenPairCalendar={openPairCalendar}
+            onDeletePair={deletePair}
+            onCancelPendingCode={cancelPendingCode}
           />
         )}
-      </div>
+      </ScreenShell>
       <CalendarPopup popup={popup} onClose={() => setPopup(null)} />
     </main>
   );
