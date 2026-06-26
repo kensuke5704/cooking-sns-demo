@@ -357,6 +357,7 @@ export default function Home() {
     return (
       <>
         <CameraPost
+          setCurrentTab={setCurrentTab}
           onBack={() => {
             setCurrentTab("ホーム");
             loadPosts();
@@ -397,15 +398,9 @@ export default function Home() {
 
     return (
       <>
-        <LayoutWithNav
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-          unreadCount={unreadCount}
-          onRefresh={() => refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))}
-        >
-          <FriendsPage key={profileRefreshKey} />
-        </LayoutWithNav>
+        <FriendsPage key={profileRefreshKey} />
         {popupElement}
+        <TransparentBottomNav setCurrentTab={setCurrentTab} />
       </>
     );
   }
@@ -424,17 +419,9 @@ export default function Home() {
 
     return (
       <>
-        <LayoutWithNav
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-          unreadCount={unreadCount}
-          onRefresh={() =>
-            refreshCurrentScreen(() => setCalendarRefreshKey((v) => v + 1))
-          }
-        >
-          <CalendarPage key={calendarRefreshKey} />
-        </LayoutWithNav>
+        <CalendarPage key={calendarRefreshKey} />
         {popupElement}
+        <TransparentBottomNav setCurrentTab={setCurrentTab} />
       </>
     );
   }
@@ -491,22 +478,14 @@ export default function Home() {
 
     return (
       <>
-        <LayoutWithNav
-          currentTab={currentTab}
-          setCurrentTab={setCurrentTab}
-          unreadCount={unreadCount}
-          onRefresh={() =>
-            refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))
-          }
-        >
-          <ProfilePage
-            key={profileRefreshKey}
-            onProfileChange={() => {
-              setAuthVersion((v) => v + 1);
-            }}
-          />
-        </LayoutWithNav>
+        <ProfilePage
+          key={profileRefreshKey}
+          onProfileChange={() => {
+            setAuthVersion((v) => v + 1);
+          }}
+        />
         {popupElement}
+        <TransparentBottomNav setCurrentTab={setCurrentTab} />
       </>
     );
   }

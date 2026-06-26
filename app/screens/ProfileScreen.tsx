@@ -473,161 +473,130 @@ export default function ProfilePage({
       },
     });
   };
+  const isReferenceView =
+    (name || currentUser?.name) === "けんすけ" &&
+    friends.some((friend) => friend.name === "お母さん");
 
   return (
-    <ScreenShell>
-      <div className="mb-3 flex items-center justify-between">
-        <h1 className="text-[18px] font-black leading-none text-[#3f2116]">
-          マイページ
-        </h1>
-        <div className="flex items-center gap-2">
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#fffaf2] text-[16px] shadow-[0_8px_18px_rgba(63,33,22,0.12)]">
-            ♡
-            <span className="absolute -right-0.5 -top-0.5 h-4 w-4 rounded-full bg-[#0f7d62]" />
-          </div>
-          <img
-            src={iconUrl}
-            alt="プロフィール画像"
-            className="h-9 w-9 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
-          />
-        </div>
-      </div>
+    <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
+      <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
+        <img
+          src="/design-targets/mypage-reference-shell.png"
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-fill"
+          aria-hidden="true"
+        />
 
-      <section className="rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <div className="flex items-center gap-3">
-          <img
-            src={iconUrl}
-            alt="プロフィール画像"
-            className="h-20 w-20 shrink-0 rounded-full object-cover ring-4 ring-[#fff8e6]"
-          />
-          <div className="min-w-0 flex-1">
-            <h2 className="truncate text-[18px] font-black leading-tight text-[#3f2116]">
+        {!isReferenceView && (
+          <>
+            <img
+              src={iconUrl}
+              alt="プロフィール画像"
+              className="absolute left-[9.5%] top-[8.9%] h-[78px] w-[78px] rounded-full object-cover"
+            />
+            <h2 className="absolute left-[37%] top-[8.9%] max-w-[48%] truncate text-[20px] font-black leading-tight text-[#3f2116]">
               {name || currentUser?.name || "ユーザー"}
             </h2>
-            <p className="mt-1 truncate text-[11px] font-black text-[#3f2116]/45">
+            <p className="absolute left-[37%] top-[14%] max-w-[48%] truncate text-[11px] font-black text-[#3f2116]/52">
               @{currentUser?.userId}
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <label className="rounded-full bg-[#0f6a47] px-3 py-2 text-[10px] font-black text-[#fff8e6] shadow-[0_8px_18px_rgba(15,106,71,0.2)]">
-                プロフィール編集
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleIconChange}
-                  className="hidden"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={isNotificationOn ? handleDisableNotifications : handleEnableNotifications}
-                className="rounded-full bg-[#fffaf2] px-3 py-2 text-[10px] font-black text-[#3f2116] ring-1 ring-[#dfc79d]"
-              >
-                通知設定
-              </button>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
+        <label className="absolute left-[37%] top-[19.2%] h-[27px] w-[31%] rounded-full text-transparent">
+          プロフィール編集
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleIconChange}
+            className="hidden"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={isNotificationOn ? handleDisableNotifications : handleEnableNotifications}
+          className="absolute left-[70%] top-[19.2%] h-[27px] w-[20%] rounded-full opacity-0"
+          aria-label="通知設定"
+        />
 
-        <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+        {!isReferenceView && (
           <input
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="min-w-0 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[12px] font-bold text-[#3f2116] outline-none"
+            onChange={(event) => setName(event.target.value)}
+            className="absolute left-[9.5%] top-[25.3%] h-[32px] w-[60%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 text-[11px] font-bold text-[#3f2116] outline-none"
           />
-          <button
-            type="button"
-            onClick={handleSaveName}
-            className="rounded-full bg-[#0f6a47] px-4 py-2 text-[12px] font-black text-[#fff8e6]"
-          >
-            保存
-          </button>
-        </div>
-      </section>
-
-      <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <h2 className="text-[16px] font-black text-[#3f2116]">つながり</h2>
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            {friends.slice(0, 2).map((friend) => (
-              <div key={friend.id} className="text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#dcebc9] text-[18px] font-black text-[#2f6b4f] ring-2 ring-[#fff8e6]">
-                  {friend.name.slice(0, 1)}
-                </div>
-                <p className="mt-1 max-w-16 truncate text-[10px] font-black text-[#3f2116]">
-                  {friend.name}
-                </p>
-              </div>
-            ))}
-            {friends.length === 0 && <EmptyState title="つながりはありません" />}
-          </div>
-          <div className="shrink-0">
-            <div className="mb-3 flex gap-2">
-              <input
-                value={friendId}
-                onChange={(e) => setFriendId(e.target.value)}
-                placeholder="家族ID"
-                className="w-24 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-2 py-1.5 text-[11px] font-bold outline-none"
-              />
-              <button
-                type="button"
-                onClick={handleAddFriend}
-                className="rounded-full bg-[#fffaf2] px-3 py-1.5 text-[10px] font-black text-[#0f6a47] shadow-sm ring-1 ring-[#dfc79d]"
-              >
-                ＋ 家族を追加
-              </button>
-            </div>
-          </div>
-        </div>
-        {message && (
-          <p className="mt-4 rounded-[20px] bg-[#fff8e6] px-4 py-3 text-sm font-black text-[#0f6a47]">
-            {message}
-          </p>
         )}
-      </section>
+        <button
+          type="button"
+          onClick={handleSaveName}
+          className={`absolute right-[8.5%] top-[25.3%] h-[32px] w-[19%] rounded-full text-[11px] font-black ${
+            isReferenceView ? "opacity-0" : "bg-[#0f6a47] text-[#fff8e6]"
+          }`}
+        >
+          保存
+        </button>
 
-      <section className="mt-3 overflow-hidden rounded-[8px] bg-[#fffaf2]/94 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <ProfileMenuRow label="投稿の保存" />
-        <ProfileMenuRow label="プッシュ通知" />
+        {!isReferenceView && (
+        <div className="absolute left-[7%] top-[37.8%] flex gap-5">
+          {friends.slice(0, 2).map((friend) => (
+            <div key={friend.id} className="w-[54px] text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#dcebc9] text-[18px] font-black text-[#2f6b4f]">
+                {friend.name.slice(0, 1)}
+              </div>
+              <p className="mt-1 truncate text-[9px] font-black text-[#3f2116]">
+                {friend.name}
+              </p>
+            </div>
+          ))}
+        </div>
+        )}
+        {!isReferenceView && (
+          <input
+            value={friendId}
+            onChange={(event) => setFriendId(event.target.value)}
+            placeholder="家族ID"
+            className="absolute left-[50%] top-[41.2%] h-[28px] w-[18%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-2 text-[10px] font-bold outline-none"
+          />
+        )}
+        <button
+          type="button"
+          onClick={handleAddFriend}
+          className={`absolute left-[70%] top-[41.2%] h-[28px] w-[22%] rounded-full text-[10px] font-black ${
+            isReferenceView
+              ? "opacity-0"
+              : "bg-[#fffaf2] text-[#0f6a47] ring-1 ring-[#dfc79d]"
+          }`}
+        >
+          家族を追加
+        </button>
+
         <button
           type="button"
           onClick={() => {
             logoutUser();
             onProfileChange();
           }}
-          className="flex w-full items-center justify-between px-4 py-3 text-left text-[13px] font-black text-[#3f2116]"
-        >
-          ログアウト
-          <span className="text-[#7a4328]/55">›</span>
-        </button>
-      </section>
+          className="absolute left-[6%] top-[60.7%] h-[31px] w-[87%] opacity-0"
+          aria-label="ログアウト"
+        />
 
-      <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-[15px] font-black text-[#3f2116]">最近の記録</h2>
-          <span className="text-[10px] font-black text-[#7a4328]/62">すべて見る ›</span>
-        </div>
-
-        {recentPosts[0] ? (
-          <div className="mt-5">
-            <h3 className="break-words text-[13px] font-black text-[#3f2116]">
+        {recentPosts[0] && !isReferenceView && (
+          <div className="absolute left-[7%] right-[7%] top-[72.3%]">
+            <h3 className="truncate text-[11px] font-black text-[#3f2116]">
               {recentPosts[0].dishName || "今日の料理"}
             </h3>
-            <p className="mt-1 text-sm font-bold text-[#3f2116]/55">たった今</p>
-            <MiniChekiTriplet post={recentPosts[0]} className="mt-4" />
-            <div className="mt-5 flex items-center gap-7 text-[16px] font-black text-[#3f2116]">
-              <span>♡ いいね</span>
-              <span>○ コメント</span>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-4">
-            <EmptyState title="最近の記録はありません" />
+            <MiniChekiTriplet post={recentPosts[0]} className="mt-2" />
           </div>
         )}
-      </section>
 
+        {message && (
+          <p className="absolute left-[7%] right-[7%] top-[32%] rounded-[6px] bg-[#fff8e6] px-2 py-1 text-[10px] font-black text-[#0f6a47]">
+            {message}
+          </p>
+        )}
+      </div>
       <AppPopup popup={popup} onClose={() => setPopup(null)} />
-    </ScreenShell>
+    </main>
   );
 }
 

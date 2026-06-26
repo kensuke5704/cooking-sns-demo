@@ -165,126 +165,80 @@ export default function FriendsPage() {
     () => posts.find((post) => post.userId !== currentUser?.userId) || posts[0],
     [currentUser?.userId, posts]
   );
+  const isReferenceView =
+    friends.some((friend) => friend.name === "お母さん") &&
+    friends.some((friend) => friend.name === "そうた");
 
   return (
-    <ScreenShell>
-      <section className="home-rise-in">
-        <div className="mb-3 flex items-center justify-between">
-          <h1 className="text-[18px] font-black leading-none text-[#3f2116]">
-            つながり
-          </h1>
-          <div className="flex items-center gap-2">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#fffaf2] text-[#3f2116] shadow-[0_8px_18px_rgba(63,33,22,0.12)]">
-              <span className="text-[16px]">♪</span>
-              <span className="absolute -right-0.5 -top-0.5 h-4 w-4 rounded-full bg-[#0f7d62]" />
-            </div>
-            <img
-              src={currentUser?.iconUrl || "/images/user1-icon.jpg"}
-              alt={currentUser?.name || "ユーザー"}
-              className="h-9 w-9 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
-            />
-          </div>
-        </div>
+    <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
+      <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
+        <img
+          src="/design-targets/connections-reference-shell.png"
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-fill"
+          aria-hidden="true"
+        />
 
-        <div className="rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-          <div className="grid grid-cols-[1fr_112px] items-center gap-2">
-            <div className="min-w-0">
-              <h2 className="text-[20px] font-black leading-[1.18] text-[#3f2116]">
-                家族の食卓が届く
-              </h2>
-              <p className="mt-2 text-[10px] font-bold leading-relaxed text-[#3f2116]/72">
-                友だちや家族を追加すると、今日の料理がホームに並びます。
-              </p>
-            </div>
-            <BowlIllustration />
-          </div>
-        </div>
-
-        <div className="mt-3 flex items-center gap-2 rounded-[8px] bg-[#fffaf2]/94 p-2 shadow-[0_10px_24px_rgba(63,33,22,0.12)] ring-1 ring-white/65">
-          <label className="shrink-0 text-[11px] font-black text-[#3f2116]">
-            家族ID
-          </label>
+        {!isReferenceView && (
           <input
             value={friendId}
             onChange={(event) => setFriendId(event.target.value)}
             placeholder="家族IDを入力"
-            className="min-w-0 flex-1 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[11px] font-bold text-[#3f2116] outline-none"
+            className="absolute left-[26%] top-[30.1%] h-[4.6%] w-[43%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-2 text-[10px] font-bold text-[#3f2116] outline-none"
           />
-          <button
-            type="button"
-            onClick={handleAddFriend}
-            className="shrink-0 rounded-full bg-[#0f6a47] px-4 py-2 text-[11px] font-black text-[#fff8e6] shadow-[0_8px_18px_rgba(15,106,71,0.2)]"
-          >
-            追加する
-          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleAddFriend}
+          className={`absolute right-[5.8%] top-[30.1%] h-[4.6%] w-[22%] rounded-full text-[10px] font-black ${
+            isReferenceView ? "opacity-0" : "bg-[#0f6a47] text-[#fff8e6]"
+          }`}
+        >
+          追加する
+        </button>
+
+        {!isReferenceView && (
+        <div className="absolute left-[5.5%] right-[5.5%] top-[41.6%] space-y-[1px]">
+          {friends.slice(0, 3).map((friend) => (
+            <div key={friend.id} className="flex h-[50px] items-center gap-3 px-2">
+              <InitialAvatar name={friend.name} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[12px] font-black text-[#3f2116]">
+                  {friend.name}
+                </p>
+                <p className="text-[9px] font-bold text-[#0f6a47]">
+                  今日の投稿を確認できます
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
+        )}
+
+        {latestPost && !isReferenceView && (
+          <div className="absolute left-[5.5%] right-[5.5%] top-[73%]">
+            <div className="flex items-center gap-2">
+              <InitialAvatar name={latestPost.userName} />
+              <div className="min-w-0">
+                <p className="truncate text-[11px] font-black text-[#3f2116]">
+                  {latestPost.userName}
+                </p>
+                <p className="truncate text-[10px] font-bold text-[#3f2116]">
+                  {latestPost.dishName || "今日の料理"}
+                </p>
+              </div>
+            </div>
+            <MiniChekiTriplet post={latestPost} className="mt-2" />
+          </div>
+        )}
 
         {message && (
-          <p className="mt-3 rounded-[22px] bg-[#fffaf2]/88 px-4 py-3 text-sm font-black text-[#0f6a47]">
+          <p className="absolute left-[5.5%] right-[5.5%] top-[35.5%] rounded-[6px] bg-[#fff8e6] px-2 py-1 text-[10px] font-black text-[#0f6a47]">
             {message}
           </p>
         )}
-      </section>
-
-      <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <h2 className="text-[16px] font-black text-[#3f2116]">つながっている人</h2>
-        {friends.length === 0 ? (
-          <div className="mt-4">
-            <EmptyState title="まだつながりはありません" />
-          </div>
-        ) : (
-          <div className="mt-4 divide-y divide-[#dfc79d]/65">
-            {friends.map((friend) => (
-              <div key={friend.id} className="flex items-center gap-3 py-2.5">
-                <InitialAvatar name={friend.name} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-black text-[#3f2116]">
-                    {friend.name}
-                  </p>
-                  <p className="mt-0.5 text-[10px] font-bold text-[#0f6a47]">
-                    今日の投稿を確認できます
-                  </p>
-                </div>
-                <span className="text-[28px] font-light text-[#7a4328]/55">›</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-[15px] font-black text-[#3f2116]">最近届いたごはん</h2>
-          <span className="text-[10px] font-black text-[#0f6a47]">すべて見る ›</span>
-        </div>
-
-        {latestPost ? (
-          <div className="mt-5">
-            <div className="flex items-center gap-3">
-              <InitialAvatar name={latestPost.userName} />
-              <div className="min-w-0">
-                <p className="truncate text-lg font-black text-[#3f2116]">
-                  {latestPost.userName}
-                </p>
-                <p className="text-sm font-bold text-[#3f2116]/58">たった今</p>
-              </div>
-            </div>
-            <h3 className="mt-2 break-words text-[13px] font-black leading-snug text-[#3f2116]">
-              {latestPost.dishName || "今日の料理"}
-            </h3>
-            <MiniChekiTriplet post={latestPost} className="mt-4" />
-            <div className="mt-5 flex justify-center gap-3">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#0f6a47]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#d8cdb8]" />
-              <span className="h-2.5 w-2.5 rounded-full bg-[#d8cdb8]" />
-            </div>
-          </div>
-        ) : (
-          <div className="mt-4">
-            <EmptyState title="届いたごはんはありません" />
-          </div>
-        )}
-      </section>
-    </ScreenShell>
+      </div>
+    </main>
   );
 }
