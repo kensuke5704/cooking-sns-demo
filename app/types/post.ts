@@ -11,4 +11,7 @@ export type Post = {
     titleSuffix?: "作りました" | "食べました" | "なし";
     userId?: string;
     postDate?: string;
+    likeCount?: number;
+    commentCount?: number;
+    liked?: boolean;
   };

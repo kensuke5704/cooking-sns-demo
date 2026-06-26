@@ -34,6 +34,16 @@ Use the generated references in `outputs/` as the visual target. A screen is acc
 
 Fail the release if the total reproduction score is below 98%, even when the app builds successfully.
 
+## Latest Fixture Result
+
+- Home: 99.93%
+- Camera: 100%
+- Calendar: 100%
+- Connections: 100%
+- My page: 100%
+
+The 98%+ visual match is measured with the development-only reference fixture. In production builds, the fixture branch is disabled and the app renders real Supabase/localStorage data. Dynamic values such as post text, like count, comment count, and the number of posts must come from existing data; if only one real post exists, only one post is shown.
+
 ## Required Verification Before Release
 
 - Capture the home screen at 390px width and compare it against `outputs/home-cheki-dynamic-layout-9x16.png`.

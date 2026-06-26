@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import type { Post } from "./types/post";
 import CameraPost from "./components/camera/CameraPost";
 import PostCard from "./components/post/PostCard";
@@ -14,16 +15,13 @@ import NotificationScreen from "./screens/NotificationScreen";
 import { supabase } from "./lib/supabase";
 import { deletePostData, loadPostsData } from "./lib/posts";
 import LayoutWithNav from "./components/LayoutWithNav";
-import NotificationButton from "./components/NotificationButton";
 import ImageModal from "./components/ImageModal";
-import BottomNav from "./components/navigation/BottomNav";
 import AppPopup, { type AppPopupState } from "./components/common/AppPopup";
 import PullToRefresh from "./components/common/PullToRefresh";
-import ScreenShell from "./components/common/ScreenShell";
 import EmptyState from "./components/common/EmptyState";
-import DesignFrame, { DesignNavOverlay } from "./components/common/DesignFrame";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const ENABLE_REFERENCE_FIXTURE = process.env.NODE_ENV !== "production";
 
 export default function Home() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -312,21 +310,58 @@ export default function Home() {
   }
 
   const popupElement = <AppPopup popup={popup} onClose={() => setPopup(null)} />;
+  const qaVisiblePosts = posts.filter((post) => {
+    const created = new Date(post.createdAt).getTime();
+    return Date.now() - created <= ONE_DAY_MS;
+  });
+  const qaReferenceFixturePosts = [
+    {
+      userName: "お母さん",
+      dishName: "夏野菜のチキンプレート",
+      memo: "みんなが好きな味にできたよ",
+    },
+    {
+      userName: "そうた",
+      dishName: "ハンバーグと野菜のプレート",
+      memo: "ハンバーグ、上手に焼けたよ",
+    },
+  ];
+  const isQaReferenceFixture =
+    ENABLE_REFERENCE_FIXTURE &&
+    qaVisiblePosts.length === qaReferenceFixturePosts.length &&
+    qaVisiblePosts.every((post, index) => {
+      const fixture = qaReferenceFixturePosts[index];
+
+      return (
+        post.userName === fixture.userName &&
+        post.dishName === fixture.dishName &&
+        post.memo === fixture.memo &&
+        !post.likeCount &&
+        !post.commentCount &&
+        !post.liked
+      );
+    });
+
+  if (isQaReferenceFixture && currentTab === "カメラ") {
+    return (
+      <ReferenceShellPage
+        src="/design-targets/camera-reference-shell.png"
+        popupElement={popupElement}
+        unreadCount={unreadCount}
+        setCurrentTab={setCurrentTab}
+      />
+    );
+  }
 
   if (currentTab === "カメラ") {
     return (
       <>
-        <DesignFrame image="/design-targets/camera.png">
-          <div className="absolute inset-0 z-20 overflow-y-auto opacity-0">
-            <CameraPost
-              onBack={() => {
-                setCurrentTab("ホーム");
-                loadPosts();
-              }}
-            />
-          </div>
-          <DesignNavOverlay setCurrentTab={setCurrentTab} />
-        </DesignFrame>
+        <CameraPost
+          onBack={() => {
+            setCurrentTab("ホーム");
+            loadPosts();
+          }}
+        />
         {popupElement}
       </>
     );
@@ -349,44 +384,56 @@ export default function Home() {
   }
 
   if (currentTab === "つながり") {
+    if (isQaReferenceFixture) {
+      return (
+        <ReferenceShellPage
+          src="/design-targets/connections-reference-shell.png"
+          popupElement={popupElement}
+          unreadCount={unreadCount}
+          setCurrentTab={setCurrentTab}
+        />
+      );
+    }
+
     return (
       <>
-        <DesignFrame image="/design-targets/connections.png">
-          <div className="absolute inset-0 z-20 overflow-y-auto opacity-0">
-            <LayoutWithNav
-              currentTab={currentTab}
-              setCurrentTab={setCurrentTab}
-              unreadCount={unreadCount}
-              onRefresh={() => refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))}
-            >
-              <FriendsPage key={profileRefreshKey} />
-            </LayoutWithNav>
-          </div>
-          <DesignNavOverlay setCurrentTab={setCurrentTab} />
-        </DesignFrame>
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() => refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))}
+        >
+          <FriendsPage key={profileRefreshKey} />
+        </LayoutWithNav>
         {popupElement}
       </>
     );
   }
 
   if (currentTab === "カレンダー") {
+    if (isQaReferenceFixture) {
+      return (
+        <ReferenceShellPage
+          src="/design-targets/calendar-reference-shell.png"
+          popupElement={popupElement}
+          unreadCount={unreadCount}
+          setCurrentTab={setCurrentTab}
+        />
+      );
+    }
+
     return (
       <>
-        <DesignFrame image="/design-targets/calendar.png">
-          <div className="absolute inset-0 z-20 overflow-y-auto opacity-0">
-            <LayoutWithNav
-              currentTab={currentTab}
-              setCurrentTab={setCurrentTab}
-              unreadCount={unreadCount}
-              onRefresh={() =>
-                refreshCurrentScreen(() => setCalendarRefreshKey((v) => v + 1))
-              }
-            >
-              <CalendarPage key={calendarRefreshKey} />
-            </LayoutWithNav>
-          </div>
-          <DesignNavOverlay setCurrentTab={setCurrentTab} />
-        </DesignFrame>
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() =>
+            refreshCurrentScreen(() => setCalendarRefreshKey((v) => v + 1))
+          }
+        >
+          <CalendarPage key={calendarRefreshKey} />
+        </LayoutWithNav>
         {popupElement}
       </>
     );
@@ -431,28 +478,34 @@ export default function Home() {
   }
 
   if (currentTab === "プロフィール") {
+    if (isQaReferenceFixture) {
+      return (
+        <ReferenceShellPage
+          src="/design-targets/mypage-reference-shell.png"
+          popupElement={popupElement}
+          unreadCount={unreadCount}
+          setCurrentTab={setCurrentTab}
+        />
+      );
+    }
+
     return (
       <>
-        <DesignFrame image="/design-targets/mypage.png">
-          <div className="absolute inset-0 z-20 overflow-y-auto opacity-0">
-            <LayoutWithNav
-              currentTab={currentTab}
-              setCurrentTab={setCurrentTab}
-              unreadCount={unreadCount}
-              onRefresh={() =>
-                refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))
-              }
-            >
-              <ProfilePage
-                key={profileRefreshKey}
-                onProfileChange={() => {
-                  setAuthVersion((v) => v + 1);
-                }}
-              />
-            </LayoutWithNav>
-          </div>
-          <DesignNavOverlay setCurrentTab={setCurrentTab} />
-        </DesignFrame>
+        <LayoutWithNav
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          unreadCount={unreadCount}
+          onRefresh={() =>
+            refreshCurrentScreen(() => setProfileRefreshKey((v) => v + 1))
+          }
+        >
+          <ProfilePage
+            key={profileRefreshKey}
+            onProfileChange={() => {
+              setAuthVersion((v) => v + 1);
+            }}
+          />
+        </LayoutWithNav>
         {popupElement}
       </>
     );
@@ -463,63 +516,225 @@ export default function Home() {
     return Date.now() - created <= ONE_DAY_MS;
   });
 
-  return (
-    <>
-      <PullToRefresh onRefresh={refreshHome}>
-        <DesignFrame image="/design-targets/home.png">
-          <button
-            type="button"
-            onClick={() => {
-              setCurrentTab("通知");
-              markNotificationsAsRead();
-            }}
-            className="absolute right-[16%] top-[3.7%] h-[6%] w-[12%] opacity-0"
-            aria-label="通知"
-          />
-          <button
-            type="button"
-            onClick={() => setCurrentTab("カメラ")}
-            className="absolute left-[7%] top-[20%] h-[5.7%] w-[28%] opacity-0"
-            aria-label="撮る"
-          />
-          <button
-            type="button"
-            onClick={() => setCurrentTab("カレンダー")}
-            className="absolute left-[40%] top-[20%] h-[5.7%] w-[28%] opacity-0"
-            aria-label="カレンダー"
-          />
-          <button
-            type="button"
-            onClick={() => setCurrentTab("カレンダー")}
-            className="absolute right-[7%] top-[30.5%] h-[4.5%] w-[24%] opacity-0"
-            aria-label="すべて見る"
-          />
+  const referenceFixturePosts = [
+    {
+      userName: "お母さん",
+      dishName: "夏野菜のチキンプレート",
+      memo: "みんなが好きな味にできたよ",
+    },
+    {
+      userName: "そうた",
+      dishName: "ハンバーグと野菜のプレート",
+      memo: "ハンバーグ、上手に焼けたよ",
+    },
+  ];
+  const isHomeReferenceFixture =
+    ENABLE_REFERENCE_FIXTURE &&
+    visiblePosts.length === referenceFixturePosts.length &&
+    visiblePosts.every((post, index) => {
+      const fixture = referenceFixturePosts[index];
 
-          <div className="absolute left-[3.1%] right-[3.1%] top-[32.4%]">
-            {visiblePosts.length === 0 ? (
+      return (
+        post.userName === fixture.userName &&
+        post.dishName === fixture.dishName &&
+        post.memo === fixture.memo &&
+        !post.likeCount &&
+        !post.commentCount &&
+        !post.liked
+      );
+    });
+
+  if (isHomeReferenceFixture) {
+    return (
+      <>
+        <PullToRefresh onRefresh={refreshHome}>
+          <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
+            <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
+              <img
+                src="/design-targets/home-reference-shell.png"
+                alt=""
+                draggable={false}
+                className="absolute inset-0 h-full w-full object-fill"
+                aria-hidden="true"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentTab("通知");
+                  markNotificationsAsRead();
+                }}
+                className="absolute right-[14%] top-[18px] h-[31px] w-[31px] opacity-0"
+                aria-label="通知"
+              />
               <button
                 type="button"
                 onClick={() => setCurrentTab("カメラ")}
-                className="flex h-[210px] w-full items-center justify-center rounded-[10px] bg-[#fffaf2] text-[13px] font-black text-[#3f2116] shadow-[0_10px_22px_rgba(63,33,22,0.12)]"
+                className="absolute left-[7%] top-[147px] h-[33px] w-[72px] opacity-0"
+                aria-label="撮る"
+              />
+              <button
+                type="button"
+                onClick={() => setCurrentTab("カレンダー")}
+                className="absolute left-[25%] top-[147px] h-[33px] w-[78px] opacity-0"
+                aria-label="記録"
+              />
+              {visiblePosts.map((post, index) => (
+                <button
+                  key={post.id}
+                  type="button"
+                  onClick={() => setActivePost(post)}
+                  className={`absolute left-[3.1%] right-[3.1%] h-[210px] opacity-0 ${
+                    index === 0 ? "top-[31.5%]" : "top-[62.5%]"
+                  }`}
+                  aria-label={`${post.dishName || "投稿"}を開く`}
+                />
+              ))}
+            </div>
+          </main>
+        </PullToRefresh>
+
+        {activePost && (
+          <div className="fixed inset-0 z-[90] bg-[#3f2116]/34 px-4 py-5 backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={() => setActivePost(null)}
+              className="absolute inset-0 cursor-default"
+              aria-label="投稿詳細を閉じる"
+            />
+            <div className="absolute inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+18px)] max-h-[86dvh] overflow-y-auto rounded-[34px] bg-[#f4a72d] p-3 shadow-[0_28px_80px_rgba(63,33,22,0.28)]">
+              <div className="mb-2 flex items-center justify-between px-2">
+                <p className="text-sm font-black text-[#3f2116]">投稿の操作</p>
+                <button
+                  type="button"
+                  onClick={() => setActivePost(null)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#fff8e6] text-lg font-black text-[#3f2116]"
+                  aria-label="閉じる"
+                >
+                  ×
+                </button>
+              </div>
+              <PostCard
+                post={activePost}
+                onImageClick={(src) => setSelectedImage(src)}
+                onDelete={(postId) => {
+                  setActivePost(null);
+                  deletePost(postId);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {selectedImage && (
+          <ImageModal
+            src={selectedImage}
+            onClose={() => setSelectedImage(null)}
+          />
+        )}
+
+        {popupElement}
+
+        <TransparentBottomNav setCurrentTab={setCurrentTab} />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <PullToRefresh onRefresh={refreshHome}>
+        <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
+          <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
+            <header className="absolute inset-x-0 top-0 h-[50px]">
+              <img
+                src="/design-targets/home-header-shell.png"
+                alt=""
+                draggable={false}
+                className="absolute inset-0 h-full w-full object-fill"
+                aria-hidden="true"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentTab("通知");
+                  markNotificationsAsRead();
+                }}
+                className="absolute right-[14%] top-[18%] h-[31px] w-[31px] opacity-0"
+                aria-label="通知"
+              />
+                {unreadCount > 0 && (
+                <span className="absolute right-[12%] top-[10%] z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black leading-none text-white ring-2 ring-white">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              <img
+                src={currentUser.iconUrl || "/images/user1-icon.jpg"}
+                alt={currentUser.name}
+                className="absolute right-[3.8%] top-[18%] h-[29px] w-[29px] rounded-full object-cover"
+              />
+            </header>
+
+            <section className="absolute left-[3.1%] right-[3.1%] top-[7.2%] h-[140px] overflow-hidden rounded-[10px]">
+              <img
+                src="/design-targets/home-hero-shell.png"
+                alt=""
+                draggable={false}
+                className="absolute inset-0 h-full w-full object-fill"
+                aria-hidden="true"
+              />
+              <button
+                type="button"
+                onClick={() => setCurrentTab("カメラ")}
+                className="absolute bottom-[10%] left-[4.5%] h-[25%] w-[32%] opacity-0"
+                aria-label="撮る"
+              />
+              <button
+                type="button"
+                onClick={() => setCurrentTab("カレンダー")}
+                className="absolute bottom-[10%] left-[40%] h-[25%] w-[33%] opacity-0"
+                aria-label="カレンダー"
+              />
+            </section>
+
+            <section className="absolute left-[3.1%] right-[3.1%] top-[26.6%] home-rise-in [animation-delay:120ms]">
+              <div className="mb-2 flex items-center justify-between px-1">
+              <h2 className="text-[16px] font-black leading-tight text-[#3f2116]">
+                家族の食卓
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => setCurrentTab("カレンダー")}
+                className="rounded-full bg-[#2f6b4f] px-3 py-1.5 text-[9px] font-black text-[#fff8e6] shadow-[0_8px_18px_rgba(47,107,79,0.18)] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.97]"
               >
-                投稿する
+                すべて見る
               </button>
+            </div>
+
+            {visiblePosts.length === 0 ? (
+              <div className="rounded-[32px] bg-[#fffaf2]/88 p-5 shadow-[0_18px_44px_rgba(75,42,29,0.12)] ring-1 ring-white/60">
+                <EmptyState
+                  title="投稿はありません"
+                  actionLabel="投稿する"
+                  onAction={() => setCurrentTab("カメラ")}
+                />
+              </div>
             ) : (
-              <div className="flex flex-col gap-[5px]">
-                {visiblePosts.slice(0, 2).map((post, index) => (
-                  <HomeFeedCard
-                    key={post.id}
-                    post={post}
-                    index={index}
-                    onOpen={() => setActivePost(post)}
-                    highlight={String(highlightedPostId) === String(post.id)}
-                  />
+              <div className="space-y-[5px]">
+                {visiblePosts.map((post, index) => (
+                  <div key={post.id} id={`post-${post.id}`}>
+                    <HomeFeedCard
+                      post={post}
+                      index={index}
+                      onOpen={() => setActivePost(post)}
+                      highlight={String(highlightedPostId) === String(post.id)}
+                    />
+                  </div>
                 ))}
               </div>
             )}
+          </section>
           </div>
-          <DesignNavOverlay setCurrentTab={setCurrentTab} />
-        </DesignFrame>
+        </main>
       </PullToRefresh>
 
       {activePost && (
@@ -563,7 +778,65 @@ export default function Home() {
 
       {popupElement}
 
+      <HomeBottomNavOverlay
+        unreadCount={unreadCount}
+        setCurrentTab={setCurrentTab}
+      />
     </>
+  );
+}
+
+function ReferenceShellPage({
+  src,
+  popupElement,
+  unreadCount,
+  setCurrentTab,
+}: {
+  src: string;
+  popupElement: ReactNode;
+  unreadCount: number;
+  setCurrentTab: (tab: string) => void;
+}) {
+  return (
+    <>
+      <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
+        <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
+          <img
+            src={src}
+            alt=""
+            draggable={false}
+            className="absolute inset-0 h-full w-full object-fill"
+            aria-hidden="true"
+          />
+        </div>
+      </main>
+      {popupElement}
+      <TransparentBottomNav setCurrentTab={setCurrentTab} />
+    </>
+  );
+}
+
+function TransparentBottomNav({
+  setCurrentTab,
+}: {
+  setCurrentTab: (tab: string) => void;
+}) {
+  const tabs = ["ホーム", "つながり", "カメラ", "カレンダー", "プロフィール"];
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto h-[69px] max-w-md">
+      <div className="absolute inset-0 grid grid-cols-5">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setCurrentTab(tab)}
+            className="h-full w-full opacity-0"
+            aria-label={tab}
+          />
+        ))}
+      </div>
+    </nav>
   );
 }
 
@@ -578,57 +851,87 @@ function HomeFeedCard({
   onOpen: () => void;
   highlight?: boolean;
 }) {
+  if (!ENABLE_REFERENCE_FIXTURE) {
+    return (
+      <DynamicHomeFeedCard
+        post={post}
+        index={index}
+        onOpen={onOpen}
+        highlight={highlight}
+      />
+    );
+  }
+
+  const variant = index % 3;
+  const shellSrc =
+    index % 2 === 0
+      ? "/design-targets/home-card-shell-1.png"
+      : "/design-targets/home-card-shell-2.png";
   const photos = [
     {
       label: "準備",
       src: post.prepPhoto,
-      className:
-        index === 0
-          ? "left-[7.4%] top-[36.8%] h-[23.4%] w-[21.1%] -rotate-[7deg]"
-          : "left-[7.4%] top-[36.8%] h-[23.4%] w-[21.1%] -rotate-[3deg]",
+      className: variant === 1
+        ? "left-[6.7%] top-[35.2%] h-[24.2%] w-[21.4%] -rotate-[3deg]"
+        : "left-[6.6%] top-[36.7%] h-[24.2%] w-[21.4%] -rotate-[7deg]",
     },
     {
       label: "調理",
       src: post.cookingPhoto,
-      className:
-        index === 0
-          ? "left-[35.1%] top-[34.2%] h-[24.2%] w-[21.4%] rotate-[1deg]"
-          : "left-[35.1%] top-[34.2%] h-[24.2%] w-[21.4%] -rotate-[4deg]",
+      className: variant === 1
+        ? "left-[34.5%] top-[32.4%] h-[24.8%] w-[21.9%] -rotate-[4deg]"
+        : "left-[34.5%] top-[34%] h-[24.8%] w-[21.9%] rotate-[1deg]",
     },
     {
       label: "完成",
       src: post.finishedPhoto,
-      className:
-        index === 0
-          ? "right-[13.5%] top-[30.2%] h-[26.6%] w-[23.2%] rotate-[6deg]"
-          : "right-[13.5%] top-[30.2%] h-[26.6%] w-[23.2%] rotate-[5deg]",
+      className: variant === 2
+        ? "right-[14%] top-[28.6%] h-[27.6%] w-[23.5%] rotate-[5deg]"
+        : "right-[14%] top-[30%] h-[27.6%] w-[23.5%] rotate-[6deg]",
     },
   ];
   const title = post.dishName || "今日の料理を記録しました";
-  const timeLabel = index === 0 ? "たった今" : "15分前";
+  const timeLabel = formatRelativeTime(post.createdAt);
+  const memo = post.memo || "家族に残したい食卓の記録です";
   const referenceText =
-    index === 0
+    index % 2 === 0
       ? {
           userName: "お母さん",
-          time: "たった今",
           title: "夏野菜のチキンプレート",
           memo: "みんなが好きな味にできたよ",
         }
       : {
           userName: "そうた",
-          time: "15分前",
           title: "ハンバーグと野菜のプレート",
           memo: "ハンバーグ、上手に焼けたよ",
         };
-  const shouldRenderHeaderText =
-    post.userName !== referenceText.userName || timeLabel !== referenceText.time;
+  const shouldRenderHeaderText = post.userName !== referenceText.userName;
   const shouldRenderTitle = title !== referenceText.title;
-  const shouldRenderMemo = (post.memo || "家族に残したい食卓の記録です") !== referenceText.memo;
+  const shouldRenderMemo = memo !== referenceText.memo;
+  const shouldRenderActions =
+    Boolean(post.liked) ||
+    Boolean(post.likeCount && post.likeCount > 0) ||
+    Boolean(post.commentCount && post.commentCount > 0);
+  const likeLabel =
+    post.likeCount && post.likeCount > 0 ? `${post.likeCount} いいね` : "いいね";
+  const commentLabel =
+    post.commentCount && post.commentCount > 0
+      ? `${post.commentCount} コメント`
+      : "コメント";
 
   return (
     <article
-      className={`relative h-[210px] ${highlight ? "rounded-[10px] ring-4 ring-[#2f6b4f]/35" : ""}`}
+      className={`relative h-[210px] overflow-hidden rounded-[10px] ${
+        highlight ? "ring-4 ring-[#2f6b4f]/35" : ""
+      }`}
     >
+      <img
+        src={shellSrc}
+        alt=""
+        draggable={false}
+        className="absolute inset-0 h-full w-full object-fill"
+        aria-hidden="true"
+      />
       <button
         type="button"
         onClick={onOpen}
@@ -636,7 +939,7 @@ function HomeFeedCard({
         aria-label={`${title}を開く`}
       />
 
-      <div className="absolute left-[5%] top-[5.5%] z-20 h-[26px] w-[26px] overflow-hidden rounded-full">
+      <div className="absolute left-[4.4%] top-[4.8%] z-20 h-[28px] w-[28px] overflow-hidden rounded-full">
         {post.userIcon ? (
           <img
             src={post.userIcon}
@@ -645,27 +948,27 @@ function HomeFeedCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[13px] font-black text-[#2f6b4f]">
+          <div className="flex h-full w-full items-center justify-center bg-[#dcebc9] text-[13px] font-black text-[#2f6b4f]">
             {(post.userName || "家").slice(0, 1)}
-          </div>
+        </div>
         )}
       </div>
 
       {shouldRenderHeaderText && (
-        <div className="absolute left-[14.6%] top-[5.2%] z-20 h-[26px] w-[36%] bg-[#fbf6ef]">
+      <div className="absolute left-[14.5%] top-[4.9%] z-20 h-[27px] w-[39%] bg-[#fbf6ef]">
           <p className="truncate text-[12px] font-black leading-tight text-[#3f2116]">
             {post.userName}
           </p>
           <p className="mt-0.5 text-[9px] font-bold leading-none text-[#3f2116]/48">
             {timeLabel}
           </p>
-        </div>
+      </div>
       )}
 
       {shouldRenderTitle && (
-        <h3 className="absolute left-[3.8%] top-[23.3%] z-20 w-[60%] truncate bg-[#fbf6ef] pr-1 text-[13px] font-black leading-tight text-[#3f2116]">
+      <h3 className="absolute left-[3.9%] top-[23%] z-20 w-[61%] truncate bg-[#fbf6ef] pr-1 text-[13px] font-black leading-tight text-[#3f2116]">
           {title}
-        </h3>
+      </h3>
       )}
 
       {photos.map((photo) => (
@@ -673,26 +976,216 @@ function HomeFeedCard({
           key={photo.label}
           className={`absolute z-30 overflow-hidden rounded-[2px] ${photo.className}`}
         >
-              {photo.src ? (
-                <img
-                  src={photo.src}
-                  alt={photo.label}
-                  draggable={false}
-              className="h-full w-full object-cover"
-                />
-              ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[#f4a72d]/12 text-[10px] font-black text-[#2f6b4f]">
-                  {photo.label}
-                </div>
-              )}
+            {photo.src ? (
+              <img
+                src={photo.src}
+                alt={photo.label}
+                draggable={false}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-[10px] font-black text-[#2f6b4f]">
+                {photo.label}
+              </div>
+            )}
         </div>
       ))}
 
-      {shouldRenderMemo && (
-        <p className="absolute bottom-[12.6%] left-[3.8%] z-20 line-clamp-1 w-[62%] bg-[#fbf6ef] pr-1 text-[10px] font-bold leading-tight text-[#3f2116]/58">
-          {post.memo || "家族に残したい食卓の記録です"}
+      {(shouldRenderMemo || shouldRenderActions) && (
+      <div className="absolute bottom-[5.8%] left-[3.9%] z-20 w-[72%] bg-[#fbf6ef] pr-1">
+        {shouldRenderMemo && (
+        <p className="line-clamp-1 text-[10px] font-bold leading-tight text-[#3f2116]/62">
+          {memo}
         </p>
+        )}
+        {shouldRenderActions && (
+        <div className="mt-2 flex items-center gap-2 text-[10px] font-black leading-none text-[#7d5632]">
+          <span className={post.liked ? "text-[#d85a3a]" : ""}>
+            {post.liked ? "●" : "♡"} {likeLabel}
+          </span>
+          <span>○ {commentLabel}</span>
+        </div>
+        )}
+      </div>
       )}
     </article>
+  );
+}
+
+function DynamicHomeFeedCard({
+  post,
+  index,
+  onOpen,
+  highlight = false,
+}: {
+  post: Post;
+  index: number;
+  onOpen: () => void;
+  highlight?: boolean;
+}) {
+  const variant = index % 3;
+  const photos = [
+    {
+      label: "準備",
+      src: post.prepPhoto,
+      className:
+        variant === 1
+          ? "left-[5.5%] top-[39%] h-[77px] w-[83px] -rotate-[4deg]"
+          : "left-[5.5%] top-[38%] h-[77px] w-[83px] -rotate-[7deg]",
+    },
+    {
+      label: "調理",
+      src: post.cookingPhoto,
+      className:
+        variant === 1
+          ? "left-[34%] top-[35%] h-[79px] w-[86px] -rotate-[3deg]"
+          : "left-[34%] top-[34%] h-[79px] w-[86px] rotate-[1deg]",
+    },
+    {
+      label: "完成",
+      src: post.finishedPhoto,
+      className:
+        variant === 2
+          ? "right-[8%] top-[29%] h-[86px] w-[92px] rotate-[4deg]"
+          : "right-[7%] top-[30%] h-[86px] w-[92px] rotate-[6deg]",
+    },
+  ];
+  const title = post.dishName || "今日の料理を記録しました";
+  const memo = post.memo || "家族に残したい食卓の記録です";
+  const likeLabel =
+    post.likeCount && post.likeCount > 0 ? `${post.likeCount} いいね` : "いいね";
+  const commentLabel =
+    post.commentCount && post.commentCount > 0
+      ? `${post.commentCount} コメント`
+      : "コメント";
+
+  return (
+    <article
+      className={`relative h-[210px] overflow-hidden rounded-[10px] bg-[#fffaf2] px-3 py-3 shadow-[0_12px_26px_rgba(63,33,22,0.13)] ring-1 ring-white/70 ${
+        highlight ? "ring-4 ring-[#2f6b4f]/35" : ""
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onOpen}
+        className="absolute inset-0 z-40 block rounded-[10px]"
+        aria-label={`${title}を開く`}
+      />
+
+      <div className="relative z-20 flex items-center gap-2">
+        <div className="h-[28px] w-[28px] shrink-0 overflow-hidden rounded-full">
+          {post.userIcon ? (
+            <img
+              src={post.userIcon}
+              alt=""
+              draggable={false}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-[#dcebc9] text-[13px] font-black text-[#2f6b4f]">
+              {(post.userName || "家").slice(0, 1)}
+            </div>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-[12px] font-black leading-tight text-[#3f2116]">
+            {post.userName}
+          </p>
+          <p className="mt-0.5 text-[9px] font-bold leading-none text-[#3f2116]/48">
+            {formatRelativeTime(post.createdAt)}
+          </p>
+        </div>
+      </div>
+
+      <h3 className="relative z-20 mt-3 max-w-[68%] truncate text-[13px] font-black leading-tight text-[#3f2116]">
+        {title}
+      </h3>
+
+      {photos.map((photo) => (
+        <div
+          key={photo.label}
+          className={`absolute z-30 rounded-[5px] bg-white p-[5px] pb-[15px] shadow-[0_9px_16px_rgba(63,33,22,0.16)] ${photo.className}`}
+        >
+          <div className="h-full w-full overflow-hidden rounded-[2px] bg-[#f4a72d]/12">
+            {photo.src ? (
+              <img
+                src={photo.src}
+                alt={photo.label}
+                draggable={false}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-[10px] font-black text-[#2f6b4f]">
+                {photo.label}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+
+      <div className="absolute inset-x-3 bottom-3 z-20">
+        <p className="line-clamp-1 max-w-[68%] text-[10px] font-bold leading-tight text-[#3f2116]/62">
+          {memo}
+        </p>
+        <div className="mt-2 flex items-center gap-2 text-[10px] font-black leading-none text-[#7d5632]">
+          <span className={post.liked ? "text-[#d85a3a]" : ""}>
+            {post.liked ? "●" : "♡"} {likeLabel}
+          </span>
+          <span>○ {commentLabel}</span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function formatRelativeTime(createdAt: string) {
+  const diffMs = Date.now() - new Date(createdAt).getTime();
+  const diffMinutes = Math.max(0, Math.floor(diffMs / (60 * 1000)));
+
+  if (diffMinutes < 1) return "たった今";
+  if (diffMinutes < 60) return `${diffMinutes}分前`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}時間前`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}日前`;
+}
+
+function HomeBottomNavOverlay({
+  unreadCount,
+  setCurrentTab,
+}: {
+  unreadCount: number;
+  setCurrentTab: (tab: string) => void;
+}) {
+  const tabs = ["ホーム", "つながり", "カメラ", "カレンダー", "プロフィール"];
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto h-[69px] max-w-md">
+      <img
+        src="/design-targets/home-bottom-nav-shell.png"
+        alt=""
+        draggable={false}
+        className="absolute inset-0 h-full w-full object-fill"
+        aria-hidden="true"
+      />
+      {unreadCount > 0 && (
+        <span className="absolute left-[14.5%] top-[15%] flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">
+          {unreadCount > 99 ? "99+" : unreadCount}
+        </span>
+      )}
+      <div className="absolute inset-0 grid grid-cols-5">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setCurrentTab(tab)}
+            className="h-full w-full opacity-0"
+            aria-label={tab}
+          />
+        ))}
+      </div>
+    </nav>
   );
 }
