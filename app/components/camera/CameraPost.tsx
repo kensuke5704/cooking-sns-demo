@@ -348,40 +348,40 @@ export default function CameraPost({ onBack }: CameraPostProps) {
 
   return (
     <ScreenShell>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between">
         <button
           type="button"
           onClick={onBack}
-          className="flex h-12 w-12 items-center justify-center rounded-full text-[34px] leading-none text-[#3f2116]"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-[24px] leading-none text-[#3f2116]"
           aria-label="戻る"
         >
           ‹
         </button>
-        <h1 className="flex-1 text-[30px] font-black text-[#3f2116]">
+        <h1 className="flex-1 text-[18px] font-black text-[#3f2116]">
           今日の記録
         </h1>
         <img
           src={getCurrentUser()?.iconUrl || "/images/user1-icon.jpg"}
           alt="ユーザー"
-          className="h-14 w-14 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
+          className="h-9 w-9 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
         />
       </div>
   
         {!isCameraOn && (
           <>
-            <section className="rounded-[30px] bg-[#fffaf2]/94 p-6 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-              <div className="grid grid-cols-[1fr_130px] items-center gap-4">
+            <section className="rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+              <div className="grid grid-cols-[1fr_112px] items-center gap-2">
                 <div className="min-w-0">
-                  <h2 className="text-[28px] font-black leading-[1.22] text-[#3f2116]">
+                  <h2 className="text-[20px] font-black leading-[1.16] text-[#3f2116]">
                     準備、調理、完成を
                     <br />
                     3枚で残す
                   </h2>
-                  <p className="mt-4 text-[15px] font-bold leading-relaxed text-[#3f2116]/72">
+                  <p className="mt-2 text-[10px] font-bold leading-relaxed text-[#3f2116]/72">
                     撮った順に今日の料理がひとつの投稿になります。
                   </p>
                 </div>
-                <div className="relative h-28" aria-hidden="true">
+                <div className="relative h-[82px]" aria-hidden="true">
                   <div className="absolute right-4 top-5 h-16 w-24 rounded-b-[38px] rounded-t-[18px] bg-[#f4a72d]" />
                   <div className="absolute right-8 top-2 h-9 w-20 rounded-[100%] bg-[#fff1ce] ring-2 ring-[#7a4328]/15" />
                   <div className="absolute right-2 top-16 h-12 w-14 rotate-[8deg] rounded-[8px] bg-[#fffaf2] p-1 shadow-md">
@@ -394,7 +394,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
               </div>
             </section>
 
-            <div className="mt-5 space-y-4">
+            <div className="mt-3 space-y-2">
               <StepPhotoCard number="1" title="準備" description="材料をそろえたところや、下ごしらえの様子を撮ろう">
                 <CameraCard
                   label="準備"
@@ -422,22 +422,22 @@ export default function CameraPost({ onBack }: CameraPostProps) {
               </StepPhotoCard>
             </div>
 
-            <div className="mt-5 rounded-[30px] bg-[#fffaf2]/94 p-5 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-              <h3 className="text-xl font-black text-[#3f2116]">料理メモ</h3>
+            <div className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+              <h3 className="text-[13px] font-black text-[#3f2116]">料理メモ</h3>
 
-              <label className="mt-4 block text-sm font-black text-[#3f2116]">料理名</label>
+              <label className="mt-2 block text-[10px] font-black text-[#3f2116]">料理名</label>
               <input
 	               value={dishName}
 	               onChange={(e) => setDishName(e.target.value)}
                 placeholder="料理名"
-                className="mt-2 w-full rounded-[18px] border border-[#dfc79d] bg-[#fffaf2] px-4 py-3 font-bold text-[#3f2116] outline-none"
+                className="mt-1 w-full rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[12px] font-bold text-[#3f2116] outline-none"
 	             />
 
-              <div className="mt-4">
+              <div className="mt-2">
                 <button
                   type="button"
                   onClick={() => setIsTitleSuffixOpen((v) => !v)}
-	                  className="flex w-full items-center justify-between rounded-[18px] border border-[#dfc79d] bg-[#fffaf2] px-4 py-3 text-left text-sm font-black text-[#3f2116]"
+	                  className="flex w-full items-center justify-between rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-left text-[12px] font-black text-[#3f2116]"
                 >
                   <span>{titleSuffix}</span>
                   <span className="text-xs opacity-50">{isTitleSuffixOpen ? "閉じる" : "選択"}</span>
@@ -470,20 +470,20 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                 )}
               </div>
 
-	             <label className="mt-4 block text-sm font-black text-[#3f2116]">ひとこと</label>
+	             <label className="mt-2 block text-[10px] font-black text-[#3f2116]">ひとこと</label>
 	             <textarea
                value={memo}
                onChange={(e) => setMemo(e.target.value)}
 	               placeholder="今日のごはんに添えるひとこと"
-	               rows={3}
-	               className="mt-2 w-full resize-none rounded-[18px] border border-[#dfc79d] bg-[#fffaf2] px-4 py-3 font-bold text-[#3f2116] outline-none"
+	               rows={2}
+	               className="mt-1 w-full resize-none rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[12px] font-bold text-[#3f2116] outline-none"
 	             />
 
               <button
                 type="button"
                 onClick={savePostText}
                 disabled={isPublishing}
-	                className={`mt-4 w-full rounded-full py-3 font-black ${
+	                className={`mt-2 w-full rounded-full py-2 text-[12px] font-black ${
 	                  isPublishing
 	                    ? "cursor-not-allowed bg-[#0f6a47]/40 text-white"
 	                    : "bg-[#fff8e6] text-[#3f2116] ring-1 ring-[#dfc79d]"
@@ -496,7 +496,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                 type="button"
                 onClick={resetTodayPhotos}
                 disabled={isPublishing}
-	                className={`mt-3 w-full rounded-full border border-[#dfc79d] py-3 font-black text-[#3f2116] ${
+	                className={`mt-2 w-full rounded-full border border-[#dfc79d] py-2 text-[12px] font-black text-[#3f2116] ${
 	                  isPublishing ? "cursor-not-allowed bg-white/50" : "bg-[#fffaf2]"
                 }`}
               >
@@ -507,7 +507,7 @@ export default function CameraPost({ onBack }: CameraPostProps) {
                 type="button"
                 onClick={publishPost}
                 disabled={isPublishing}
-	                className={`mt-3 w-full rounded-full py-4 text-[18px] font-black text-[#fff8e6] shadow-[0_12px_24px_rgba(15,106,71,0.24)] ${
+	                className={`mt-2 w-full rounded-full py-3 text-[14px] font-black text-[#fff8e6] shadow-[0_12px_24px_rgba(15,106,71,0.24)] ${
 	                  isPublishing
 	                    ? "cursor-not-allowed bg-[#0f6a47]/50"
 	                    : "bg-[#0f6a47]"
@@ -565,16 +565,16 @@ function StepPhotoCard({
   children: ReactNode;
 }) {
   return (
-    <section className="grid grid-cols-[126px_1fr] items-center gap-4 rounded-[28px] bg-[#fffaf2]/94 p-4 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+    <section className="grid grid-cols-[112px_1fr] items-center gap-3 rounded-[8px] bg-[#fffaf2]/94 p-2 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
       <div className="-ml-1">{children}</div>
       <div className="min-w-0">
         <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0f6a47] text-[18px] font-black text-[#fff8e6]">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0f6a47] text-[12px] font-black text-[#fff8e6]">
             {number}
           </span>
-          <h2 className="text-[23px] font-black text-[#3f2116]">{title}</h2>
+          <h2 className="text-[16px] font-black text-[#3f2116]">{title}</h2>
         </div>
-        <p className="mt-4 text-[14px] font-bold leading-relaxed text-[#3f2116]/75">
+        <p className="mt-2 text-[10px] font-bold leading-relaxed text-[#3f2116]/75">
           {description}
         </p>
       </div>

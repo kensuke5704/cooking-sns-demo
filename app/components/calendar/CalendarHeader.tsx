@@ -30,31 +30,31 @@ export default function CalendarHeader({
   onNextMonth,
 }: CalendarHeaderProps) {
   return (
-    <section className="rounded-[30px] bg-[#fffaf2]/94 p-5 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+    <section className="rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={onPrevMonth}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-[#fff8e6] text-[28px] font-black text-[#3f2116] shadow-sm ring-1 ring-[#dfc79d]/70 transition active:scale-[0.97]"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-[#fff8e6] text-[18px] font-black text-[#3f2116] shadow-sm ring-1 ring-[#dfc79d]/70 transition active:scale-[0.97]"
         >
           ‹
         </button>
 
-        <h2 className="text-[24px] font-black text-[#3f2116]">
+        <h2 className="text-[16px] font-black text-[#3f2116]">
           {year}年 {month + 1}月
         </h2>
 
         <button
           type="button"
           onClick={onNextMonth}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-[#fff8e6] text-[28px] font-black text-[#3f2116] shadow-sm ring-1 ring-[#dfc79d]/70 transition active:scale-[0.97]"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-[#fff8e6] text-[18px] font-black text-[#3f2116] shadow-sm ring-1 ring-[#dfc79d]/70 transition active:scale-[0.97]"
         >
           ›
         </button>
       </div>
 
       {isPairCalendarOpen && pairState.partner && (
-        <div className="mt-5 rounded-[24px] border border-[#dfc79d]/70 bg-[#fff8e6]/70 p-4">
+        <div className="mt-3 rounded-[8px] border border-[#dfc79d]/70 bg-[#fff8e6]/70 p-3">
           <div className="flex items-center gap-3">
             <img
               src={pairState.partner.icon_url || "/images/default-icon.png"}

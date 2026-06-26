@@ -140,22 +140,22 @@ export default function CalendarPage() {
 
   return (
     <ScreenShell>
-      <div className="mb-7 flex items-center justify-between">
-        <h1 className="text-[36px] font-black leading-none text-[#3f2116]">
+      <div className="mb-3 flex items-center justify-between">
+        <h1 className="text-[18px] font-black leading-none text-[#3f2116]">
           {isPairCalendarOpen ? "2人カレンダー" : "カレンダー"}
         </h1>
         <div className="flex items-center gap-3">
           {isPairCalendarOpen && pairState.partner ? (
             <PairCalendarBackButton onClick={resetPairCalendarView} />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#fffaf2] text-[24px] shadow-[0_12px_26px_rgba(63,33,22,0.12)]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#fffaf2] text-[15px] shadow-[0_8px_18px_rgba(63,33,22,0.12)]">
               ✉
             </div>
           )}
           <img
             src={currentUser?.iconUrl || "/images/user1-icon.jpg"}
             alt={currentUser?.name || "ユーザー"}
-            className="h-14 w-14 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
+            className="h-9 w-9 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
           />
         </div>
       </div>

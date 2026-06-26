@@ -476,39 +476,39 @@ export default function ProfilePage({
 
   return (
     <ScreenShell>
-      <div className="mb-7 flex items-center justify-between">
-        <h1 className="text-[36px] font-black leading-none text-[#3f2116]">
+      <div className="mb-3 flex items-center justify-between">
+        <h1 className="text-[18px] font-black leading-none text-[#3f2116]">
           マイページ
         </h1>
-        <div className="flex items-center gap-3">
-          <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#fffaf2] text-[24px] shadow-[0_12px_26px_rgba(63,33,22,0.12)]">
+        <div className="flex items-center gap-2">
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#fffaf2] text-[16px] shadow-[0_8px_18px_rgba(63,33,22,0.12)]">
             ♡
             <span className="absolute -right-0.5 -top-0.5 h-4 w-4 rounded-full bg-[#0f7d62]" />
           </div>
           <img
             src={iconUrl}
             alt="プロフィール画像"
-            className="h-14 w-14 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
+            className="h-9 w-9 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
           />
         </div>
       </div>
 
-      <section className="rounded-[30px] bg-[#fffaf2]/94 p-6 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <div className="flex items-center gap-5">
+      <section className="rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+        <div className="flex items-center gap-3">
           <img
             src={iconUrl}
             alt="プロフィール画像"
-            className="h-28 w-28 shrink-0 rounded-full object-cover ring-4 ring-[#fff8e6]"
+            className="h-20 w-20 shrink-0 rounded-full object-cover ring-4 ring-[#fff8e6]"
           />
           <div className="min-w-0 flex-1">
-            <h2 className="truncate text-[30px] font-black leading-tight text-[#3f2116]">
+            <h2 className="truncate text-[18px] font-black leading-tight text-[#3f2116]">
               {name || currentUser?.name || "ユーザー"}
             </h2>
-            <p className="mt-1 truncate text-[18px] font-black text-[#3f2116]/45">
+            <p className="mt-1 truncate text-[11px] font-black text-[#3f2116]/45">
               @{currentUser?.userId}
             </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <label className="rounded-full bg-[#0f6a47] px-5 py-3 text-sm font-black text-[#fff8e6] shadow-[0_12px_24px_rgba(15,106,71,0.2)]">
+            <div className="mt-3 flex flex-wrap gap-2">
+              <label className="rounded-full bg-[#0f6a47] px-3 py-2 text-[10px] font-black text-[#fff8e6] shadow-[0_8px_18px_rgba(15,106,71,0.2)]">
                 プロフィール編集
                 <input
                   type="file"
@@ -520,7 +520,7 @@ export default function ProfilePage({
               <button
                 type="button"
                 onClick={isNotificationOn ? handleDisableNotifications : handleEnableNotifications}
-                className="rounded-full bg-[#fffaf2] px-5 py-3 text-sm font-black text-[#3f2116] ring-1 ring-[#dfc79d]"
+                className="rounded-full bg-[#fffaf2] px-3 py-2 text-[10px] font-black text-[#3f2116] ring-1 ring-[#dfc79d]"
               >
                 通知設定
               </button>
@@ -528,32 +528,32 @@ export default function ProfilePage({
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-[1fr_auto] gap-3">
+        <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="min-w-0 rounded-[18px] border border-[#dfc79d] bg-[#fffaf2] px-4 py-3 font-bold text-[#3f2116] outline-none"
+            className="min-w-0 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[12px] font-bold text-[#3f2116] outline-none"
           />
           <button
             type="button"
             onClick={handleSaveName}
-            className="rounded-full bg-[#0f6a47] px-5 py-3 font-black text-[#fff8e6]"
+            className="rounded-full bg-[#0f6a47] px-4 py-2 text-[12px] font-black text-[#fff8e6]"
           >
             保存
           </button>
         </div>
       </section>
 
-      <section className="mt-5 rounded-[30px] bg-[#fffaf2]/94 p-5 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <h2 className="text-[24px] font-black text-[#3f2116]">つながり</h2>
-        <div className="mt-5 flex items-center justify-between gap-4">
+      <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+        <h2 className="text-[16px] font-black text-[#3f2116]">つながり</h2>
+        <div className="mt-3 flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             {friends.slice(0, 2).map((friend) => (
               <div key={friend.id} className="text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#dcebc9] text-[28px] font-black text-[#2f6b4f] ring-2 ring-[#fff8e6]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#dcebc9] text-[18px] font-black text-[#2f6b4f] ring-2 ring-[#fff8e6]">
                   {friend.name.slice(0, 1)}
                 </div>
-                <p className="mt-2 max-w-20 truncate text-sm font-black text-[#3f2116]">
+                <p className="mt-1 max-w-16 truncate text-[10px] font-black text-[#3f2116]">
                   {friend.name}
                 </p>
               </div>
@@ -566,12 +566,12 @@ export default function ProfilePage({
                 value={friendId}
                 onChange={(e) => setFriendId(e.target.value)}
                 placeholder="家族ID"
-                className="w-28 rounded-[16px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-sm font-bold outline-none"
+                className="w-24 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-2 py-1.5 text-[11px] font-bold outline-none"
               />
               <button
                 type="button"
                 onClick={handleAddFriend}
-                className="rounded-full bg-[#fffaf2] px-4 py-2 text-sm font-black text-[#0f6a47] shadow-sm ring-1 ring-[#dfc79d]"
+                className="rounded-full bg-[#fffaf2] px-3 py-1.5 text-[10px] font-black text-[#0f6a47] shadow-sm ring-1 ring-[#dfc79d]"
               >
                 ＋ 家族を追加
               </button>
@@ -585,7 +585,7 @@ export default function ProfilePage({
         )}
       </section>
 
-      <section className="mt-5 overflow-hidden rounded-[30px] bg-[#fffaf2]/94 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+      <section className="mt-3 overflow-hidden rounded-[8px] bg-[#fffaf2]/94 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
         <ProfileMenuRow label="投稿の保存" />
         <ProfileMenuRow label="プッシュ通知" />
         <button
@@ -594,22 +594,22 @@ export default function ProfilePage({
             logoutUser();
             onProfileChange();
           }}
-          className="flex w-full items-center justify-between px-6 py-5 text-left text-[20px] font-black text-[#3f2116]"
+          className="flex w-full items-center justify-between px-4 py-3 text-left text-[13px] font-black text-[#3f2116]"
         >
           ログアウト
           <span className="text-[#7a4328]/55">›</span>
         </button>
       </section>
 
-      <section className="mt-5 rounded-[30px] bg-[#fffaf2]/94 p-5 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+      <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-[23px] font-black text-[#3f2116]">最近の記録</h2>
-          <span className="text-sm font-black text-[#7a4328]/62">すべて見る ›</span>
+          <h2 className="text-[15px] font-black text-[#3f2116]">最近の記録</h2>
+          <span className="text-[10px] font-black text-[#7a4328]/62">すべて見る ›</span>
         </div>
 
         {recentPosts[0] ? (
           <div className="mt-5">
-            <h3 className="break-words text-[20px] font-black text-[#3f2116]">
+            <h3 className="break-words text-[13px] font-black text-[#3f2116]">
               {recentPosts[0].dishName || "今日の料理"}
             </h3>
             <p className="mt-1 text-sm font-bold text-[#3f2116]/55">たった今</p>
@@ -633,7 +633,7 @@ export default function ProfilePage({
 
 function ProfileMenuRow({ label }: { label: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-[#dfc79d]/55 px-6 py-5 text-[20px] font-black text-[#3f2116]">
+    <div className="flex items-center justify-between border-b border-[#dfc79d]/55 px-4 py-3 text-[13px] font-black text-[#3f2116]">
       {label}
       <span className="text-[#7a4328]/55">›</span>
     </div>

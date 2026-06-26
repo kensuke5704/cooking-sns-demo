@@ -18,12 +18,12 @@ export default function CalendarGrid({
   onSelectDate,
 }: CalendarGridProps) {
   return (
-    <section className="mt-5 rounded-[30px] bg-[#fffaf2]/94 p-4 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-      <div className="grid grid-cols-7 overflow-hidden rounded-[18px] border border-[#dfc79d]/60 text-center">
+    <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+      <div className="grid grid-cols-7 overflow-hidden rounded-[6px] border border-[#dfc79d]/60 text-center">
         {["日", "月", "火", "水", "木", "金", "土"].map((d) => (
           <div
             key={d}
-            className={`py-2 text-xs font-black ${
+            className={`py-1.5 text-[10px] font-black ${
               d === "日" ? "text-red-600" : d === "土" ? "text-blue-600" : "text-[#3f2116]"
             }`}
           >
@@ -45,9 +45,9 @@ export default function CalendarGrid({
               key={dateKey}
               type="button"
               onClick={() => onSelectDate(dateKey)}
-              className={`relative flex aspect-square flex-col items-center justify-start border-l border-t border-[#dfc79d]/55 p-2 text-[20px] font-black transition active:scale-[0.98] ${
+              className={`relative flex aspect-square flex-col items-center justify-start border-l border-t border-[#dfc79d]/55 p-1.5 text-[12px] font-black transition active:scale-[0.98] ${
                 selected
-                  ? "rounded-[16px] bg-[#0f6a47] text-[#fff8e6] shadow-[inset_0_-8px_0_rgba(0,0,0,0.1)]"
+                  ? "rounded-[6px] bg-[#0f6a47] text-[#fff8e6] shadow-[inset_0_-8px_0_rgba(0,0,0,0.1)]"
                   : "bg-[#fffaf2]/72 text-[#3f2116]"
               }`}
             >
@@ -62,10 +62,10 @@ export default function CalendarGrid({
                   <img
                     src={dayPosts[0].finishedPhoto || dayPosts[0].cookingPhoto || dayPosts[0].prepPhoto}
                     alt=""
-                    className="mt-2 h-7 w-7 rounded-full object-cover ring-1 ring-[#dfc79d]"
+                    className="mt-1 h-5 w-5 rounded-full object-cover ring-1 ring-[#dfc79d]"
                   />
                 ) : (
-                  <span className="mt-2 h-2.5 w-2.5 rounded-full bg-[#f4a72d]" />
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-[#f4a72d]" />
                 )
               )}
             </button>
