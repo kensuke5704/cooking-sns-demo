@@ -18,7 +18,7 @@ export default function CalendarGrid({
   onSelectDate,
 }: CalendarGridProps) {
   return (
-    <section className="rounded-b-[8px] bg-[#fffaf2]/94 px-3 pb-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+    <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
       <div className="grid grid-cols-7 overflow-hidden rounded-[6px] border border-[#dfc79d]/60 text-center">
         {["日", "月", "火", "水", "木", "金", "土"].map((d) => (
           <div
@@ -45,7 +45,7 @@ export default function CalendarGrid({
               key={dateKey}
               type="button"
               onClick={() => onSelectDate(dateKey)}
-              className={`relative flex aspect-square flex-col items-center justify-start border-l border-t border-[#dfc79d]/55 p-1.5 text-[11px] font-black transition active:scale-[0.98] ${
+              className={`relative flex aspect-square flex-col items-center justify-start border-l border-t border-[#dfc79d]/55 p-1.5 text-[12px] font-black transition active:scale-[0.98] ${
                 selected
                   ? "rounded-[6px] bg-[#0f6a47] text-[#fff8e6] shadow-[inset_0_-8px_0_rgba(0,0,0,0.1)]"
                   : "bg-[#fffaf2]/72 text-[#3f2116]"

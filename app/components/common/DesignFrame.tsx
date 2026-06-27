@@ -9,7 +9,7 @@ type DesignFrameProps = {
 
 export default function DesignFrame({ image, children }: DesignFrameProps) {
   return (
-    <main className="min-h-[100dvh] bg-[#fbb23a]">
+    <main className="min-h-[100dvh] bg-[#f4a72d]">
       <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
         <img
           src={image}

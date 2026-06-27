@@ -1,5 +1,13 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
+import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
+
+const notoSansJp = Noto_Sans_JP({
+  variable: "--font-noto-sans-jp",
+  subsets: ["latin"],
+  weight: ["400", "500", "700", "800", "900"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "ごはんなにかな",
@@ -7,14 +15,12 @@ export const metadata: Metadata = {
 
   manifest: "/manifest.json",
 
+  themeColor: "#f39a00",
+
   icons: {
     icon: "/icon-192.png",
     apple: "/icon-192.png",
   },
-};
-
-export const viewport: Viewport = {
-  themeColor: "#f39a00",
 };
 
 export default function RootLayout({
@@ -23,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className="h-full antialiased">
+    <html lang="ja" className={`${notoSansJp.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

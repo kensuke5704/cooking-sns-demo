@@ -30,7 +30,7 @@ export default function CalendarHeader({
   onNextMonth,
 }: CalendarHeaderProps) {
   return (
-    <section className="rounded-t-[8px] bg-[#fffaf2]/94 p-3 pb-2 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+    <section className="rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"
@@ -40,7 +40,7 @@ export default function CalendarHeader({
           ‹
         </button>
 
-        <h2 className="text-[15px] font-black text-[#3f2116]">
+        <h2 className="text-[16px] font-black text-[#3f2116]">
           {year}年 {month + 1}月
         </h2>
 

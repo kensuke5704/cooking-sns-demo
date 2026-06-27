@@ -28,7 +28,7 @@ export default function AuthPage({
   }, []);
 
   if (!mounted) {
-    return <main className="min-h-screen bg-[#fbb23a]" />;
+    return <main className="min-h-screen bg-[#f4a72d]" />;
   }
 
   if (currentUser) {

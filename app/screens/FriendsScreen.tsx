@@ -7,27 +7,14 @@ import { sendPushNotification } from "../lib/sendPush";
 import { supabase } from "../lib/supabase";
 import type { Post } from "../types/post";
 import EmptyState from "../components/common/EmptyState";
-import HeaderAvatar from "../components/common/HeaderAvatar";
+import ScreenShell from "../components/common/ScreenShell";
 import MiniChekiTriplet from "../components/post/MiniChekiTriplet";
 
-type FriendWithIcon = Friend & { iconUrl?: string };
-
-function InitialAvatar({ name, iconUrl }: { name: string; iconUrl?: string }) {
+function InitialAvatar({ name }: { name: string }) {
   const initial = name.trim().slice(0, 1) || "家";
 
-  if (iconUrl) {
-    return (
-      <img
-        src={iconUrl}
-        alt={name}
-        className="h-9 w-9 shrink-0 rounded-full object-cover"
-        draggable={false}
-      />
-    );
-  }
-
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#dcebc9] text-[15px] font-black text-[#2f6b4f]">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dcebc9] text-[16px] font-black text-[#2f6b4f] ring-2 ring-[#fff8e6]">
       {initial}
     </div>
   );
@@ -35,18 +22,19 @@ function InitialAvatar({ name, iconUrl }: { name: string; iconUrl?: string }) {
 
 function BowlIllustration() {
   return (
-    <img
-      src="/design-targets/connections-hero-illustration-crop-alpha.png"
-      alt=""
-      className="h-[86px] w-[142px] object-contain"
-      draggable={false}
-      aria-hidden="true"
-    />
+    <div className="relative h-[78px]" aria-hidden="true">
+      <div className="absolute right-4 top-4 h-12 w-20 rounded-b-[34px] rounded-t-[14px] bg-[#f4a72d] shadow-[inset_0_-8px_0_rgba(122,67,40,0.12)]" />
+      <div className="absolute right-6 top-2 h-7 w-16 rounded-[100%] bg-[#fff1ce] ring-2 ring-[#7a4328]/15" />
+      <div className="absolute right-11 top-1 h-4 w-4 rounded-full bg-[#2f6b4f]" />
+      <div className="absolute right-1 top-10 h-11 w-16 rounded-b-[30px] rounded-t-[14px] bg-[#e2a32f]" />
+      <div className="absolute right-24 top-14 h-px w-16 border-t-2 border-dashed border-[#7a4328]/38" />
+      <div className="absolute right-36 top-10 h-9 w-12 rounded-b-[24px] rounded-t-[12px] bg-[#fff1ce] ring-2 ring-[#7a4328]/15" />
+    </div>
   );
 }
 
 export default function FriendsPage() {
-  const [friends, setFriends] = useState<FriendWithIcon[]>([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
   const [friendId, setFriendId] = useState("");
   const [message, setMessage] = useState("");
   const [posts, setPosts] = useState<Post[]>([]);
@@ -79,7 +67,7 @@ export default function FriendsPage() {
 
     const { data: profiles, error: profileError } = await supabase
       .from("profiles")
-      .select("id, name, user_id, icon_url")
+      .select("id, name, user_id")
       .in("user_id", friendUserIds);
 
     if (profileError) {
@@ -92,7 +80,6 @@ export default function FriendsPage() {
         id: profile.id,
         name: profile.name,
         userId: profile.user_id,
-        iconUrl: profile.icon_url ?? undefined,
       })) || []
     );
   }
@@ -178,144 +165,85 @@ export default function FriendsPage() {
     () => posts.find((post) => post.userId !== currentUser?.userId) || posts[0],
     [currentUser?.userId, posts]
   );
-  const postStatusByUserId = useMemo(() => {
-    const statuses = new Map<string, string>();
-    posts.forEach((post) => {
-      if (!post.userId || statuses.has(post.userId)) return;
-      statuses.set(post.userId, post.postDate === new Date().toISOString().slice(0, 10) ? "今日の投稿あり" : "最近の記録あり");
-    });
-    return statuses;
-  }, [posts]);
-
   return (
-    <main className="min-h-[100dvh] bg-[#fbb23a] px-[14px] pt-[22px] pb-[86px] text-[#4b2a1d]">
-      <div className="mx-auto w-full max-w-md">
-        <header className="mb-[9px] flex h-[29px] items-start justify-between gap-3 px-1">
-          <h1 className="-mt-[2px] text-[18px] font-black leading-none text-[#4b2a1d]">
-            つながり
-          </h1>
-          <HeaderAvatar iconUrl={currentUser?.iconUrl} />
-        </header>
+    <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
+      <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
+        <img
+          src="/design-targets/connections-reference-shell.png"
+          alt=""
+          draggable={false}
+          className="absolute inset-0 h-full w-full object-fill"
+          aria-hidden="true"
+        />
 
-      <section className="relative mb-2 h-[102px] overflow-hidden rounded-[8px] bg-[#fcf4ee] p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <div className="relative z-10 ml-[10px] mt-[10px] max-w-[56%]">
-          <h2 className="text-[17px] font-black leading-[1.18] text-[#3f2116]">
-            家族の食卓が届く
-          </h2>
-          <p className="mt-2 text-[10px] font-bold leading-[1.58] text-[#3f2116]/68">
-            友だちや家族を追加すると、
-            <br />
-            今日の料理がホームに並びます。
-          </p>
-        </div>
-        <div className="absolute right-0 top-1.5 w-[154px]">
-          <BowlIllustration />
-        </div>
-      </section>
-
-      <section className="rounded-[8px] bg-[#fcf4ee] p-2 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <div className="grid translate-y-px grid-cols-[60px_178px_84px] items-center gap-2">
-          <label className="pl-1 text-[10px] font-black text-[#3f2116]/70">
-            家族ID
-          </label>
+        <div className="absolute left-[5.2%] right-[5.2%] top-[28.9%] h-[7.3%] rounded-[8px] bg-[#fffaf2]" />
         <input
           value={friendId}
           onChange={(event) => setFriendId(event.target.value)}
-          placeholder="例：okaasan"
-            className="min-w-0 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-1 text-[10px] font-bold text-[#3f2116] placeholder:text-[#3f2116]/42 outline-none"
+          placeholder="家族IDを入力"
+          className="absolute left-[26%] top-[30.1%] h-[4.6%] w-[43%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-2 text-[10px] font-bold text-[#3f2116] outline-none"
         />
         <button
           type="button"
           onClick={handleAddFriend}
-          className="w-[84px] rounded-full bg-[#0f6a47] px-0 py-1 text-[8px] font-black text-[#fff8e6] shadow-[0_10px_24px_rgba(15,106,71,0.16)] active:scale-[0.97]"
+          className="absolute right-[5.8%] top-[30.1%] h-[4.6%] w-[22%] rounded-full bg-[#0f6a47] text-[10px] font-black text-[#fff8e6]"
         >
           追加する
         </button>
-        </div>
         {message && (
-          <p className="mt-2 rounded-[6px] bg-[#fff8e6] px-3 py-2 text-[11px] font-black text-[#0f6a47]">
+          <p className="absolute left-[5.5%] right-[5.5%] top-[35.5%] rounded-[6px] bg-[#fff8e6] px-2 py-1 text-[10px] font-black text-[#0f6a47]">
             {message}
           </p>
         )}
-      </section>
 
-      <section className="mt-2 h-[166px] overflow-hidden rounded-[8px] bg-[#fcf4ee] p-2.5 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <h2 className="text-[11px] font-black text-[#3f2116]">つながっている人</h2>
+        <div className="absolute left-[5.2%] right-[5.2%] top-[39.7%] h-[31.2%] rounded-[8px] bg-[#fffaf2]" />
         {friends.length === 0 ? (
-          <div className="mt-[7px]">
+          <div className="absolute left-[8%] right-[8%] top-[45%]">
             <EmptyState title="まだつながりはありません" />
           </div>
         ) : (
-          <div className="mt-1.5 overflow-hidden rounded-[8px]">
+          <div className="absolute left-[7.2%] right-[7.2%] top-[43.1%] space-y-[8px]">
             {friends.slice(0, 3).map((friend) => (
               <div
                 key={friend.id}
-                className="flex min-h-[39px] items-center gap-2.5 border-b border-[#dfc79d]/48 px-1.5 py-0.5 last:border-b-0"
+                className="flex h-[43px] items-center gap-3"
               >
-                <InitialAvatar name={friend.name} iconUrl={friend.iconUrl} />
+                <InitialAvatar name={friend.name} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[11px] font-black leading-[1.05] text-[#3f2116]">
+                  <p className="truncate text-[12px] font-black leading-tight text-[#3f2116]">
                     {friend.name}
                   </p>
-                  <p className="mt-0.5 truncate text-[7px] font-bold leading-none text-[#0f6a47]">
-                    {postStatusByUserId.get(friend.userId) ?? friend.userId}
+                  <p className="truncate text-[9px] font-bold leading-tight text-[#0f6a47]">
+                    {friend.userId}
                   </p>
                 </div>
-                <span
-                  className="mr-1 h-[7px] w-[7px] rotate-45 border-r border-t border-[#3f2116]/38"
-                  aria-hidden="true"
-                />
               </div>
             ))}
           </div>
         )}
-      </section>
 
-      <section className="mt-[11px] rounded-[8px] bg-[#fcf4ee] p-2.5 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[12px] font-bold text-[#3f2116]">最近届いたごはん</h2>
-          <button className="text-[9px] font-black leading-none text-[#0f6a47]">すべて見る 〉</button>
-        </div>
+        <div className="absolute left-[5.2%] right-[5.2%] top-[73.5%] h-[18.2%] rounded-[8px] bg-[#fffaf2]" />
         {latestPost ? (
-          <div className="mt-2">
+          <div className="absolute left-[7.2%] right-[7.2%] top-[76.5%]">
             <div className="flex items-center gap-2">
-              <InitialAvatar name={latestPost.userName} iconUrl={latestPost.userIcon} />
+              <InitialAvatar name={latestPost.userName} />
               <div className="min-w-0">
-                <p className="truncate text-[10px] font-bold leading-tight text-[#3f2116]">
+                <p className="truncate text-[11px] font-black leading-tight text-[#3f2116]">
                   {latestPost.userName}
                 </p>
-                <p className="truncate text-[8px] font-bold leading-tight text-[#3f2116]/52">
-                  {formatRecentTime(latestPost.createdAt)}
-                </p>
-                <p className="truncate text-[9px] font-bold leading-tight text-[#3f2116]">
+                <p className="truncate text-[10px] font-bold leading-tight text-[#3f2116]">
                   {latestPost.dishName || "今日の料理"}
                 </p>
               </div>
             </div>
-            <MiniChekiTriplet
-              post={latestPost}
-              className="mt-2 [&>div:nth-child(1)]:-rotate-[4deg] [&>div:nth-child(3)]:rotate-[5deg]"
-            />
+            <MiniChekiTriplet post={latestPost} className="mt-2" />
           </div>
         ) : (
-          <div className="mt-2">
+          <div className="absolute left-[8%] right-[8%] top-[78%]">
             <EmptyState title="投稿はありません" />
           </div>
         )}
-      </section>
       </div>
     </main>
   );
-}
-
-function formatRecentTime(createdAt?: string) {
-  if (!createdAt) return "たった今";
-
-  const created = new Date(createdAt).getTime();
-  if (Number.isNaN(created)) return "たった今";
-
-  const minutes = Math.max(0, Math.round((Date.now() - created) / 60000));
-  if (minutes < 1) return "たった今";
-  if (minutes < 60) return `${minutes}分前`;
-  return `${Math.floor(minutes / 60)}時間前`;
 }
