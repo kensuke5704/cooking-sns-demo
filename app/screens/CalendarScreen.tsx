@@ -139,17 +139,16 @@ export default function CalendarPage() {
   }
 
   return (
-    <main>
-      <ScreenShell
-        label={isPairCalendarOpen ? "PAIR CALENDAR" : "CALENDAR"}
-        title={isPairCalendarOpen ? "2人の記録" : "食卓カレンダー"}
-        subtitle="投稿した日の写真が、月の中に小さく残ります。"
-        action={
-          isPairCalendarOpen ? (
-            <PairCalendarBackButton onClick={resetPairCalendarView} />
-          ) : null
-        }
-      >
+    <ScreenShell
+      label={isPairCalendarOpen ? "PAIR CALENDAR" : "CALENDAR"}
+      title={isPairCalendarOpen ? "2人カレンダー" : "カレンダー"}
+
+      action={
+        isPairCalendarOpen && pairState.partner ? (
+          <PairCalendarBackButton onClick={resetPairCalendarView} />
+        ) : undefined
+      }
+    >
         <CalendarHeader
           year={year}
           month={month}
@@ -172,10 +171,7 @@ export default function CalendarPage() {
         />
 
         {selectedDate && (
-          <CalendarDetail
-            dateKey={selectedDate}
-            posts={getPostsByDate(selectedDate)}
-          />
+          <CalendarDetail dateKey={selectedDate} posts={getPostsByDate(selectedDate)} />
         )}
 
         {!isPairCalendarOpen && (
@@ -190,8 +186,8 @@ export default function CalendarPage() {
             onCancelPendingCode={cancelPendingCode}
           />
         )}
-      </ScreenShell>
+
       <CalendarPopup popup={popup} onClose={() => setPopup(null)} />
-    </main>
+    </ScreenShell>
   );
 }

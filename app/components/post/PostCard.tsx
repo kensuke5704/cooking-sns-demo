@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Post } from "../../types/post";
+import StackedPhotos from "./StackedPhotos";
 import { supabase } from "../../lib/supabase";
 import { getCurrentUser } from "../../lib/auth";
 import { sendPushNotification } from "../../lib/sendPush";
@@ -14,176 +15,6 @@ type CommentItem = {
   text: string;
   parentCommentId?: string | number | null;
 };
-
-type ChekiPose = {
-  rotate: string;
-  x: string;
-  y: string;
-  scale: string;
-  z: string;
-  tape?: "orange" | "green" | "cream";
-};
-
-const chekiPoseSets: ChekiPose[][] = [
-  [
-    { rotate: "-5deg", x: "0px", y: "18px", scale: "0.92", z: "10" },
-    { rotate: "1deg", x: "-13px", y: "4px", scale: "0.98", z: "20" },
-    { rotate: "5deg", x: "-26px", y: "10px", scale: "1.1", z: "30", tape: "orange" },
-  ],
-  [
-    { rotate: "-3deg", x: "3px", y: "15px", scale: "0.9", z: "10" },
-    { rotate: "4deg", x: "-11px", y: "8px", scale: "0.96", z: "20" },
-    { rotate: "-2deg", x: "-22px", y: "0px", scale: "1.12", z: "30", tape: "green" },
-  ],
-  [
-    { rotate: "4deg", x: "0px", y: "14px", scale: "0.91", z: "10" },
-    { rotate: "-4deg", x: "-12px", y: "2px", scale: "0.98", z: "20" },
-    { rotate: "3deg", x: "-24px", y: "12px", scale: "1.09", z: "30", tape: "cream" },
-  ],
-];
-
-const avatarPalette = [
-  "bg-[#f4d58f] text-[#3f2116]",
-  "bg-[#dcebc9] text-[#2f6b4f]",
-  "bg-[#f2c7a7] text-[#7a4328]",
-  "bg-[#e9dfcc] text-[#4b2a1d]",
-];
-
-function hashString(value: string) {
-  return Array.from(value).reduce(
-    (hash, char) => (hash * 31 + char.charCodeAt(0)) % 997,
-    7
-  );
-}
-
-function getPostVariant(postId: string | number) {
-  const hash = hashString(String(postId));
-  return {
-    poses: chekiPoseSets[hash % chekiPoseSets.length],
-    leafSide: hash % 2 === 0 ? "left" : "right",
-  };
-}
-
-function IllustratedAvatar({
-  name,
-  className = "",
-}: {
-  name: string;
-  className?: string;
-}) {
-  const initial = name.trim().slice(0, 1) || "ご";
-  const avatarClass = avatarPalette[hashString(name) % avatarPalette.length];
-
-  return (
-    <div
-      className={`flex items-center justify-center rounded-full font-black ring-2 ring-[#fff8e6] ${avatarClass} ${className}`}
-      aria-label={name}
-    >
-      {initial}
-    </div>
-  );
-}
-
-function ChekiPhoto({
-  src,
-  label,
-  pose,
-  onClick,
-}: {
-  src?: string;
-  label: string;
-  pose: ChekiPose;
-  onClick: (src: string) => void;
-}) {
-  const tapeClass =
-    pose.tape === "green"
-      ? "bg-[#d7e7c5]/85"
-      : pose.tape === "cream"
-      ? "bg-[#fff1ce]/88"
-      : "bg-[#f3cf9f]/88";
-
-  return (
-    <button
-      type="button"
-      onClick={() => src && onClick(src)}
-      disabled={!src}
-      className="absolute left-0 top-0 w-[37%] touch-manipulation text-left transition duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] disabled:cursor-default"
-      style={{
-        transform: `translate(${pose.x}, ${pose.y}) rotate(${pose.rotate}) scale(${pose.scale})`,
-        zIndex: Number(pose.z),
-      }}
-      aria-label={`${label}の写真`}
-    >
-      <div className="relative rounded-[10px] bg-[#fffaf2] p-1.5 pb-7 shadow-[0_14px_30px_rgba(63,33,22,0.16)] ring-1 ring-[#ead8b6]">
-        {pose.tape && (
-          <span
-            className={`absolute -right-2 -top-3 h-6 w-14 rotate-[10deg] rounded-[3px] opacity-95 shadow-[0_5px_12px_rgba(63,33,22,0.08)] ${tapeClass}`}
-            aria-hidden="true"
-          />
-        )}
-
-        {src ? (
-          <img
-            src={src}
-            alt={label}
-            draggable={false}
-            loading="lazy"
-            decoding="async"
-            className="aspect-[4/3] w-full select-none rounded-[7px] object-cover"
-          />
-        ) : (
-          <div className="flex aspect-[4/3] w-full items-center justify-center rounded-[7px] bg-[#f4a72d]/12 text-[12px] font-black text-[#2f6b4f]">
-            {label}
-          </div>
-        )}
-
-        <p className="absolute inset-x-0 bottom-1.5 text-center text-[13px] font-black leading-none text-[#3f2116]">
-          {label}
-        </p>
-      </div>
-    </button>
-  );
-}
-
-function ChekiPhotoStack({
-  post,
-  onImageClick,
-}: {
-  post: Post;
-  onImageClick: (src: string) => void;
-}) {
-  const variant = getPostVariant(post.id);
-  const photos = [
-    { label: "準備", src: post.prepPhoto },
-    { label: "調理", src: post.cookingPhoto },
-    { label: "完成", src: post.finishedPhoto },
-  ];
-
-  return (
-    <div className="relative h-[214px] overflow-visible px-2">
-      <div
-        className={`absolute bottom-4 h-16 w-10 opacity-70 ${
-          variant.leafSide === "left" ? "-left-1" : "-right-1 scale-x-[-1]"
-        }`}
-        aria-hidden="true"
-      >
-        <span className="absolute left-4 top-1 h-12 w-1 rotate-[24deg] rounded-full bg-[#9dbb76]" />
-        <span className="absolute left-1 top-3 h-4 w-7 -rotate-[24deg] rounded-[100%] bg-[#d8e8bd]" />
-        <span className="absolute left-5 top-6 h-4 w-7 rotate-[18deg] rounded-[100%] bg-[#c6df9c]" />
-      </div>
-
-      {photos.map((photo, index) => (
-        <ChekiPhoto
-          key={photo.label}
-          src={photo.src}
-          label={photo.label}
-          pose={variant.poses[index]}
-          onClick={onImageClick}
-        />
-      ))}
-    </div>
-  );
-}
 
 
 function DeleteConfirmPopup({
@@ -615,112 +446,115 @@ export default function PostCard({
       )}
 
       <article
-        className={`overflow-hidden rounded-[32px] bg-[#fffaf2]/42 p-1.5 shadow-[0_18px_44px_rgba(63,33,22,0.13)] ring-1 ring-white/55 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        className={`overflow-hidden rounded-[28px] border bg-white/95 shadow-[0_16px_44px_rgba(107,47,19,0.13)] transition-all duration-300 ${
           highlight
-            ? "ring-4 ring-[#2f6b4f]/32"
-            : ""
+            ? "border-[#f39a00] ring-4 ring-[#f39a00]/30"
+            : "border-white/75"
         }`}
       >
-        <div className="rounded-[26px] bg-[#fffaf2] shadow-[inset_0_1px_1px_rgba(255,255,255,0.72)]">
-          <div className="flex items-center justify-between px-5 pt-5">
-            <div className="flex items-center gap-3">
-              <IllustratedAvatar
-                name={post.userName}
-                className="h-12 w-12 shrink-0 text-[20px]"
-              />
+        <div className="flex items-center justify-between px-5 pt-5">
+          <div className="flex items-center gap-3">
+            <img
+              src={post.userIcon}
+              alt={post.userName}
+              className="h-11 w-11 rounded-full border border-[#f8b72a] object-cover shadow-sm"
+            />
 
-              <div className="min-w-0">
-                <p className="truncate text-[15px] font-black text-[#4b2a1d]">
-                  {post.userName}
-                </p>
-                <p className="text-[11px] font-bold text-[#4b2a1d]/48">
-                  {createdTimeText}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {isMyPost && onDelete && (
-                <button
-                  type="button"
-                  onClick={() => onDelete?.(post.id)}
-                  className="rounded-full bg-[#4b2a1d]/8 px-3 py-1.5 text-xs font-black text-[#4b2a1d] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.96]"
-                >
-                  削除
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="px-4 pb-4 pt-5">
-            <ChekiPhotoStack post={post} onImageClick={onImageClick} />
-          </div>
-
-          <div className="px-5 pb-5">
-            <p className="break-words text-[17px] font-black leading-snug text-[#3f2116]">
-              {post.dishName
-                ? post.titleSuffix === "なし"
-                  ? post.dishName
-                  : `${post.dishName}を${post.titleSuffix || "作りました"}`
-                : "今日の料理を記録しました"}
-            </p>
-
-            {post.memo && (
-              <p className="mt-3 break-words rounded-[20px] bg-[#f4a72d]/12 px-4 py-3 text-sm font-bold leading-relaxed text-[#4b2a1d]">
-                {post.memo}
+            <div>
+              <p className="text-[15px] font-black tracking-[-0.02em] text-[#6b2f13]">
+                {post.userName}
               </p>
-            )}
+              <p className="text-[11px] font-bold text-[#6b2f13]/45">
+                {createdTimeText}
+              </p>
+            </div>
+          </div>
 
-            <div className="mb-3 mt-4 flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            {isMyPost && onDelete && (
               <button
                 type="button"
-                onClick={toggleLike}
-                disabled={isLikeLoading}
-                className="flex h-11 min-w-11 items-center justify-center rounded-full bg-[#4b2a1d]/6 px-3 text-[#4b2a1d] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.96] disabled:opacity-50"
+                onClick={() => onDelete?.(post.id)}
+                className="rounded-full bg-red-500 px-3 py-1 text-xs font-black text-white"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill={liked ? "currentColor" : "none"}
-                  stroke="currentColor"
-                  strokeWidth="2.2"
+                削除
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="px-4 py-5">
+          <div className="rounded-[28px] bg-[#f8b72a] p-4 shadow-inner">
+            <StackedPhotos post={post} onClick={onImageClick} />
+          </div>
+        </div>
+
+        <div className="px-5 pb-5">
+          <div className="mb-3 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleLike}
+              disabled={isLikeLoading}
+              className="flex h-10 w-10 items-center justify-center disabled:opacity-50"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill={liked ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`h-6 w-6 ${
+                  liked ? "text-[#f39a00]" : "text-[#6b2f13]"
+                }`}
+              >
+                <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className={`h-5 w-5 ${
-                    liked ? "text-[#f4a72d]" : "text-[#4b2a1d]"
-                  }`}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"
-                  />
-                </svg>
-              </button>
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"
+                />
+              </svg>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setShowComments(true)}
-                className="flex h-11 min-w-11 items-center justify-center rounded-full bg-[#4b2a1d]/6 px-3 text-[#4b2a1d] transition duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.96]"
+            <button
+              type="button"
+              onClick={() => setShowComments(true)}
+              className="flex h-10 w-10 items-center justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-6 w-6 text-[#6b2f13]"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="h-5 w-5 text-[#4b2a1d]"
-                >
-                  <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-                </svg>
-              </button>
-            </div>
+                <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+              </svg>
+            </button>
+          </div>
 
-            <p className="text-sm font-black text-[#4b2a1d]">
-              {likeCount}人が「おいしそう」しました
+          <p className="text-sm font-black text-[#6b2f13]">
+            {likeCount}人が「おいしそう」しました
+          </p>
+
+          <p className="mt-2 text-sm font-bold text-[#6b2f13]">
+            <span className="font-black">{post.userName}</span>{" "}
+            {post.dishName
+              ? post.titleSuffix === "なし"
+                ? `${post.dishName} `
+                : `${post.dishName}を${post.titleSuffix || "作りました"} `
+              : "今日の料理を記録しました "}
+          </p>
+
+          {post.memo && (
+            <p className="mt-2 rounded-[18px] bg-[#fff4d7]/80 px-4 py-3 text-sm font-bold text-[#6b2f13]">
+              {post.memo}
             </p>
+          )}
 
-            <div className="mt-4">
+          <div className="mt-4">
             <button
               type="button"
               onClick={() => setShowComments((v) => !v)}
@@ -821,7 +655,6 @@ export default function PostCard({
               </>
             )}
           </div>
-        </div>
         </div>
 
         {portalRoot && deleteCommentId !== null &&

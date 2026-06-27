@@ -26,15 +26,6 @@ type ProfileRow = {
   icon_url: string | null;
 };
 
-type LikeRow = {
-  post_id: string | number;
-  user_id: string;
-};
-
-type CommentRow = {
-  post_id: string | number;
-};
-
 export async function loadPostsData(userId: string): Promise<Post[]> {
   const { data: friendsData, error: friendsError } = await supabase
     .from("friends")
@@ -80,49 +71,9 @@ export async function loadPostsData(userId: string): Promise<Post[]> {
     profilesData?.map((profile) => [profile.user_id, profile]) || []
   );
 
-  const postIds = postsData?.map((post) => post.id) || [];
-  const likeCountMap = new Map<string, number>();
-  const commentCountMap = new Map<string, number>();
-  const likedPostIds = new Set<string>();
-
-  if (postIds.length > 0) {
-    const { data: likesData, error: likesError } = await supabase
-      .from("likes")
-      .select("post_id,user_id")
-      .in("post_id", postIds);
-
-    if (likesError) {
-      console.error("likes取得エラー:", likesError);
-    } else {
-      (likesData as LikeRow[] | null)?.forEach((like) => {
-        const postId = String(like.post_id);
-        likeCountMap.set(postId, (likeCountMap.get(postId) || 0) + 1);
-
-        if (like.user_id === userId) {
-          likedPostIds.add(postId);
-        }
-      });
-    }
-
-    const { data: commentsData, error: commentsError } = await supabase
-      .from("comments")
-      .select("post_id")
-      .in("post_id", postIds);
-
-    if (commentsError) {
-      console.error("comments取得エラー:", commentsError);
-    } else {
-      (commentsData as CommentRow[] | null)?.forEach((comment) => {
-        const postId = String(comment.post_id);
-        commentCountMap.set(postId, (commentCountMap.get(postId) || 0) + 1);
-      });
-    }
-  }
-
   const mappedPosts: Post[] =
     postsData?.map((post) => {
       const profile = profileMap.get(post.user_id);
-      const postId = String(post.id);
 
       return {
         id: post.id,
@@ -137,9 +88,6 @@ export async function loadPostsData(userId: string): Promise<Post[]> {
         dishName: post.dish_name,
         memo: post.memo,
         titleSuffix: post.title_suffix || "作りました",
-        likeCount: likeCountMap.get(postId) || 0,
-        commentCount: commentCountMap.get(postId) || 0,
-        liked: likedPostIds.has(postId),
       };
     }) || [];
 

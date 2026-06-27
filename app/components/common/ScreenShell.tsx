@@ -18,25 +18,25 @@ export default function ScreenShell({
   className = "",
 }: ScreenShellProps) {
   return (
-    <main className={`min-h-[100dvh] bg-[#f4a72d] px-3 pt-3 pb-[86px] text-[#4b2a1d] ${className}`}>
+    <main className={`min-h-screen px-5 pt-6 pb-28 text-[#6b2f13] ${className}`}>
       <div className="mx-auto w-full max-w-md">
         {(label || title || subtitle || action) && (
-          <header className="mb-3 flex items-end justify-between gap-3">
+          <header className="mb-5 flex items-end justify-between gap-4">
             <div className="min-w-0">
               {label && (
-                <p className="text-[11px] font-black text-white/85">
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-white/80">
                   {label}
                 </p>
               )}
 
               {title && (
-                <h1 className="mt-1 text-[20px] font-black leading-[1.08] text-[#4b2a1d]">
+                <h1 className="mt-1 text-[32px] font-black leading-[1.08] tracking-[-0.04em] text-[#6b2f13]">
                   {title}
                 </h1>
               )}
 
               {subtitle && (
-                <p className="mt-1 max-w-[18rem] text-[11px] font-bold leading-relaxed text-[#4b2a1d]/65">
+                <p className="mt-2 max-w-[18rem] text-[13px] font-bold leading-relaxed text-[#6b2f13]/65">
                   {subtitle}
                 </p>
               )}
