@@ -12,10 +12,14 @@ import { resizeImageFile } from "../lib/image";
 import { sendPushNotification } from "../lib/sendPush";
 import { loadPostsData } from "../lib/posts";
 import AppPopup, { type AppPopupState } from "../components/common/AppPopup";
+import HeaderAvatar from "../components/common/HeaderAvatar";
 import ScreenShell from "../components/common/ScreenShell";
 import EmptyState from "../components/common/EmptyState";
 import MiniChekiTriplet from "../components/post/MiniChekiTriplet";
+import { CommentLineIcon, HeartLineIcon } from "../components/common/LineIcons";
 import type { Post } from "../types/post";
+
+type FriendWithIcon = Friend & { iconUrl?: string };
 
 export default function ProfilePage({
   onProfileChange,
@@ -24,7 +28,7 @@ export default function ProfilePage({
 }) {
   const [name, setName] = useState("");
   const [iconUrl, setIconUrl] = useState("/images/user1-icon.jpg");
-  const [friends, setFriends] = useState<Friend[]>([]);
+  const [friends, setFriends] = useState<FriendWithIcon[]>([]);
   const [friendId, setFriendId] = useState("");
   const [message, setMessage] = useState("");
   const [notificationPermission, setNotificationPermission] =
@@ -32,6 +36,8 @@ export default function ProfilePage({
   const [isNotificationOn, setIsNotificationOn] = useState(false);
   const [popup, setPopup] = useState<AppPopupState | null>(null);
   const [recentPosts, setRecentPosts] = useState<Post[]>([]);
+  const [isNameEditorOpen, setIsNameEditorOpen] = useState(false);
+  const [isFriendEditorOpen, setIsFriendEditorOpen] = useState(false);
   useEffect(() => {
     if ("Notification" in window) {
       setNotificationPermission(Notification.permission);
@@ -84,7 +90,7 @@ export default function ProfilePage({
   
     const { data: profiles, error: profileError } = await supabase
       .from("profiles")
-      .select("id, name, user_id")
+      .select("id, name, user_id, icon_url")
       .in("user_id", friendUserIds);
   
     if (profileError) {
@@ -97,6 +103,7 @@ export default function ProfilePage({
         id: profile.id,
         name: profile.name,
         userId: profile.user_id,
+        iconUrl: profile.icon_url ?? undefined,
       })) || [];
   
     setFriends(mappedFriends);
@@ -474,128 +481,299 @@ export default function ProfilePage({
     });
   };
   return (
-    <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
-      <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
-        <img
-          src="/design-targets/mypage-reference-shell.png"
-          alt=""
-          draggable={false}
-          className="absolute inset-0 h-full w-full object-fill"
-          aria-hidden="true"
-        />
+    <ScreenShell
+      label="MY PAGE"
+      title="マイページ"
+      action={<HeaderAvatar iconUrl={iconUrl} />}
+    >
+      <section className="h-[110px] rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+        <div className="flex items-center gap-5">
+          <label className="relative shrink-0">
+            <img
+              src={iconUrl}
+              alt="プロフィール画像"
+              className="h-[64px] w-[64px] rounded-full bg-[#dcebc9] object-cover ring-4 ring-[#fff8e6]"
+            />
+            <input type="file" accept="image/*" onChange={handleIconChange} className="hidden" />
+          </label>
 
-        <div className="absolute left-[7%] right-[7%] top-[7.8%] h-[17.5%] rounded-[8px] bg-[#fffaf2]" />
-        <label className="absolute left-[9.5%] top-[8.9%] h-[78px] w-[78px]">
-          <img
-            src={iconUrl}
-            alt="プロフィール画像"
-            className="h-[78px] w-[78px] rounded-full object-cover"
-          />
-          <input type="file" accept="image/*" onChange={handleIconChange} className="hidden" />
-        </label>
-        <h2 className="absolute left-[37%] top-[8.9%] max-w-[48%] truncate text-[20px] font-black leading-tight text-[#3f2116]">
-          {name || currentUser?.name || "ユーザー"}
-        </h2>
-        <p className="absolute left-[37%] top-[14%] max-w-[48%] truncate text-[11px] font-black text-[#3f2116]/52">
-          @{currentUser?.userId}
-        </p>
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-[19px] font-black leading-tight text-[#3f2116]">
+              {name || currentUser?.name || "ユーザー"}
+            </h2>
+            <p className="mt-0.5 truncate text-[11px] font-black text-[#3f2116]/52">
+              @{currentUser?.userId}
+            </p>
+            <div className="mt-2 flex min-w-0 items-center gap-[7px]">
+              <button
+                type="button"
+                onClick={() => setIsNameEditorOpen((value) => !value)}
+                className="inline-flex h-[25px] w-[128px] items-center justify-center gap-1 whitespace-nowrap rounded-[13px] bg-[#0f6a47] px-1.5 text-[7px] font-black text-[#fff8e6]"
+              >
+                <PencilIcon className="h-[10px] w-[10px]" />
+                プロフィール編集
+              </button>
+              <button
+                type="button"
+                onClick={isNotificationOn ? handleDisableNotifications : handleEnableNotifications}
+                className="inline-flex h-[25px] w-[101px] items-center justify-center gap-1 whitespace-nowrap rounded-[13px] bg-[#fff8e6] px-2 text-[7px] font-black text-[#3f2116] ring-1 ring-[#dfc79d]"
+              >
+                <BellIcon className="h-[10px] w-[10px]" />
+                通知設定
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {isNameEditorOpen && (
+          <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="表示名"
+              className="min-w-0 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[var(--text-primary-button)] font-bold outline-none"
+            />
+            <button
+              type="button"
+              onClick={handleSaveName}
+              className="rounded-full bg-[#0f6a47] px-4 py-2 text-[var(--text-primary-button)] font-black text-[#fff8e6]"
+            >
+              保存
+            </button>
+          </div>
+        )}
+      </section>
+
+      <section className="relative mt-2 h-[112px] overflow-hidden rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[var(--text-card-heading)] font-black text-[#3f2116]">つながり</h2>
+          <button
+            type="button"
+            onClick={() => setIsFriendEditorOpen((value) => !value)}
+            className="absolute right-3 top-[48px] z-20 w-[108px] whitespace-nowrap rounded-[13px] bg-[#fff8e6] px-2 py-1.5 text-[7px] font-black text-[#0f6a47] shadow-[0_7px_15px_rgba(63,33,22,0.09)] ring-1 ring-[#dfc79d]"
+          >
+            ＋ 家族を追加
+          </button>
+        </div>
+
+        {isFriendEditorOpen && (
+          <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+            <input
+              value={friendId}
+              onChange={(event) => setFriendId(event.target.value)}
+              placeholder="家族ID"
+              className="min-w-0 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[var(--text-primary-button)] font-bold outline-none"
+            />
+            <button
+              type="button"
+              onClick={handleAddFriend}
+              className="rounded-full bg-[#0f6a47] px-4 py-2 text-[var(--text-primary-button)] font-black text-[#fff8e6]"
+            >
+              追加
+            </button>
+          </div>
+        )}
+
+        {friends.length === 0 ? (
+          <div className="mt-2">
+            <EmptyState title="まだ家族はいません" />
+          </div>
+        ) : (
+          <div className="relative mt-1 h-[66px]">
+            <div className="absolute left-[82px] top-[25px] w-[92px] border-t-2 border-dotted border-[#9a5f3f]/50" />
+            <span className="absolute left-[124px] top-[18px] flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#fff8e6] text-[#9a5f3f]">
+              <HomeBadgeIcon className="h-[10px] w-[10px]" />
+            </span>
+            {friends.slice(0, 2).map((friend, index) => (
+              <div
+                key={friend.id}
+                className="absolute top-0 z-10 w-[62px] text-center"
+                style={{ left: index === 0 ? 4 : 154 }}
+              >
+                {friend.iconUrl ? (
+                  <img
+                    src={friend.iconUrl}
+                    alt={`${friend.name}のプロフィール画像`}
+                    draggable={false}
+                    className="mx-auto h-[48px] w-[48px] shrink-0 rounded-full bg-[#dcebc9] object-cover ring-4 ring-[#fff8e6]"
+                  />
+                ) : (
+                  <div className="mx-auto flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-full bg-[#dcebc9] text-[16px] font-black text-[#2f6b4f] ring-4 ring-[#fff8e6]">
+                    {friend.name.slice(0, 1)}
+                  </div>
+                )}
+                <p className="mt-1 truncate text-[10px] font-black leading-none text-[#3f2116]">
+                  {friend.name}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteFriend(friend.userId)}
+                  className="absolute -right-1 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-black text-red-500 opacity-0 shadow-sm focus:opacity-100"
+                  aria-label={`${friend.name}を削除`}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mt-3 h-[100px] overflow-hidden rounded-[8px] bg-[#fffaf2]/94 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+        <button
+          type="button"
+          onClick={() => setIsNameEditorOpen((value) => !value)}
+          className="flex h-[33px] w-full items-center justify-between border-b border-[#dfc79d]/55 px-4 text-[var(--text-menu-label)] font-black leading-none text-[#3f2116]"
+        >
+          <span className="flex items-center gap-3">
+            <BookmarkIcon className="h-[15px] w-[15px]" />
+            投稿者の保存
+          </span>
+          <ChevronIcon className="h-[13px] w-[13px] text-[#9d7140]" />
+        </button>
         <button
           type="button"
           onClick={isNotificationOn ? handleDisableNotifications : handleEnableNotifications}
-          className="absolute left-[70%] top-[19.2%] h-[27px] w-[20%] rounded-full opacity-0"
-          aria-label="通知設定"
-        />
-        <input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          className="absolute left-[9.5%] top-[25.3%] h-[32px] w-[60%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 text-[11px] font-bold text-[#3f2116] outline-none"
-        />
-        <button
-          type="button"
-          onClick={handleSaveName}
-          className="absolute right-[8.5%] top-[25.3%] h-[32px] w-[19%] rounded-full bg-[#0f6a47] text-[11px] font-black text-[#fff8e6]"
+          className="flex h-[33px] w-full items-center justify-between border-b border-[#dfc79d]/55 px-4 text-[var(--text-menu-label)] font-black leading-none text-[#3f2116]"
         >
-          保存
+          <span className="flex items-center gap-3">
+            <BellIcon className="h-[15px] w-[15px]" />
+            プッシュ通知
+          </span>
+          <ChevronIcon className="h-[13px] w-[13px] text-[#9d7140]" />
         </button>
-
-        <div className="absolute left-[7%] right-[7%] top-[36.2%] h-[20.2%] rounded-[8px] bg-[#fffaf2]" />
-        <div className="absolute left-[7%] top-[39%] flex gap-5">
-          {friends.slice(0, 2).map((friend) => (
-            <div key={friend.id} className="w-[54px] text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#dcebc9] text-[18px] font-black text-[#2f6b4f]">
-                {friend.name.slice(0, 1)}
-              </div>
-              <p className="mt-1 truncate text-[9px] font-black text-[#3f2116]">
-                {friend.name}
-              </p>
-            </div>
-          ))}
-        </div>
-        <input
-          value={friendId}
-          onChange={(event) => setFriendId(event.target.value)}
-          placeholder="家族ID"
-          className="absolute left-[50%] top-[41.2%] h-[28px] w-[18%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-2 text-[10px] font-bold outline-none"
-        />
-        <button
-          type="button"
-          onClick={handleAddFriend}
-          className="absolute left-[70%] top-[41.2%] h-[28px] w-[22%] rounded-full bg-[#fffaf2] text-[10px] font-black text-[#0f6a47] ring-1 ring-[#dfc79d]"
-        >
-          追加
-        </button>
-        {friends.slice(0, 3).map((friend, index) => (
-          <button
-            key={friend.id}
-            type="button"
-            onClick={() => handleDeleteFriend(friend.userId)}
-            className="absolute right-[8%] h-[22px] w-[40px] rounded-full bg-white/90 text-[9px] font-black text-red-500"
-            style={{ top: `${48.2 + index * 5.2}%` }}
-          >
-            削除
-          </button>
-        ))}
-
         <button
           type="button"
           onClick={() => {
             logoutUser();
             onProfileChange();
           }}
-          className="absolute left-[6%] top-[60.7%] h-[31px] w-[87%] opacity-0"
-          aria-label="ログアウト"
-        />
+          className="flex h-[34px] w-full items-center justify-between px-4 text-[var(--text-menu-label)] font-black leading-none text-[#3f2116]"
+        >
+          <span className="flex items-center gap-3">
+            <LogoutIcon className="h-[15px] w-[15px]" />
+            ログアウト
+          </span>
+          <ChevronIcon className="h-[13px] w-[13px] text-[#9d7140]" />
+        </button>
+      </section>
 
-        <div className="absolute left-[7%] right-[7%] top-[72.3%] h-[18%] rounded-[8px] bg-[#fffaf2]" />
+      <section className="mt-2 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[var(--text-card-heading)] font-black text-[#3f2116]">最近の記録</h2>
+          <button className="inline-flex items-center gap-1 text-[9.5px] font-black leading-none text-[#0f6a47]">
+            すべて見る
+            <ChevronIcon className="h-[10px] w-[10px]" />
+          </button>
+        </div>
         {recentPosts[0] ? (
-          <div className="absolute left-[7%] right-[7%] top-[74.8%]">
+          <div className="mt-1">
             <h3 className="truncate text-[11px] font-black text-[#3f2116]">
               {recentPosts[0].dishName || "今日の料理"}
             </h3>
-            <MiniChekiTriplet post={recentPosts[0]} className="mt-2" />
+            <p className="text-[8.5px] font-black leading-none text-[#3f2116]/52">
+              {formatRecentTime(recentPosts[0].createdAt)}
+            </p>
+            <MiniChekiTriplet
+              post={recentPosts[0]}
+              className="mt-1.5 gap-1.5 px-1 [&>div]:p-1 [&>div]:pb-4 [&>div]:rounded-[3px] [&>div_img]:rounded-[2px] [&>div_p]:mt-1 [&>div_p]:text-[9px]"
+            />
+            <div className="mt-1.5 flex items-center gap-5 text-[10px] font-black leading-none text-[#3f2116]">
+              <span className="flex items-center gap-1">
+                <HeartLineIcon className="h-[13px] w-[13px]" />
+                {recentPosts[0].likeCount && recentPosts[0].likeCount > 0
+                  ? `${recentPosts[0].likeCount}いいね`
+                  : "いいね"}
+              </span>
+              <span className="flex items-center gap-1">
+                <CommentLineIcon className="h-[13px] w-[13px]" />
+                {recentPosts[0].commentCount && recentPosts[0].commentCount > 0
+                  ? `${recentPosts[0].commentCount}コメント`
+                  : "コメント"}
+              </span>
+            </div>
           </div>
         ) : (
-          <div className="absolute left-[8%] right-[8%] top-[76%]">
+          <div className="mt-2">
             <EmptyState title="投稿はありません" />
           </div>
         )}
+      </section>
 
         {message && (
-          <p className="absolute left-[7%] right-[7%] top-[32%] rounded-[6px] bg-[#fff8e6] px-2 py-1 text-[10px] font-black text-[#0f6a47]">
+        <p className="mt-2 rounded-[6px] bg-[#fff8e6] px-3 py-2 text-[11px] font-black text-[#0f6a47]">
             {message}
           </p>
         )}
-      </div>
       <AppPopup popup={popup} onClose={() => setPopup(null)} />
-    </main>
+    </ScreenShell>
   );
 }
 
-function ProfileMenuRow({ label }: { label: string }) {
+function formatRecentTime(createdAt?: string) {
+  if (!createdAt) return "たった今";
+
+  const created = new Date(createdAt).getTime();
+  if (Number.isNaN(created)) return "たった今";
+
+  const minutes = Math.max(0, Math.round((Date.now() - created) / 60000));
+  if (minutes < 1) return "たった今";
+  if (minutes < 60) return `${minutes}分前`;
+
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}時間前`;
+
+  return `${Math.round(hours / 24)}日前`;
+}
+
+function PencilIcon({ className = "" }: { className?: string }) {
   return (
-    <div className="flex items-center justify-between border-b border-[#dfc79d]/55 px-4 py-3 text-[13px] font-black text-[#3f2116]">
-      {label}
-      <span className="text-[#7a4328]/55">›</span>
-    </div>
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none" stroke="currentColor" strokeWidth="2.05" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function BellIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none" stroke="currentColor" strokeWidth="2.05" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
+function BookmarkIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.5 4.5h11v15l-5.5-3-5.5 3v-15Z" />
+    </svg>
+  );
+}
+
+function HomeBadgeIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <path d="M4.2 11.1 12 4.7l7.8 6.4-1.35 1.55-.95-.78V19a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-7.13l-.95.78-1.35-1.55Zm5.05 6.9h5.5v-5.25h-5.5V18Z" />
+    </svg>
+  );
+}
+
+function LogoutIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9.5 5H6.8A2.3 2.3 0 0 0 4.5 7.3v9.4A2.3 2.3 0 0 0 6.8 19h2.7" />
+      <path d="M13.5 8.2 17.3 12l-3.8 3.8" />
+      <path d="M17.1 12H9.5" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m9 6 6 6-6 6" />
+    </svg>
   );
 }

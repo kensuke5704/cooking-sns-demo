@@ -18,31 +18,31 @@ export default function ScreenShell({
   className = "",
 }: ScreenShellProps) {
   return (
-    <main className={`min-h-[100dvh] bg-[#f4a72d] px-3 pt-3 pb-[86px] text-[#4b2a1d] ${className}`}>
+    <main className={`min-h-[100dvh] bg-[#fbb23a] px-3 pt-4 pb-[86px] text-[#4b2a1d] ${className}`}>
       <div className="mx-auto w-full max-w-md">
         {(label || title || subtitle || action) && (
-          <header className="mb-3 flex items-end justify-between gap-3">
+          <header className="mb-3 flex min-h-[34px] items-start justify-between gap-3 px-1">
             <div className="min-w-0">
               {label && (
-                <p className="text-[11px] font-black text-white/85">
+                <p className="sr-only">
                   {label}
                 </p>
               )}
 
               {title && (
-                <h1 className="mt-1 text-[20px] font-black leading-[1.08] text-[#4b2a1d]">
+                <h1 className="text-[var(--text-header-title)] font-black leading-none text-[#4b2a1d]">
                   {title}
                 </h1>
               )}
 
               {subtitle && (
-                <p className="mt-1 max-w-[18rem] text-[11px] font-bold leading-relaxed text-[#4b2a1d]/65">
+                <p className="mt-2 max-w-[18rem] text-[10px] font-bold leading-relaxed text-[#4b2a1d]/62">
                   {subtitle}
                 </p>
               )}
             </div>
 
-            {action && <div className="shrink-0 pb-1">{action}</div>}
+            {action && <div className="shrink-0">{action}</div>}
           </header>
         )}
 

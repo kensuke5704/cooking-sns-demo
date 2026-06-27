@@ -347,248 +347,175 @@ export default function CameraPost({ onBack, setCurrentTab }: CameraPostProps) {
       });
   };
 
-  if (!isCameraOn) {
-    return (
-      <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
-        <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
-          <img
-            src="/design-targets/camera-reference-shell.png"
-            alt=""
-            draggable={false}
-            className="absolute inset-0 h-full w-full object-fill"
-            aria-hidden="true"
-          />
-
-          <button
-            type="button"
-            onClick={onBack}
-            className="absolute left-[3.8%] top-[1.5%] h-8 w-8 opacity-0"
-            aria-label="戻る"
-          />
-
-          {(["prep", "cooking", "finished"] as const).map((type, index) => (
-            <ShellShotRow
-              key={type}
-              label={shotLabels[type]}
-              src={photos[type]}
-              top={index === 0 ? "24.7%" : index === 1 ? "41.8%" : "58.8%"}
-              onCamera={() => startCamera(type)}
-              onFileChange={(event) => selectPhotoFromLibrary(event, type)}
-            />
-          ))}
-
-          <div className="absolute left-[6.2%] top-[79.4%] h-[4.9%] w-[87.6%] rounded-[6px] bg-[#fffaf2]" />
-          <input
-            value={dishName}
-            onChange={(event) => setDishName(event.target.value)}
-            placeholder="料理名"
-            className="absolute left-[6.2%] top-[79.6%] h-[4.6%] w-[87.6%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 text-[11px] font-bold text-[#3f2116] outline-none"
-          />
-          <div className="absolute left-[6.2%] top-[86.6%] h-[4.9%] w-[87.6%] rounded-[6px] bg-[#fffaf2]" />
-          <input
-            value={memo}
-            onChange={(event) => setMemo(event.target.value)}
-            placeholder="ひとこと"
-            className="absolute left-[6.2%] top-[86.8%] h-[4.6%] w-[87.6%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 text-[11px] font-bold text-[#3f2116] outline-none"
-          />
-
-          <button
-            type="button"
-            onClick={publishPost}
-            disabled={isPublishing}
-            className="absolute left-[6.2%] top-[93.4%] h-[4.9%] w-[87.6%] rounded-full bg-[#0f6a47] text-[12px] font-black text-[#fff8e6] disabled:bg-[#0f6a47]/50"
-          >
-            {isPublishing ? "アップロード中..." : "投稿する"}
-          </button>
-
-          {setCurrentTab && (
-            <div className="absolute inset-x-0 bottom-0 z-40 grid h-[69px] grid-cols-5">
-              {["ホーム", "つながり", "カメラ", "カレンダー", "プロフィール"].map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setCurrentTab(tab)}
-                  className="h-full w-full opacity-0"
-                  aria-label={tab}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-        <canvas ref={canvasRef} className="hidden" />
-        <AppPopup popup={popup} onClose={() => setPopup(null)} />
-      </main>
-    );
-  }
-
   return (
-    <ScreenShell>
-      <div className="mb-2 flex items-center justify-between">
+    <ScreenShell className="pt-1">
+      <div className="mb-0 flex h-7 items-center justify-between">
         <button
           type="button"
           onClick={onBack}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[24px] leading-none text-[#3f2116]"
+          className="flex h-7 w-7 items-center justify-center rounded-full text-[22px] leading-none text-[#3f2116]"
           aria-label="戻る"
         >
-          ‹
+          <svg viewBox="0 0 24 24" className="h-[23px] w-[23px]" aria-hidden="true" fill="none">
+            <path d="M15.5 5.2 8.7 12l6.8 6.8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" />
+          </svg>
         </button>
-        <h1 className="flex-1 text-[18px] font-black text-[#3f2116]">
+        <h1 className="ml-6 flex-1 text-[17px] font-black text-[#3f2116]">
           今日の記録
         </h1>
-        <img
-          src={getCurrentUser()?.iconUrl || "/images/user1-icon.jpg"}
-          alt="ユーザー"
-          className="h-9 w-9 rounded-full bg-[#fff8e6] object-cover ring-2 ring-[#fff8e6]"
-        />
+        <CameraHeaderAvatar iconUrl={getCurrentUser()?.iconUrl} />
       </div>
   
         {!isCameraOn && (
           <>
-            <section className="rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-              <div className="grid grid-cols-[1fr_112px] items-center gap-2">
-                <div className="min-w-0">
-                  <h2 className="text-[20px] font-black leading-[1.16] text-[#3f2116]">
+            <section className="relative mx-1 h-[104px] overflow-hidden rounded-[8px] bg-[#fffaf2]/94 px-5 py-4 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+              <div className="relative z-10 max-w-[55%]">
+                  <h2 className="text-[17px] font-black leading-[1.35] text-[#3f2116]">
                     準備、調理、完成を
                     <br />
                     3枚で残す
                   </h2>
-                  <p className="mt-2 text-[10px] font-bold leading-relaxed text-[#3f2116]/72">
+                  <p className="mt-2 text-[10px] font-bold leading-[1.55] text-[#3f2116]/72">
                     撮った順に今日の料理がひとつの投稿になります。
                   </p>
-                </div>
-                <div className="relative h-[82px]" aria-hidden="true">
-                  <div className="absolute right-4 top-5 h-16 w-24 rounded-b-[38px] rounded-t-[18px] bg-[#f4a72d]" />
-                  <div className="absolute right-8 top-2 h-9 w-20 rounded-[100%] bg-[#fff1ce] ring-2 ring-[#7a4328]/15" />
-                  <div className="absolute right-2 top-16 h-12 w-14 rotate-[8deg] rounded-[8px] bg-[#fffaf2] p-1 shadow-md">
-                    <div className="h-7 rounded bg-[#dcebc9]" />
-                  </div>
-                  <div className="absolute right-20 top-16 h-12 w-14 -rotate-[8deg] rounded-[8px] bg-[#fffaf2] p-1 shadow-md">
-                    <div className="h-7 rounded bg-[#f2c7a7]" />
-                  </div>
-                </div>
               </div>
+              <img
+                src="/design-targets/camera-hero-illustration-crop-alpha.png"
+                alt=""
+                aria-hidden="true"
+                className="absolute right-1 top-2 h-[98px] w-[168px] object-contain"
+                draggable={false}
+              />
             </section>
 
-            <div className="mt-3 space-y-2">
-              <StepPhotoCard number="1" title="準備" description="材料をそろえたところや、下ごしらえの様子を撮ろう">
+            <div className="mx-1 mt-2.5 space-y-1.5">
+              <StepPhotoCard
+                number="1"
+                title="準備"
+                description="材料をそろえたところや、下ごしらえの様子を撮ろう"
+                onReset={photos.prep ? resetTodayPhotos : undefined}
+              >
                 <CameraCard
                   label="準備"
                   src={photos.prep}
+                  tilt="left"
                   onClick={() => startCamera("prep")}
                   onFileChange={(e) => selectPhotoFromLibrary(e, "prep")}
                 />
               </StepPhotoCard>
-              <StepPhotoCard number="2" title="調理" description="火にかけているところや、煮ている様子を撮ろう">
+              <StepPhotoCard
+                number="2"
+                title="調理"
+                description="火にかけているところや、煮ている様子を撮ろう"
+                onReset={photos.cooking ? resetTodayPhotos : undefined}
+              >
                 <CameraCard
                   label="調理"
                   src={photos.cooking}
+                  tilt="right"
                   onClick={() => startCamera("cooking")}
                   onFileChange={(e) => selectPhotoFromLibrary(e, "cooking")}
                 />
               </StepPhotoCard>
 
-              <StepPhotoCard number="3" title="完成" description="できあがりの料理を撮ろう">
+              <StepPhotoCard
+                number="3"
+                title="完成"
+                description="できあがりの料理を撮ろう"
+                onReset={photos.finished ? resetTodayPhotos : undefined}
+              >
                 <CameraCard
                   label="完成"
                   src={photos.finished}
+                  tilt="soft"
                   onClick={() => startCamera("finished")}
                   onFileChange={(e) => selectPhotoFromLibrary(e, "finished")}
                 />
               </StepPhotoCard>
             </div>
 
-            <div className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-              <h3 className="text-[13px] font-black text-[#3f2116]">料理メモ</h3>
+            <div className="mx-1 mt-2.5 h-[111px] overflow-visible rounded-[8px] bg-[#fffaf2]/94 px-3 py-2 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+              <div className="flex items-center justify-between">
+                <label className="block text-[9px] font-black text-[#3f2116]">料理名</label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsTitleSuffixOpen((v) => !v)}
+                    aria-label="投稿タイトルの文言を選ぶ"
+                    className="h-[20px] rounded-full bg-transparent px-2 text-[9px] font-black leading-none text-transparent"
+                  >
+                    {titleSuffix}
+                  </button>
 
-              <label className="mt-2 block text-[10px] font-black text-[#3f2116]">料理名</label>
-              <input
-	               value={dishName}
-	               onChange={(e) => setDishName(e.target.value)}
-                placeholder="料理名"
-                className="mt-1 w-full rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[12px] font-bold text-[#3f2116] outline-none"
-	             />
+                  {isTitleSuffixOpen && (
+                    <div className="absolute right-0 top-[calc(100%+5px)] z-20 grid w-[150px] grid-cols-3 gap-1 rounded-[8px] bg-[#fff8e6] p-1 shadow-[0_10px_18px_rgba(63,33,22,0.14)] ring-1 ring-[#dfc79d]">
+                      {titleSuffixOptions.map((option) => {
+                        const active = titleSuffix === option;
 
-              <div className="mt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsTitleSuffixOpen((v) => !v)}
-	                  className="flex w-full items-center justify-between rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-left text-[12px] font-black text-[#3f2116]"
-                >
-                  <span>{titleSuffix}</span>
-                  <span className="text-xs opacity-50">{isTitleSuffixOpen ? "閉じる" : "選択"}</span>
-                </button>
-
-                {isTitleSuffixOpen && (
-	                  <div className="mt-2 grid grid-cols-3 gap-1 rounded-[18px] bg-[#fff8e6] p-1">
-                    {titleSuffixOptions.map((option) => {
-                      const active = titleSuffix === option;
-
-                      return (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => {
-                            setTitleSuffix(option);
-                            setIsTitleSuffixOpen(false);
-                          }}
-	                        className={`min-w-0 whitespace-nowrap rounded-[13px] px-0 py-2 text-[10px] font-black leading-none ${
-	                            active
-	                              ? "bg-[#0f6a47] text-white"
-	                              : "bg-[#fff4d7] text-[#3f2116]"
-                          }`}
-                        >
-                          {option}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => {
+                              setTitleSuffix(option);
+                              setIsTitleSuffixOpen(false);
+                            }}
+                            className={`min-w-0 whitespace-nowrap rounded-[13px] px-0 py-1.5 text-[9px] font-black leading-none ${
+                              active
+                                ? "bg-[#0f6a47] text-white"
+                                : "bg-[#fff4d7] text-[#3f2116]"
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
+              <input
+		               value={dishName}
+		               onChange={(e) => setDishName(e.target.value)}
+                placeholder="料理名"
+                className="mt-1 h-[24px] w-full rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-0 text-[10px] font-bold leading-none text-[#3f2116] outline-none"
+		             />
 
-	             <label className="mt-2 block text-[10px] font-black text-[#3f2116]">ひとこと</label>
-	             <textarea
-               value={memo}
-               onChange={(e) => setMemo(e.target.value)}
-	               placeholder="今日のごはんに添えるひとこと"
-	               rows={2}
-	               className="mt-1 w-full resize-none rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[12px] font-bold text-[#3f2116] outline-none"
-	             />
+		             <label className="mt-1 block text-[9px] font-black text-[#3f2116]">ひとこと</label>
+		             <textarea
+	               value={memo}
+	               onChange={(e) => setMemo(e.target.value)}
+		               placeholder="今日のごはんに添えるひとこと"
+		               rows={1}
+		               className="mt-1 h-[24px] w-full resize-none rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-[6px] text-[10px] font-bold leading-none text-[#3f2116] outline-none"
+		             />
+            </div>
+
+            <div className="mx-2 mt-1.5 space-y-1.5">
+              <button
+                type="button"
+                onClick={publishPost}
+                disabled={isPublishing}
+		                className={`h-[28px] w-full rounded-full text-[11px] font-black leading-none text-[#fff8e6] shadow-[0_10px_18px_rgba(15,106,71,0.2)] ${
+		                  isPublishing
+		                    ? "cursor-not-allowed bg-[#0f6a47]/50"
+		                    : "bg-[#0f6a47]"
+		                }`}
+              >
+                {isPublishing ? "アップロード中..." : "投稿する"}
+              </button>
 
               <button
                 type="button"
                 onClick={savePostText}
                 disabled={isPublishing}
-	                className={`mt-2 w-full rounded-full py-2 text-[12px] font-black ${
-	                  isPublishing
-	                    ? "cursor-not-allowed bg-[#0f6a47]/40 text-white"
-	                    : "bg-[#fff8e6] text-[#3f2116] ring-1 ring-[#dfc79d]"
+		                className={`h-[22px] w-full rounded-full text-[10px] font-black leading-none ${
+		                  isPublishing
+		                    ? "cursor-not-allowed bg-[#0f6a47]/40 text-white"
+		                    : "bg-[#fff8e6] text-[#3f2116] ring-1 ring-[#dfc79d]"
 	                }`}
 	              >
 	                下書き保存
-              </button>
-
-              <button
-                type="button"
-                onClick={resetTodayPhotos}
-                disabled={isPublishing}
-	                className={`mt-2 w-full rounded-full border border-[#dfc79d] py-2 text-[12px] font-black text-[#3f2116] ${
-	                  isPublishing ? "cursor-not-allowed bg-white/50" : "bg-[#fffaf2]"
-                }`}
-              >
-                今日の写真をリセット
-              </button>
-              
-              <button
-                type="button"
-                onClick={publishPost}
-                disabled={isPublishing}
-	                className={`mt-2 w-full rounded-full py-3 text-[14px] font-black text-[#fff8e6] shadow-[0_12px_24px_rgba(15,106,71,0.24)] ${
-	                  isPublishing
-	                    ? "cursor-not-allowed bg-[#0f6a47]/50"
-	                    : "bg-[#0f6a47]"
-	                }`}
-              >
-                {isPublishing ? "アップロード中..." : "投稿する"}
               </button>
             </div>
           </>
@@ -624,56 +551,115 @@ export default function CameraPost({ onBack, setCurrentTab }: CameraPostProps) {
 
         <canvas ref={canvasRef} className="hidden" />
       <AppPopup popup={popup} onClose={() => setPopup(null)} />
+      {setCurrentTab && <CameraBottomNav setCurrentTab={setCurrentTab} />}
     </ScreenShell>
   );
 }
 
-function ShellShotRow({
-  label,
-  src,
-  top,
-  onCamera,
-  onFileChange,
+function CameraBottomNav({
+  setCurrentTab,
 }: {
-  label: string;
-  src?: string;
-  top: string;
-  onCamera: () => void;
-  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  setCurrentTab: (tab: string) => void;
 }) {
+  const tabs = [
+    { label: "ホーム", icon: "home", text: "ホーム" },
+    { label: "つながり", icon: "friends", text: "つながり" },
+    { label: "カメラ", icon: "camera", text: "撮る" },
+    { label: "カレンダー", icon: "calendar", text: "カレンダー" },
+    { label: "プロフィール", icon: "profile", text: "マイページ" },
+  ];
+
   return (
-    <div className="absolute left-[6.2%] right-[6.2%] h-[13.6%]" style={{ top }}>
-      <div className="absolute left-[2.5%] top-[5%] h-[83%] w-[31.5%] rounded-[4px] bg-[#fffaf2]" />
-      {src ? (
-        <img
-          src={src}
-          alt={label}
-          draggable={false}
-          className="absolute left-[3.3%] top-[8%] h-[78%] w-[30%] rounded-[3px] object-cover"
-        />
-      ) : (
-        <div className="absolute left-[3.3%] top-[8%] flex h-[78%] w-[30%] items-center justify-center rounded-[3px] bg-[#fff1ce] text-[10px] font-black text-[#0f6a47]">
-          {label}
-        </div>
-      )}
-      <button
-        type="button"
-        onClick={onCamera}
-        className="absolute inset-0 opacity-0"
-        aria-label={`${label}を撮影`}
+    <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto h-[58px] max-w-md px-3">
+      <div className="absolute inset-x-3 bottom-0 h-[51px] rounded-t-[18px] bg-[#fff8e6]/96 shadow-[0_10px_24px_rgba(63,33,22,0.16)] ring-1 ring-white/70" />
+      <div className="absolute inset-x-3 bottom-0 grid h-[51px] grid-cols-5">
+        {tabs.map((tab) => (
+          <button
+            key={tab.label}
+            type="button"
+            onClick={() => setCurrentTab(tab.label)}
+            className={`relative flex h-full w-full flex-col items-center justify-center rounded-[14px] text-[9px] font-black leading-none ${
+              tab.label === "カメラ" ? "-mt-4 text-[#0f6a47]" : "text-[#9d7140]"
+            }`}
+            aria-label={tab.label}
+          >
+            <span className={`mb-1 flex items-center justify-center ${tab.label === "カメラ" ? "h-12 w-12 rounded-full bg-[#0f6a47] shadow-[0_10px_22px_rgba(15,106,71,0.26)] ring-4 ring-[#fff8e6]" : "h-5 w-5 opacity-65"}`}>
+              <CameraNavIcon
+                type={tab.icon}
+                className={tab.label === "カメラ" ? "h-5 w-5 text-[#fff8e6]" : "h-5 w-5 text-current"}
+              />
+            </span>
+            <span className="text-[8px] leading-none">{tab.text}</span>
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+function CameraHeaderAvatar({ iconUrl }: { iconUrl?: string }) {
+  return (
+    <span className="mr-1 flex h-9 w-9 -translate-y-0.5 items-center justify-center rounded-full bg-[#fff8e6] shadow-[0_6px_14px_rgba(63,33,22,0.12)] ring-1 ring-white/80">
+      <img
+        src={iconUrl || "/images/user1-icon.jpg"}
+        alt="ユーザー"
+        className="h-[30px] w-[30px] rounded-full bg-[#dcebc9] object-cover"
       />
-      {!src && (
-        <label className="absolute bottom-[6%] left-[3.5%] z-10 h-[22%] w-[30%] cursor-pointer rounded-full bg-transparent text-transparent">
-          {label}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={onFileChange}
-            className="hidden"
-          />
-        </label>
-      )}
-    </div>
+    </span>
+  );
+}
+
+function CameraNavIcon({
+  type,
+  className,
+}: {
+  type: string;
+  className?: string;
+}) {
+  const stroke = "currentColor";
+
+  if (type === "home") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none">
+        <path d="M4.5 10.5 12 4.2l7.5 6.3v8.4a1.4 1.4 0 0 1-1.4 1.4h-4.2v-5.7h-3.8v5.7H5.9a1.4 1.4 0 0 1-1.4-1.4v-8.4Z" fill={stroke} stroke={stroke} strokeLinejoin="round" strokeWidth="1.6" />
+      </svg>
+    );
+  }
+
+  if (type === "friends") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none">
+        <circle cx="8.2" cy="8.3" r="3" stroke={stroke} strokeWidth="1.8" />
+        <circle cx="16.4" cy="9.1" r="2.6" stroke={stroke} strokeWidth="1.8" />
+        <path d="M3.6 19.2c.7-3.4 2.7-5.2 4.9-5.2s4 1.8 4.5 5.2M12.6 18.8c.5-2.6 1.9-4.1 3.8-4.1 1.8 0 3.2 1.5 3.8 4.1" stroke={stroke} strokeLinecap="round" strokeWidth="1.8" />
+      </svg>
+    );
+  }
+
+  if (type === "calendar") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none">
+        <path d="M7 4.5v3M17 4.5v3M4.8 9.4h14.4" stroke={stroke} strokeLinecap="round" strokeWidth="1.8" />
+        <rect x="4.5" y="6.5" width="15" height="13.2" rx="2.2" stroke={stroke} strokeWidth="1.8" />
+        <path d="M8.1 12.7h.1M12 12.7h.1M15.9 12.7h.1M8.1 16h.1M12 16h.1" stroke={stroke} strokeLinecap="round" strokeWidth="2.2" />
+      </svg>
+    );
+  }
+
+  if (type === "profile") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none">
+        <circle cx="12" cy="8" r="3.3" stroke={stroke} strokeWidth="1.8" />
+        <path d="M5.4 19.4c.9-4.1 3.2-6.1 6.6-6.1s5.7 2 6.6 6.1" stroke={stroke} strokeLinecap="round" strokeWidth="1.8" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true" fill="none">
+      <path d="M8 8.3h1.8l1-1.7h2.4l1 1.7H16a2.5 2.5 0 0 1 2.5 2.5v5.4a2.5 2.5 0 0 1-2.5 2.5H8a2.5 2.5 0 0 1-2.5-2.5v-5.4A2.5 2.5 0 0 1 8 8.3Z" stroke={stroke} strokeLinejoin="round" strokeWidth="1.8" />
+      <circle cx="12" cy="13.5" r="2.8" stroke={stroke} strokeWidth="1.8" />
+    </svg>
   );
 }
 
@@ -681,24 +667,36 @@ function StepPhotoCard({
   number,
   title,
   description,
+  onReset,
   children,
 }: {
   number: string;
   title: string;
   description: string;
+  onReset?: () => void;
   children: ReactNode;
 }) {
   return (
-    <section className="grid grid-cols-[112px_1fr] items-center gap-3 rounded-[8px] bg-[#fffaf2]/94 p-2 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
-      <div className="-ml-1">{children}</div>
-      <div className="min-w-0">
-        <div className="flex items-center gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0f6a47] text-[12px] font-black text-[#fff8e6]">
+    <section className="relative grid h-[94px] grid-cols-[154px_1fr] items-center gap-3 overflow-hidden rounded-[8px] bg-[#fffaf2]/94 p-2 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+      {onReset && (
+        <button
+          type="button"
+          onClick={onReset}
+          className="absolute right-3 top-3 z-10 flex h-4 w-4 items-center justify-center rounded-full border border-[#dfc79d] bg-[#fffaf2] text-[11px] font-black leading-none text-[#3f2116]/70"
+          aria-label="今日の写真をリセット"
+        >
+          ×
+        </button>
+      )}
+      <div className="ml-2.5 w-[138px]">{children}</div>
+      <div className="min-w-0 -translate-y-3">
+        <div className="flex items-center gap-2">
+          <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-[#0f6a47] text-[11px] font-black text-[#fff8e6]">
             {number}
           </span>
-          <h2 className="text-[16px] font-black text-[#3f2116]">{title}</h2>
+          <h2 className="text-[14px] font-black text-[#3f2116]">{title}</h2>
         </div>
-        <p className="mt-2 text-[10px] font-bold leading-relaxed text-[#3f2116]/75">
+        <p className="mt-1.5 max-w-[136px] text-[8px] font-bold leading-[1.6] text-[#3f2116]/75">
           {description}
         </p>
       </div>

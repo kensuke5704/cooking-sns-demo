@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { supabase } from "@/app/lib/supabase";
 
-webpush.setVapidDetails(
-  "mailto:kensuke5704@gmail.com",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+function configureWebPush() {
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+
+  if (!publicKey || !privateKey) {
+    throw new Error("VAPID keys are not configured.");
+  }
+
+  webpush.setVapidDetails("mailto:kensuke5704@gmail.com", publicKey, privateKey);
+}
 
 export async function POST(request: Request) {
   try {
@@ -31,6 +36,8 @@ export async function POST(request: Request) {
     if (!subscriptions || subscriptions.length === 0) {
       return NextResponse.json({ ok: true, sent: 0 });
     }
+
+    configureWebPush();
 
     await Promise.all(
       subscriptions.map((subscription) =>
