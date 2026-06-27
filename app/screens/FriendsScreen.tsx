@@ -76,7 +76,7 @@ export default function FriendsPage() {
     }
 
     setFriends(
-      profiles?.filter((profile) => friendUserIds.includes(profile.user_id)).map((profile) => ({
+      profiles?.map((profile) => ({
         id: profile.id,
         name: profile.name,
         userId: profile.user_id,
@@ -166,54 +166,57 @@ export default function FriendsPage() {
     [currentUser?.userId, posts]
   );
   return (
-    <main className="min-h-[100dvh] bg-[#f4a72d] text-[#3f2116]">
-      <div className="relative mx-auto h-[100dvh] w-full max-w-md overflow-hidden">
-        <img
-          src="/design-targets/connections-reference-shell.png"
-          alt=""
-          draggable={false}
-          className="absolute inset-0 h-full w-full object-fill"
-          aria-hidden="true"
-        />
-
-        <div className="absolute left-[5.2%] right-[5.2%] top-[28.9%] h-[7.3%] rounded-[8px] bg-[#fffaf2]" />
-        <input
-          value={friendId}
-          onChange={(event) => setFriendId(event.target.value)}
-          placeholder="家族IDを入力"
-          className="absolute left-[26%] top-[30.1%] h-[4.6%] w-[43%] rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-2 text-[10px] font-bold text-[#3f2116] outline-none"
-        />
-        <button
-          type="button"
-          onClick={handleAddFriend}
-          className="absolute right-[5.8%] top-[30.1%] h-[4.6%] w-[22%] rounded-full bg-[#0f6a47] text-[10px] font-black text-[#fff8e6]"
-        >
-          追加する
-        </button>
+    <ScreenShell
+      label="FAMILY"
+      title="つながっている人"
+      subtitle="家族の今日のごはんを、同じ温度で見守れます。"
+      action={<BowlIllustration />}
+    >
+      <section className="rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+        <label className="text-[10px] font-black text-[#3f2116]/70">
+          家族ID
+        </label>
+        <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+          <input
+            value={friendId}
+            onChange={(event) => setFriendId(event.target.value)}
+            placeholder="家族IDを入力"
+            className="min-w-0 rounded-[6px] border border-[#dfc79d] bg-[#fffaf2] px-3 py-2 text-[12px] font-bold text-[#3f2116] outline-none"
+          />
+          <button
+            type="button"
+            onClick={handleAddFriend}
+            className="rounded-full bg-[#0f6a47] px-4 py-2 text-[12px] font-black text-[#fff8e6] shadow-[0_10px_24px_rgba(15,106,71,0.16)] active:scale-[0.97]"
+          >
+            追加
+          </button>
+        </div>
         {message && (
-          <p className="absolute left-[5.5%] right-[5.5%] top-[35.5%] rounded-[6px] bg-[#fff8e6] px-2 py-1 text-[10px] font-black text-[#0f6a47]">
+          <p className="mt-2 rounded-[6px] bg-[#fff8e6] px-3 py-2 text-[11px] font-black text-[#0f6a47]">
             {message}
           </p>
         )}
+      </section>
 
-        <div className="absolute left-[5.2%] right-[5.2%] top-[39.7%] h-[31.2%] rounded-[8px] bg-[#fffaf2]" />
+      <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+        <h2 className="text-[15px] font-black text-[#3f2116]">家族</h2>
         {friends.length === 0 ? (
-          <div className="absolute left-[8%] right-[8%] top-[45%]">
+          <div className="mt-3">
             <EmptyState title="まだつながりはありません" />
           </div>
         ) : (
-          <div className="absolute left-[7.2%] right-[7.2%] top-[43.1%] space-y-[8px]">
-            {friends.slice(0, 3).map((friend) => (
+          <div className="mt-3 space-y-2">
+            {friends.map((friend) => (
               <div
                 key={friend.id}
-                className="flex h-[43px] items-center gap-3"
+                className="flex items-center gap-3 rounded-[8px] border border-[#dfc79d]/65 bg-[#fff8e6]/70 p-3"
               >
                 <InitialAvatar name={friend.name} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12px] font-black leading-tight text-[#3f2116]">
+                  <p className="truncate text-[13px] font-black text-[#3f2116]">
                     {friend.name}
                   </p>
-                  <p className="truncate text-[9px] font-bold leading-tight text-[#0f6a47]">
+                  <p className="truncate text-[10px] font-bold text-[#0f6a47]">
                     {friend.userId}
                   </p>
                 </div>
@@ -221,17 +224,19 @@ export default function FriendsPage() {
             ))}
           </div>
         )}
+      </section>
 
-        <div className="absolute left-[5.2%] right-[5.2%] top-[73.5%] h-[18.2%] rounded-[8px] bg-[#fffaf2]" />
+      <section className="mt-3 rounded-[8px] bg-[#fffaf2]/94 p-3 shadow-[0_10px_24px_rgba(63,33,22,0.13)] ring-1 ring-white/65">
+        <h2 className="text-[15px] font-black text-[#3f2116]">最近の投稿</h2>
         {latestPost ? (
-          <div className="absolute left-[7.2%] right-[7.2%] top-[76.5%]">
-            <div className="flex items-center gap-2">
+          <div className="mt-3 rounded-[8px] border border-[#dfc79d]/65 bg-[#fff8e6]/70 p-3">
+            <div className="flex items-center gap-3">
               <InitialAvatar name={latestPost.userName} />
               <div className="min-w-0">
-                <p className="truncate text-[11px] font-black leading-tight text-[#3f2116]">
+                <p className="truncate text-[12px] font-black text-[#3f2116]">
                   {latestPost.userName}
                 </p>
-                <p className="truncate text-[10px] font-bold leading-tight text-[#3f2116]">
+                <p className="truncate text-[11px] font-bold text-[#3f2116]/70">
                   {latestPost.dishName || "今日の料理"}
                 </p>
               </div>
@@ -239,11 +244,11 @@ export default function FriendsPage() {
             <MiniChekiTriplet post={latestPost} className="mt-2" />
           </div>
         ) : (
-          <div className="absolute left-[8%] right-[8%] top-[78%]">
+          <div className="mt-3">
             <EmptyState title="投稿はありません" />
           </div>
         )}
-      </div>
-    </main>
+      </section>
+    </ScreenShell>
   );
 }
